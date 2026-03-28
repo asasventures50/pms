@@ -140,6 +140,7 @@
                     <th class="px-3 py-3">City</th>
                     <th class="px-3 py-3">Phone</th>
                     <th class="px-3 py-3">Email</th>
+                    <th class="px-3 py-3 min-w-[8rem]">RFQ methods</th>
                     <th class="px-3 py-3">Status</th>
                     <th class="px-3 py-3 min-w-[10rem]">Primary Categories</th>
                     <th class="px-3 py-3 min-w-[8rem]">Business Types</th>
@@ -171,6 +172,17 @@
                         <td class="px-3 py-2 text-slate-700">{{ $vendor->city?->name ?? '—' }}</td>
                         <td class="whitespace-nowrap px-3 py-2 text-slate-700">{{ $vendor->phone ?? '—' }}</td>
                         <td class="max-w-[12rem] truncate px-3 py-2 text-slate-700" title="{{ $vendor->email }}">{{ $vendor->email ?? '—' }}</td>
+                        <td class="px-3 py-2">
+                            @if (is_array($vendor->rfq_method) && count($vendor->rfq_method) > 0)
+                                <div class="flex max-w-[14rem] flex-wrap gap-1">
+                                    @foreach ($vendor->rfq_method as $m)
+                                        <span class="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium leading-tight text-slate-800">{{ \Illuminate\Support\Str::headline(str_replace('_', ' ', (string) $m)) }}</span>
+                                    @endforeach
+                                </div>
+                            @else
+                                <span class="text-xs text-slate-700">—</span>
+                            @endif
+                        </td>
                         <td class="whitespace-nowrap px-3 py-2">
                             @php $st = $vendor->status; $sv = $st instanceof \BackedEnum ? $st->value : $st; @endphp
                             <span class="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-800">{{ \Illuminate\Support\Str::headline(str_replace('_', ' ', $sv)) }}</span>
@@ -199,7 +211,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="12" class="px-3 py-10 text-center text-sm text-slate-500">No vendors found.</td>
+                        <td colspan="13" class="px-3 py-10 text-center text-sm text-slate-500">No vendors found.</td>
                     </tr>
                 @endforelse
                 </tbody>

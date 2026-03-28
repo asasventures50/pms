@@ -38,6 +38,17 @@
 
     $selectedBusinessTypes = old('business_types', $v?->businessTypes->pluck('business_type')->map(fn ($e) => $e instanceof \BackedEnum ? $e->value : $e)->all() ?? []);
 
+    $selectedRfqMethods = old('rfq_method', $v?->rfq_method);
+    if (! is_array($selectedRfqMethods)) {
+        $selectedRfqMethods = is_string($selectedRfqMethods) && $selectedRfqMethods !== ''
+            ? [$selectedRfqMethods]
+            : [];
+    }
+    $selectedRfqMethods = array_values(array_unique(array_filter(
+        $selectedRfqMethods,
+        static fn ($item) => is_string($item) && $item !== ''
+    )));
+
     $countriesCollection = $countries ?? collect();
     $defaultCountryId = $defaultCountryId ?? null;
     $defaultCityId = $defaultCityId ?? null;
@@ -243,17 +254,6 @@
     <h2 class="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">Procurement Information</h2>
     <div class="mt-4 grid gap-4 md:grid-cols-2">
         <div>
-            <label for="rfq_method" class="block text-xs font-medium uppercase tracking-wide text-slate-500">RFQ method</label>
-            <select name="rfq_method" id="rfq_method"
-                    class="admin-filter-control @error('rfq_method') border-red-500 @enderror">
-                <option value="">—</option>
-                @foreach (RfqMethod::cases() as $case)
-                    <option value="{{ $case->value }}" @selected(old('rfq_method', ($v?->rfq_method instanceof \BackedEnum) ? $v->rfq_method->value : ($v?->rfq_method ?? '')) === $case->value)>{{ \Illuminate\Support\Str::headline(str_replace('_', ' ', $case->value)) }}</option>
-                @endforeach
-            </select>
-            @error('rfq_method')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-        </div>
-        <div>
             <label for="pricing_frequency" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Pricing frequency</label>
             <select name="pricing_frequency" id="pricing_frequency"
                     class="admin-filter-control @error('pricing_frequency') border-red-500 @enderror">
@@ -292,6 +292,27 @@
                    class="admin-filter-control uppercase @error('currency_code') border-red-500 @enderror">
             @error('currency_code')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
+    </div>
+
+    <div class="mt-8 border-t border-slate-100 pt-6">
+        @if ($mode === 'edit')
+            <input type="hidden" name="rfq_method_sync" value="1">
+        @endif
+        <h3 class="text-sm font-semibold text-slate-900">RFQ method</h3>
+        <p class="mt-1 text-xs text-slate-500">Select all that apply.</p>
+        <div class="mt-3 grid gap-3 sm:grid-cols-2">
+            @foreach (RfqMethod::cases() as $case)
+                <label class="flex cursor-pointer items-center gap-2 text-sm text-slate-800">
+                    <input type="checkbox" name="rfq_method[]" value="{{ $case->value }}"
+                           id="rfq_method_{{ $case->value }}"
+                           class="rounded border-slate-300 text-slate-900 focus:ring-slate-500"
+                           @checked(in_array($case->value, $selectedRfqMethods, true))>
+                    <span>{{ \Illuminate\Support\Str::headline(str_replace('_', ' ', $case->value)) }}</span>
+                </label>
+            @endforeach
+        </div>
+        @error('rfq_method')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
+        @error('rfq_method.*')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
     </div>
 </section>
 

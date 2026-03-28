@@ -83,7 +83,18 @@
         <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 class="border-b border-slate-100 pb-2 text-base font-semibold text-slate-900">Procurement</h2>
             <dl class="mt-4 grid gap-4 sm:grid-cols-2">
-                <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">RFQ method</dt><dd class="mt-1 text-sm text-slate-900">{{ $vendor->rfq_method ? $label($vendor->rfq_method) : '—' }}</dd></div>
+                <div class="sm:col-span-2">
+                    <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">RFQ method</dt>
+                    <dd class="mt-1 flex flex-wrap gap-2">
+                        @if (is_array($vendor->rfq_method) && count($vendor->rfq_method) > 0)
+                            @foreach ($vendor->rfq_method as $m)
+                                <span class="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-800">{{ \Illuminate\Support\Str::headline(str_replace('_', ' ', (string) $m)) }}</span>
+                            @endforeach
+                        @else
+                            <span class="text-sm text-slate-900">—</span>
+                        @endif
+                    </dd>
+                </div>
                 <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Pricing frequency</dt><dd class="mt-1 text-sm text-slate-900">{{ $vendor->pricing_frequency ? $label($vendor->pricing_frequency) : '—' }}</dd></div>
                 <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Delivery lead time (days)</dt><dd class="mt-1 text-sm text-slate-900">{{ $vendor->delivery_lead_time_days ?? '—' }}</dd></div>
                 <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Execution lead time (days)</dt><dd class="mt-1 text-sm text-slate-900">{{ $vendor->execution_lead_time_days ?? '—' }}</dd></div>

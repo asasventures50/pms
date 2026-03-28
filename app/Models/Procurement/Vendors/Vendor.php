@@ -6,12 +6,11 @@ use App\Enums\Procurement\Vendors\CompanyType;
 use App\Enums\Procurement\Vendors\CoverageType;
 use App\Enums\Procurement\Vendors\PaymentMethod;
 use App\Enums\Procurement\Vendors\PricingFrequency;
-use App\Enums\Procurement\Vendors\RfqMethod;
-use App\Enums\Procurement\Vendors\VendorBusinessType;
 use App\Enums\Procurement\Vendors\VendorLanguage;
 use App\Enums\Procurement\Vendors\VendorStatus;
 use App\Models\Geo\City;
 use App\Models\Geo\Country;
+use App\Models\Procurement\Vendors\VendorBusinessType as VendorBusinessTypeModel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -72,7 +71,7 @@ class Vendor extends Model
     {
         return [
             'language' => VendorLanguage::class,
-            'rfq_method' => RfqMethod::class,
+            'rfq_method' => 'array',
             'pricing_frequency' => PricingFrequency::class,
             'payment_method' => PaymentMethod::class,
             'company_type' => CompanyType::class,
@@ -100,7 +99,7 @@ class Vendor extends Model
 
     public function businessTypes(): HasMany
     {
-        return $this->hasMany(VendorBusinessType::class, 'vendor_id');
+        return $this->hasMany(VendorBusinessTypeModel::class, 'vendor_id');
     }
 
     public function vendorCategories(): HasMany

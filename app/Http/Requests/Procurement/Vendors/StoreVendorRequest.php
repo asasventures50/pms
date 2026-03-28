@@ -43,6 +43,10 @@ class StoreVendorRequest extends FormRequest
             ]);
         }
 
+        $this->merge([
+            'rfq_method' => RfqMethod::normalizeRequestInput((array) $this->input('rfq_method', [])),
+        ]);
+
         if ($this->filled('primary_category_index')) {
             $idx = $this->input('primary_category_index');
             $categories = (array) $this->input('categories', []);
@@ -99,7 +103,8 @@ class StoreVendorRequest extends FormRequest
             'secondary_contact_phone' => ['nullable', 'string', 'max:50'],
             'secondary_contact_email' => ['nullable', 'email:rfc,dns', 'max:255'],
 
-            'rfq_method' => ['nullable', 'string', Rule::in(RfqMethod::values())],
+            'rfq_method' => ['nullable', 'array'],
+            'rfq_method.*' => ['string', Rule::in(RfqMethod::values())],
             'pricing_frequency' => ['nullable', 'string', Rule::in(PricingFrequency::values())],
             'delivery_lead_time_days' => ['nullable', 'integer', 'min:0'],
             'execution_lead_time_days' => ['nullable', 'integer', 'min:0'],
