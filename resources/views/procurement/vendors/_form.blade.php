@@ -73,6 +73,7 @@
 
     if ($mode === 'edit' && $v && $v->locations->isNotEmpty()) {
         $defaultLocationRows = $v->locations->sortBy(fn ($loc) => [$loc->is_primary ? 0 : 1, $loc->id])->values()->map(fn ($loc) => [
+            'id' => $loc->id,
             'country_id' => $loc->country_id,
             'city_id' => $loc->city_id,
             'address' => $loc->address ?? '',
@@ -170,7 +171,9 @@
 <input type="hidden" name="business_types_sync" value="1">
 @if ($mode === 'edit')
     <input type="hidden" name="locations_sync" value="1">
+    <input type="hidden" name="categories_sync" value="1">
 @endif
+<div id="brochure-removal-stash" class="hidden" aria-hidden="true"></div>
 
 {{-- 1. Basic Information --}}
 <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -247,9 +250,16 @@
                 $locCountryId = old("locations.$li.country_id", $locRow['country_id'] ?? '');
                 $locCityId = old("locations.$li.city_id", $locRow['city_id'] ?? '');
             @endphp
-            <div class="vendor-location-row rounded-lg border border-slate-200 bg-slate-50/50 p-4" data-location-index="{{ $li }}">
+            <div class="vendor-location-row rounded-lg border border-slate-200 bg-slate-50/50 p-4" data-location-index="{{ $li }}"
+                @if (! empty($locRow['id'] ?? null)) data-persisted-location-id="{{ $locRow['id'] }}" @endif>
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
-                    <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Branch {{ $li + 1 }}</span>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="vendor-location-branch-label text-xs font-semibold uppercase tracking-wide text-slate-500">Branch {{ $li + 1 }}</span>
+                        <button type="button" data-remove-vendor-location
+                                class="rounded border border-red-200 px-2 py-0.5 text-xs font-medium text-red-600 hover:bg-red-50">
+                            Remove
+                        </button>
+                    </div>
                     <label class="inline-flex cursor-pointer items-center gap-2 text-sm text-slate-800">
                         <input type="radio" name="primary_location_index" value="{{ $li }}"
                                class="border-slate-300 text-slate-900 focus:ring-slate-500"
@@ -318,7 +328,13 @@
 <template id="vendor-location-row-template">
     <div class="vendor-location-row rounded-lg border border-slate-200 bg-slate-50/50 p-4" data-location-index="__LIDX__">
         <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
-            <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Branch __NUM__</span>
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="vendor-location-branch-label text-xs font-semibold uppercase tracking-wide text-slate-500">Branch __NUM__</span>
+                <button type="button" data-remove-vendor-location
+                        class="rounded border border-red-200 px-2 py-0.5 text-xs font-medium text-red-600 hover:bg-red-50">
+                    Remove
+                </button>
+            </div>
             <label class="inline-flex cursor-pointer items-center gap-2 text-sm text-slate-800">
                 <input type="radio" name="primary_location_index" value="__LIDX__"
                        class="border-slate-300 text-slate-900 focus:ring-slate-500">
@@ -594,6 +610,7 @@
                     <th class="px-3 py-2 text-left">Primary</th>
                     <th class="px-3 py-2 text-left w-[min(14rem,40vw)]">Category</th>
                     <th class="px-3 py-2 text-left min-w-[12rem]">Subcategories</th>
+                    <th class="px-3 py-2 text-right w-[5rem]">Actions</th>
                 </tr>
                 </thead>
                 <tbody id="category-rows" class="divide-y divide-slate-100 bg-white">
@@ -609,7 +626,7 @@
                             ? ($categories->firstWhere('id', (int) $catId)?->subcategories ?? collect())
                             : collect();
                     @endphp
-                    <tr class="category-row" data-row-index="{{ $index }}">
+                    <tr class="category-row" data-row-index="{{ $index }}" data-category-row-persisted="{{ $mode === 'edit' ? '1' : '0' }}">
                         <td class="px-3 py-2 align-top">
                             <input type="radio" name="primary_category_index" value="{{ $index }}"
                                    class="mt-1 border-slate-300 text-slate-900 focus:ring-slate-500"
@@ -641,6 +658,12 @@
                             </div>
                             @error('categories.'.$index.'.subcategory_ids')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                         </td>
+                        <td class="px-3 py-2 align-top text-right">
+                            <button type="button" data-remove-category-row
+                                    class="rounded border border-red-200 px-2 py-0.5 text-xs font-medium text-red-600 hover:bg-red-50">
+                                Remove
+                            </button>
+                        </td>
                     </tr>
                 @endforeach
                 </tbody>
@@ -654,7 +677,7 @@
 </section>
 
 <template id="category-row-template">
-    <tr class="category-row" data-row-index="__IDX__">
+    <tr class="category-row" data-row-index="__IDX__" data-category-row-persisted="0">
         <td class="px-3 py-2 align-top">
             <input type="radio" name="primary_category_index" value="__IDX__"
                    class="mt-1 border-slate-300 text-slate-900 focus:ring-slate-500">
@@ -674,6 +697,12 @@
                 <p class="text-xs text-slate-500">Choose a category to list subcategories.</p>
             </div>
         </td>
+        <td class="px-3 py-2 align-top text-right">
+            <button type="button" data-remove-category-row
+                    class="rounded border border-red-200 px-2 py-0.5 text-xs font-medium text-red-600 hover:bg-red-50">
+                Remove
+            </button>
+        </td>
     </tr>
 </template>
 
@@ -681,22 +710,13 @@
 <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
     <h2 class="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">Brochures</h2>
     <div class="mt-4 grid gap-4 md:grid-cols-2">
-        <div class="md:col-span-2">
-            <input type="hidden" name="is_brochure_available" value="0">
-            <label class="flex items-center gap-2 text-sm text-slate-800">
-                <input type="checkbox" name="is_brochure_available" value="1"
-                       class="rounded border-slate-300 text-slate-900 focus:ring-slate-500"
-                    @checked(old('is_brochure_available', $v?->is_brochure_available ?? false))>
-                Brochure available (flag)
-            </label>
-            @error('is_brochure_available')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-        </div>
         @if ($mode === 'edit' && $v && $v->brochures->isNotEmpty())
             <div class="md:col-span-2">
                 <h3 class="text-sm font-medium text-slate-800">Existing files</h3>
                 <ul class="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-200 text-sm">
                     @foreach ($v->brochures as $brochure)
-                        <li class="flex flex-col gap-2 px-3 py-3">
+                        <li class="flex flex-col gap-3 px-3 py-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4" data-existing-brochure-id="{{ $brochure->id }}">
+                            <div class="min-w-0 flex-1 space-y-2">
                             <div class="font-medium text-slate-900">{{ $brochure->file_name }}</div>
                             <div class="break-all font-mono text-xs text-slate-500">{{ $brochure->file_path }}</div>
                             @if ($brochure->notes)
@@ -720,6 +740,11 @@
                                     @endif
                                 </div>
                             @endif
+                            </div>
+                            <button type="button" data-remove-existing-brochure data-brochure-id="{{ $brochure->id }}"
+                                    class="shrink-0 self-start rounded border border-red-200 px-2 py-0.5 text-xs font-medium text-red-600 hover:bg-red-50">
+                                Remove
+                            </button>
                         </li>
                     @endforeach
                 </ul>
@@ -731,6 +756,13 @@
             <div id="brochure-new-rows" class="space-y-4">
                 @for ($bi = 0; $bi < $brochureNewRowCount; $bi++)
                     <div class="brochure-upload-row rounded-lg border border-slate-200 bg-slate-50/50 p-4" data-brochure-index="{{ $bi }}">
+                        <div class="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
+                            <span class="brochure-upload-heading text-xs font-semibold uppercase tracking-wide text-slate-500">New brochure {{ $bi + 1 }}</span>
+                            <button type="button" data-remove-brochure-upload-row
+                                    class="rounded border border-red-200 px-2 py-0.5 text-xs font-medium text-red-600 hover:bg-red-50">
+                                Remove
+                            </button>
+                        </div>
                         <div class="grid gap-4 md:grid-cols-2">
                             <div class="md:col-span-2">
                                 <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">File</label>
@@ -781,6 +813,13 @@
 
 <template id="brochure-row-template">
     <div class="brochure-upload-row rounded-lg border border-slate-200 bg-slate-50/50 p-4" data-brochure-index="__BIDX__">
+        <div class="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
+            <span class="brochure-upload-heading text-xs font-semibold uppercase tracking-wide text-slate-500">New brochure __BNUM__</span>
+            <button type="button" data-remove-brochure-upload-row
+                    class="rounded border border-red-200 px-2 py-0.5 text-xs font-medium text-red-600 hover:bg-red-50">
+                Remove
+            </button>
+        </div>
         <div class="grid gap-4 md:grid-cols-2">
             <div class="md:col-span-2">
                 <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">File</label>
@@ -901,6 +940,120 @@
                 });
             }
 
+            function reindexVendorLocationRows() {
+                const container = document.getElementById('vendor-location-rows');
+                if (!container) {
+                    return;
+                }
+                container.querySelectorAll('.vendor-location-row').forEach(function (row, i) {
+                    row.setAttribute('data-location-index', String(i));
+                    const label = row.querySelector('.vendor-location-branch-label');
+                    if (label) {
+                        label.textContent = 'Branch ' + (i + 1);
+                    }
+                    row.querySelectorAll('[name]').forEach(function (el) {
+                        if (!el.name || el.name.indexOf('locations[') !== 0) {
+                            return;
+                        }
+                        el.name = el.name.replace(/locations\[\d+\]/, 'locations[' + i + ']');
+                    });
+                    const radio = row.querySelector('input[name="primary_location_index"]');
+                    if (radio) {
+                        radio.value = String(i);
+                    }
+                });
+            }
+
+            function ensurePrimaryLocationRadios() {
+                const container = document.getElementById('vendor-location-rows');
+                if (!container) {
+                    return;
+                }
+                if (container.querySelectorAll('.vendor-location-row').length === 0) {
+                    return;
+                }
+                if (!container.querySelector('input[name="primary_location_index"]:checked')) {
+                    const first = container.querySelector('input[name="primary_location_index"]');
+                    if (first) {
+                        first.checked = true;
+                    }
+                }
+            }
+
+            function reindexCategoryRows() {
+                const tbodyEl = document.getElementById('category-rows');
+                if (!tbodyEl) {
+                    return;
+                }
+                tbodyEl.querySelectorAll('tr.category-row').forEach(function (row, i) {
+                    row.setAttribute('data-row-index', String(i));
+                    const radio = row.querySelector('input[name="primary_category_index"]');
+                    if (radio) {
+                        radio.value = String(i);
+                    }
+                    const select = row.querySelector('[data-category-select]');
+                    if (select) {
+                        select.name = 'categories[' + i + '][category_id]';
+                    }
+                    row.querySelectorAll('input[name^="categories["]').forEach(function (el) {
+                        el.name = el.name.replace(/categories\[\d+\]/, 'categories[' + i + ']');
+                    });
+                    const selected = [];
+                    const wrap = row.querySelector('[data-category-sub-checkboxes]');
+                    if (wrap) {
+                        wrap.querySelectorAll('input[type="checkbox"]:checked').forEach(function (cb) {
+                            selected.push(parseInt(cb.value, 10));
+                        });
+                    }
+                    refreshCategorySubCheckboxes(row, selected);
+                });
+            }
+
+            function ensurePrimaryCategoryRadios() {
+                const tbodyEl = document.getElementById('category-rows');
+                if (!tbodyEl) {
+                    return;
+                }
+                if (tbodyEl.querySelectorAll('tr.category-row').length === 0) {
+                    return;
+                }
+                if (!tbodyEl.querySelector('input[name="primary_category_index"]:checked')) {
+                    const first = tbodyEl.querySelector('input[name="primary_category_index"]');
+                    if (first) {
+                        first.checked = true;
+                    }
+                }
+            }
+
+            function reindexBrochureUploadRows() {
+                const container = document.getElementById('brochure-new-rows');
+                if (!container) {
+                    return;
+                }
+                container.querySelectorAll('.brochure-upload-row').forEach(function (row, i) {
+                    row.setAttribute('data-brochure-index', String(i));
+                    const heading = row.querySelector('.brochure-upload-heading');
+                    if (heading) {
+                        heading.textContent = 'New brochure ' + (i + 1);
+                    }
+                    row.querySelectorAll('[name]').forEach(function (el) {
+                        if (!el.name || el.name.indexOf('brochure_rows[') !== 0) {
+                            return;
+                        }
+                        el.name = el.name.replace(/brochure_rows\[\d+\]/, 'brochure_rows[' + i + ']');
+                    });
+                });
+            }
+
+            const vendorForm = document.getElementById('vendor-form');
+            if (vendorForm) {
+                vendorForm.addEventListener('submit', function () {
+                    reindexVendorLocationRows();
+                    reindexCategoryRows();
+                    reindexBrochureUploadRows();
+                });
+            }
+
             const tbody = document.getElementById('category-rows');
             const template = document.getElementById('category-row-template');
             const addBtn = document.getElementById('add-category-row');
@@ -912,10 +1065,28 @@
                     refreshCategorySubCheckboxes(row, meta.subcategory_ids || []);
                 });
 
-                let nextIndex = rows.length;
+                tbody.addEventListener('click', function (e) {
+                    const btn = e.target.closest('[data-remove-category-row]');
+                    if (!btn) {
+                        return;
+                    }
+                    const row = btn.closest('tr.category-row');
+                    if (!row) {
+                        return;
+                    }
+                    if (row.getAttribute('data-category-row-persisted') === '1') {
+                        if (!window.confirm('Remove this saved category row?')) {
+                            return;
+                        }
+                    }
+                    row.remove();
+                    reindexCategoryRows();
+                    ensurePrimaryCategoryRadios();
+                });
 
                 addBtn.addEventListener('click', function () {
-                    const html = template.innerHTML.replaceAll('__IDX__', String(nextIndex));
+                    const idx = tbody.querySelectorAll('tr.category-row').length;
+                    const html = template.innerHTML.replaceAll('__IDX__', String(idx));
                     tbody.insertAdjacentHTML('beforeend', html);
                     const row = tbody.lastElementChild;
                     wireVendorCategoryRow(row);
@@ -924,7 +1095,6 @@
                     if (radio) {
                         radio.checked = true;
                     }
-                    nextIndex += 1;
                 });
             }
 
@@ -981,8 +1151,27 @@
                     refreshVendorLocationCities(row, meta.city_id || '');
                 });
 
-                let nextLoc = locContainer.querySelectorAll('.vendor-location-row').length;
+                locContainer.addEventListener('click', function (e) {
+                    const btn = e.target.closest('[data-remove-vendor-location]');
+                    if (!btn) {
+                        return;
+                    }
+                    const row = btn.closest('.vendor-location-row');
+                    if (!row) {
+                        return;
+                    }
+                    if (row.getAttribute('data-persisted-location-id')) {
+                        if (!window.confirm('Remove this saved branch from the vendor?')) {
+                            return;
+                        }
+                    }
+                    row.remove();
+                    reindexVendorLocationRows();
+                    ensurePrimaryLocationRadios();
+                });
+
                 addLocBtn.addEventListener('click', function () {
+                    const nextLoc = locContainer.querySelectorAll('.vendor-location-row').length;
                     let html = locTemplate.innerHTML.replaceAll('__LIDX__', String(nextLoc));
                     html = html.replaceAll('__NUM__', String(nextLoc + 1));
                     locContainer.insertAdjacentHTML('beforeend', html);
@@ -993,7 +1182,6 @@
                     if (radio) {
                         radio.checked = true;
                     }
-                    nextLoc += 1;
                 });
             }
 
@@ -1029,15 +1217,54 @@
                     wireBrochureRow(row, meta.subcategory_id || '');
                 });
 
-                let nextBrochureIndex = brochureContainer.querySelectorAll('.brochure-upload-row').length;
+                brochureContainer.addEventListener('click', function (e) {
+                    const btn = e.target.closest('[data-remove-brochure-upload-row]');
+                    if (!btn) {
+                        return;
+                    }
+                    const row = btn.closest('.brochure-upload-row');
+                    if (!row) {
+                        return;
+                    }
+                    row.remove();
+                    reindexBrochureUploadRows();
+                });
+
                 addBrochureBtn.addEventListener('click', function () {
-                    const html = brochureTemplate.innerHTML.replaceAll('__BIDX__', String(nextBrochureIndex));
+                    const nextBrochureIndex = brochureContainer.querySelectorAll('.brochure-upload-row').length;
+                    let html = brochureTemplate.innerHTML.replaceAll('__BIDX__', String(nextBrochureIndex));
+                    html = html.replaceAll('__BNUM__', String(nextBrochureIndex + 1));
                     brochureContainer.insertAdjacentHTML('beforeend', html);
                     const row = brochureContainer.lastElementChild;
                     wireBrochureRow(row, '');
-                    nextBrochureIndex += 1;
                 });
             }
+
+            document.addEventListener('click', function (e) {
+                const btn = e.target.closest('[data-remove-existing-brochure]');
+                if (!btn) {
+                    return;
+                }
+                const id = btn.getAttribute('data-brochure-id');
+                if (!id) {
+                    return;
+                }
+                if (!window.confirm('Remove this brochure from the vendor? The stored file will be deleted when you save.')) {
+                    return;
+                }
+                const stash = document.getElementById('brochure-removal-stash');
+                if (stash) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'remove_brochure_ids[]';
+                    input.value = id;
+                    stash.appendChild(input);
+                }
+                const li = btn.closest('li[data-existing-brochure-id]');
+                if (li) {
+                    li.remove();
+                }
+            });
         });
     </script>
 @endpush

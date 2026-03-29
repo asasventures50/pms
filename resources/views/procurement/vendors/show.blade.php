@@ -149,7 +149,7 @@
                 <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Tax number</dt><dd class="mt-1 text-sm text-slate-900">{{ $vendor->tax_number ?: '—' }}</dd></div>
                 <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Registration number</dt><dd class="mt-1 text-sm text-slate-900">{{ $vendor->registration_number ?: '—' }}</dd></div>
                 <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">License number</dt><dd class="mt-1 text-sm text-slate-900">{{ $vendor->license_number ?: '—' }}</dd></div>
-                <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Brochure available</dt><dd class="mt-1 text-sm text-slate-900">{{ $vendor->is_brochure_available ? 'Yes' : 'No' }}</dd></div>
+                <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Has brochures</dt><dd class="mt-1 text-sm text-slate-900">{{ $vendor->has_brochures ? 'Yes' : 'No' }}</dd></div>
             </dl>
         </section>
 

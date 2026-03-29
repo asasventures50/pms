@@ -10,6 +10,7 @@ use App\Enums\Procurement\Vendors\PricingFrequency;
 use App\Enums\Procurement\Vendors\VendorLanguage;
 use App\Enums\Procurement\Vendors\VendorStatus;
 use App\Models\Procurement\Vendors\VendorBusinessType as VendorBusinessTypeModel;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -59,7 +60,6 @@ class Vendor extends Model
         'tax_number',
         'registration_number',
         'license_number',
-        'is_brochure_available',
         'rating',
     ];
 
@@ -75,7 +75,6 @@ class Vendor extends Model
             'company_type' => CompanyType::class,
             'status' => VendorStatus::class,
             'coverage_type' => CoverageType::class,
-            'is_brochure_available' => 'boolean',
             'rating' => 'integer',
         ];
     }
@@ -93,6 +92,25 @@ class Vendor extends Model
     public function brochures(): HasMany
     {
         return $this->hasMany(VendorBrochure::class, 'vendor_id');
+    }
+
+    /**
+     * True when the vendor has at least one brochure record.
+     * Uses `brochures_count` when present (e.g. from withCount) to avoid extra queries.
+     */
+    protected function hasBrochures(): Attribute
+    {
+        return Attribute::get(function (): bool {
+            if (array_key_exists('brochures_count', $this->attributes)) {
+                return (int) $this->attributes['brochures_count'] > 0;
+            }
+
+            if ($this->relationLoaded('brochures')) {
+                return $this->brochures->isNotEmpty();
+            }
+
+            return $this->brochures()->exists();
+        });
     }
 
     public function businessTypes(): HasMany

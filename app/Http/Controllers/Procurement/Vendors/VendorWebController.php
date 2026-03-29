@@ -37,6 +37,7 @@ class VendorWebController extends Controller
                 'locations.country',
                 'locations.city',
             ])
+            ->withCount('brochures')
             ->latest();
 
         if ($request->filled('q')) {
@@ -169,12 +170,8 @@ class VendorWebController extends Controller
             $this->persistence->replaceCategories($vendor, $categories);
             $this->persistence->replaceBusinessTypes($vendor, $businessTypes);
 
-            $storedRows = $this->persistence->appendBrochureRows($vendor, $brochureRows);
-            $storedLegacy = $this->persistence->appendBrochures($vendor, $request);
-            if ($storedRows + $storedLegacy > 0) {
-                $vendor->is_brochure_available = true;
-                $vendor->save();
-            }
+            $this->persistence->appendBrochureRows($vendor, $brochureRows);
+            $this->persistence->appendBrochures($vendor, $request);
         });
 
         if (! $vendor instanceof Vendor) {
@@ -244,14 +241,15 @@ class VendorWebController extends Controller
     {
         $validated = $request->validated();
 
-        $categoriesProvided = array_key_exists('categories', $validated);
+        $categoriesProvided = array_key_exists('categories', $validated) || $request->has('categories_sync');
         $businessTypesProvided = array_key_exists('business_types', $validated);
-        $locationsProvided = array_key_exists('locations', $validated);
+        $locationsProvided = array_key_exists('locations', $validated) || $request->has('locations_sync');
 
         $categories = $validated['categories'] ?? null;
         $businessTypes = $validated['business_types'] ?? null;
         $brochureRows = $validated['brochure_rows'] ?? null;
         $locations = $validated['locations'] ?? null;
+        $removeBrochureIds = $validated['remove_brochure_ids'] ?? null;
 
         unset(
             $validated['categories'],
@@ -259,11 +257,16 @@ class VendorWebController extends Controller
             $validated['brochures'],
             $validated['brochure_rows'],
             $validated['locations'],
+            $validated['remove_brochure_ids'],
         );
 
         VendorPayloadResolver::finalizeForUpdate($validated);
 
-        DB::transaction(function () use ($vendor, $validated, $categoriesProvided, $businessTypesProvided, $locationsProvided, $categories, $businessTypes, $locations, $brochureRows, $request) {
+        DB::transaction(function () use ($vendor, $validated, $categoriesProvided, $businessTypesProvided, $locationsProvided, $categories, $businessTypes, $locations, $brochureRows, $removeBrochureIds, $request) {
+            if (is_array($removeBrochureIds) && $removeBrochureIds !== []) {
+                $this->persistence->removeBrochuresByIds($vendor, $removeBrochureIds);
+            }
+
             $vendor->fill($validated);
             $vendor->save();
 
@@ -279,12 +282,8 @@ class VendorWebController extends Controller
                 $this->persistence->replaceCategories($vendor, $categories);
             }
 
-            $storedRows = $this->persistence->appendBrochureRows($vendor, $brochureRows);
-            $storedLegacy = $this->persistence->appendBrochures($vendor, $request);
-            if ($storedRows + $storedLegacy > 0) {
-                $vendor->is_brochure_available = true;
-                $vendor->save();
-            }
+            $this->persistence->appendBrochureRows($vendor, $brochureRows);
+            $this->persistence->appendBrochures($vendor, $request);
         });
 
         return redirect()

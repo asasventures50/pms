@@ -11,7 +11,7 @@
         <a href="{{ route('vendors.index') }}" class="text-sm font-medium text-slate-600 hover:text-slate-900">Back to list</a>
     </div>
 
-    <form action="{{ route('vendors.store') }}" method="post" enctype="multipart/form-data" class="space-y-8">
+    <form id="vendor-form" action="{{ route('vendors.store') }}" method="post" enctype="multipart/form-data" class="space-y-8">
         @csrf
         @include('procurement.vendors._form', [
             'vendor' => null,

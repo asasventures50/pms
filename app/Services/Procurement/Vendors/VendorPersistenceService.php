@@ -3,8 +3,10 @@
 namespace App\Services\Procurement\Vendors;
 
 use App\Models\Procurement\Vendors\Vendor;
+use App\Models\Procurement\Vendors\VendorBrochure;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 class VendorPersistenceService
 {
@@ -173,6 +175,35 @@ class VendorPersistenceService
         }
 
         return $stored;
+    }
+
+    /**
+     * Delete vendor brochures by id (scoped to vendor). Removes public disk files when present.
+     *
+     * @param  list<int>  $ids
+     */
+    public function removeBrochuresByIds(Vendor $vendor, array $ids): void
+    {
+        $ids = array_values(array_unique(array_filter(
+            array_map(static fn ($v) => (int) $v, $ids),
+            static fn (int $id) => $id > 0
+        )));
+
+        if ($ids === []) {
+            return;
+        }
+
+        $brochures = VendorBrochure::query()
+            ->where('vendor_id', $vendor->id)
+            ->whereIn('id', $ids)
+            ->get();
+
+        foreach ($brochures as $brochure) {
+            if ($brochure->file_path) {
+                Storage::disk('public')->delete($brochure->file_path);
+            }
+            $brochure->delete();
+        }
     }
 
     /**

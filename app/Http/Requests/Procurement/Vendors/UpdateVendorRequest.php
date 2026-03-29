@@ -31,12 +31,6 @@ class UpdateVendorRequest extends FormRequest
             $this->merge(['vendor_code' => null]);
         }
 
-        if ($this->has('is_brochure_available')) {
-            $this->merge([
-                'is_brochure_available' => $this->boolean('is_brochure_available'),
-            ]);
-        }
-
         if ($this->has('business_types_sync')) {
             $this->merge([
                 'business_types' => array_values(array_filter(
@@ -44,6 +38,14 @@ class UpdateVendorRequest extends FormRequest
                     static fn ($v) => $v !== null && $v !== ''
                 )),
             ]);
+        }
+
+        if ($this->has('locations_sync')) {
+            $this->merge(['locations' => (array) $this->input('locations', [])]);
+        }
+
+        if ($this->has('categories_sync')) {
+            $this->merge(['categories' => (array) $this->input('categories', [])]);
         }
 
         if ($this->has('rfq_method_sync')) {
@@ -219,7 +221,6 @@ class UpdateVendorRequest extends FormRequest
             'registration_number' => ['nullable', 'string', 'max:255'],
             'license_number' => ['nullable', 'string', 'max:255'],
 
-            'is_brochure_available' => ['nullable', 'boolean'],
             'rating' => ['nullable', 'integer', 'between:1,5'],
 
             'categories' => ['sometimes', 'array'],
@@ -257,6 +258,14 @@ class UpdateVendorRequest extends FormRequest
 
             'brochures' => ['nullable', 'array'],
             'brochures.*' => ['file', 'max:20480', 'mimes:pdf,jpeg,jpg,png,gif,webp,doc,docx,xls,xlsx'],
+
+            'remove_brochure_ids' => ['sometimes', 'array'],
+            'remove_brochure_ids.*' => [
+                'integer',
+                Rule::exists('vendor_brochures', 'id')->where(
+                    fn ($q) => $q->where('vendor_id', $vendorId)
+                ),
+            ],
         ];
     }
 

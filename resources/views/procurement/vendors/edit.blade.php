@@ -14,7 +14,7 @@
         </div>
     </div>
 
-    <form action="{{ route('vendors.update', $vendor) }}" method="post" enctype="multipart/form-data" class="space-y-8">
+    <form id="vendor-form" action="{{ route('vendors.update', $vendor) }}" method="post" enctype="multipart/form-data" class="space-y-8">
         @csrf
         @method('PUT')
         @include('procurement.vendors._form', [

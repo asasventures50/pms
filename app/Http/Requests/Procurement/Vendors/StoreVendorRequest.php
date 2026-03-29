@@ -31,10 +31,6 @@ class StoreVendorRequest extends FormRequest
             $this->merge(['vendor_code' => null]);
         }
 
-        $this->merge([
-            'is_brochure_available' => $this->boolean('is_brochure_available'),
-        ]);
-
         if ($this->has('business_types_sync')) {
             $this->merge([
                 'business_types' => array_values(array_filter(
@@ -186,7 +182,6 @@ class StoreVendorRequest extends FormRequest
             'registration_number' => ['nullable', 'string', 'max:255'],
             'license_number' => ['nullable', 'string', 'max:255'],
 
-            'is_brochure_available' => ['boolean'],
             'rating' => ['nullable', 'integer', 'between:1,5'],
 
             'categories' => ['sometimes', 'array'],
