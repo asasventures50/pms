@@ -1,6 +1,7 @@
 @php
     use App\Enums\Procurement\Vendors\CompanyType;
     use App\Enums\Procurement\Vendors\CoverageType;
+    use App\Enums\Procurement\Vendors\LeadTimeRange;
     use App\Enums\Procurement\Vendors\PaymentMethod;
     use App\Enums\Procurement\Vendors\PricingFrequency;
     use App\Enums\Procurement\Vendors\RfqMethod;
@@ -11,28 +12,101 @@
     $v = $vendor ?? null;
 
     if ($mode === 'edit' && $v) {
-        $orderedVc = $v->vendorCategories->sortBy('id')->values();
-        $defaultCategoryRows = $orderedVc->map(fn ($vc) => [
-            'category_id' => $vc->category_id,
-            'subcategory_id' => $vc->subcategory_id,
-        ])->all();
+        $bucket = [];
+        foreach ($v->vendorCategories->sortBy('id') as $vc) {
+            $cid = (string) $vc->category_id;
+            if (! isset($bucket[$cid])) {
+                $bucket[$cid] = [
+                    'category_id' => $vc->category_id,
+                    'subcategory_ids' => [],
+                    'is_primary' => false,
+                ];
+            }
+            if ($vc->subcategory_id !== null) {
+                $bucket[$cid]['subcategory_ids'][] = $vc->subcategory_id;
+            }
+            if ($vc->is_primary) {
+                $bucket[$cid]['is_primary'] = true;
+            }
+        }
+        foreach ($bucket as &$bRow) {
+            $bRow['subcategory_ids'] = array_values(array_unique(array_filter($bRow['subcategory_ids'])));
+        }
+        unset($bRow);
+        $defaultCategoryRows = array_values($bucket);
         if (count($defaultCategoryRows) === 0) {
-            $defaultCategoryRows = [['category_id' => '', 'subcategory_id' => '']];
+            $defaultCategoryRows = [['category_id' => '', 'subcategory_ids' => [], 'is_primary' => true]];
+        } else {
+            $pCount = collect($defaultCategoryRows)->where('is_primary', true)->count();
+            if ($pCount !== 1) {
+                foreach ($defaultCategoryRows as $i => &$r) {
+                    $r['is_primary'] = $i === 0;
+                }
+                unset($r);
+            }
         }
     } else {
-        $defaultCategoryRows = [['category_id' => '', 'subcategory_id' => '']];
+        $defaultCategoryRows = [['category_id' => '', 'subcategory_ids' => [], 'is_primary' => true]];
     }
 
     $categoryRows = old('categories', $defaultCategoryRows);
 
     $primaryIdx = old('primary_category_index');
     if ($primaryIdx === null) {
-        if ($mode === 'edit' && $v) {
-            $orderedVc = $v->vendorCategories->sortBy('id')->values();
-            $found = $orderedVc->search(fn ($vc) => $vc->is_primary);
-            $primaryIdx = $found === false ? 0 : $found;
-        } else {
+        $found = false;
+        foreach ($categoryRows as $i => $row) {
+            if (is_array($row) && ! empty($row['is_primary'])) {
+                $primaryIdx = $i;
+                $found = true;
+                break;
+            }
+        }
+        if (! $found) {
             $primaryIdx = 0;
+        }
+    }
+
+    $countriesCollection = $countries ?? collect();
+    $defaultCountryId = $defaultCountryId ?? null;
+    $defaultCityId = $defaultCityId ?? null;
+    $suggestedVendorCode = $suggestedVendorCode ?? '';
+
+    if ($mode === 'edit' && $v && $v->locations->isNotEmpty()) {
+        $defaultLocationRows = $v->locations->sortBy(fn ($loc) => [$loc->is_primary ? 0 : 1, $loc->id])->values()->map(fn ($loc) => [
+            'country_id' => $loc->country_id,
+            'city_id' => $loc->city_id,
+            'address' => $loc->address ?? '',
+            'phone' => $loc->phone ?? '',
+            'whatsapp' => $loc->whatsapp ?? '',
+            'notes' => $loc->notes ?? '',
+            'is_primary' => $loc->is_primary,
+        ])->all();
+    } else {
+        $defaultLocationRows = [[
+            'country_id' => $defaultCountryId,
+            'city_id' => $defaultCityId,
+            'address' => '',
+            'phone' => '',
+            'whatsapp' => '',
+            'notes' => '',
+            'is_primary' => true,
+        ]];
+    }
+
+    $locationRows = old('locations', $defaultLocationRows);
+
+    $primaryLocationIdx = old('primary_location_index');
+    if ($primaryLocationIdx === null) {
+        $locPrimaryFound = false;
+        foreach ($locationRows as $i => $lr) {
+            if (is_array($lr) && ! empty($lr['is_primary'])) {
+                $primaryLocationIdx = $i;
+                $locPrimaryFound = true;
+                break;
+            }
+        }
+        if (! $locPrimaryFound) {
+            $primaryLocationIdx = 0;
         }
     }
 
@@ -49,17 +123,9 @@
         static fn ($item) => is_string($item) && $item !== ''
     )));
 
-    $countriesCollection = $countries ?? collect();
-    $defaultCountryId = $defaultCountryId ?? null;
-    $defaultCityId = $defaultCityId ?? null;
-    $suggestedVendorCode = $suggestedVendorCode ?? '';
-
     $citiesByCountry = $countriesCollection->mapWithKeys(fn ($c) => [
         $c->id => $c->cities->map(fn ($city) => ['id' => $city->id, 'name' => $city->name])->values(),
     ]);
-
-    $selectedCountryId = old('country_id', $v?->country_id ?? $defaultCountryId);
-    $selectedCityId = old('city_id', $v?->city_id ?? $defaultCityId);
 
     $subcategoriesByCategory = $categories->mapWithKeys(fn ($c) => [
         $c->id => $c->subcategories->map(fn ($s) => [
@@ -70,10 +136,23 @@
     ]);
 
     $categoryInitialForJs = collect($categoryRows)->map(function ($row, $index) {
+        $subIds = old("categories.$index.subcategory_ids", $row['subcategory_ids'] ?? []);
+        if (! is_array($subIds)) {
+            $subIds = [];
+        }
+
         return [
             'index' => $index,
             'category_id' => old("categories.$index.category_id", $row['category_id'] ?? ''),
-            'subcategory_id' => old("categories.$index.subcategory_id", $row['subcategory_id'] ?? ''),
+            'subcategory_ids' => array_values(array_map('intval', $subIds)),
+        ];
+    })->values();
+
+    $locationInitialForJs = collect($locationRows)->map(function ($row, $index) {
+        return [
+            'index' => $index,
+            'country_id' => old("locations.$index.country_id", $row['country_id'] ?? ''),
+            'city_id' => old("locations.$index.city_id", $row['city_id'] ?? ''),
         ];
     })->values();
 
@@ -89,6 +168,9 @@
 @endphp
 
 <input type="hidden" name="business_types_sync" value="1">
+@if ($mode === 'edit')
+    <input type="hidden" name="locations_sync" value="1">
+@endif
 
 {{-- 1. Basic Information --}}
 <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -146,9 +228,9 @@
     </div>
 </section>
 
-{{-- 2. Location Information --}}
+{{-- 2. Branch locations --}}
 <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-    <h2 class="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">Location Information</h2>
+    <h2 class="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">Branch locations</h2>
     @if ($countriesCollection->isEmpty())
         <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
             <p class="font-medium">No countries loaded</p>
@@ -157,39 +239,128 @@
             <p class="mt-2 text-xs text-amber-900/80">Ensure <span class="font-mono">.env</span> points to your database (<span class="font-mono">DB_CONNECTION=mysql</span>, etc.), then refresh this page.</p>
         </div>
     @endif
-    <div class="mt-4 grid gap-4 md:grid-cols-2">
-        <div>
-            <label for="country_id" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Country</label>
-            <select name="country_id" id="country_id" data-location-country
-                    class="admin-filter-control @error('country_id') border-red-500 @enderror">
-                <option value="">—</option>
-                @foreach ($countriesCollection as $country)
-                    <option value="{{ $country->id }}" @selected((string) $selectedCountryId === (string) $country->id)>
-                        {{ $country->flag_emoji ? $country->flag_emoji.' ' : '' }}{{ $country->name }}
-                    </option>
-                @endforeach
-            </select>
-            @error('country_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+    <p class="mt-4 text-xs text-slate-500">Select country first; cities update per country. Mark exactly one primary branch when a country is selected.</p>
+    @error('locations')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
+    <div id="vendor-location-rows" class="mt-4 space-y-4">
+        @foreach ($locationRows as $li => $locRow)
+            @php
+                $locCountryId = old("locations.$li.country_id", $locRow['country_id'] ?? '');
+                $locCityId = old("locations.$li.city_id", $locRow['city_id'] ?? '');
+            @endphp
+            <div class="vendor-location-row rounded-lg border border-slate-200 bg-slate-50/50 p-4" data-location-index="{{ $li }}">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Branch {{ $li + 1 }}</span>
+                    <label class="inline-flex cursor-pointer items-center gap-2 text-sm text-slate-800">
+                        <input type="radio" name="primary_location_index" value="{{ $li }}"
+                               class="border-slate-300 text-slate-900 focus:ring-slate-500"
+                               @checked((int) $primaryLocationIdx === (int) $li)>
+                        Primary branch
+                    </label>
+                </div>
+                <div class="mt-4 grid gap-4 md:grid-cols-2">
+                    <div>
+                        <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Country</label>
+                        <select name="locations[{{ $li }}][country_id]" data-vendor-location-country
+                                class="admin-filter-control !mt-1 @error('locations.'.$li.'.country_id') border-red-500 @enderror">
+                            <option value="">—</option>
+                            @foreach ($countriesCollection as $country)
+                                <option value="{{ $country->id }}" @selected((string) $locCountryId === (string) $country->id)>
+                                    {{ $country->flag_emoji ? $country->flag_emoji.' ' : '' }}{{ $country->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('locations.'.$li.'.country_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">City</label>
+                        <select name="locations[{{ $li }}][city_id]" data-vendor-location-city
+                                class="admin-filter-control !mt-0 @error('locations.'.$li.'.city_id') border-red-500 @enderror">
+                            <option value="">—</option>
+                        </select>
+                        @error('locations.'.$li.'.city_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Address</label>
+                        <textarea name="locations[{{ $li }}][address]" rows="2"
+                                  class="admin-form-textarea @error('locations.'.$li.'.address') border-red-500 @enderror">{{ old("locations.$li.address", $locRow['address'] ?? '') }}</textarea>
+                        @error('locations.'.$li.'.address')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Phone</label>
+                        <input type="text" name="locations[{{ $li }}][phone]"
+                               value="{{ old("locations.$li.phone", $locRow['phone'] ?? '') }}"
+                               class="admin-filter-control @error('locations.'.$li.'.phone') border-red-500 @enderror">
+                        @error('locations.'.$li.'.phone')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">WhatsApp</label>
+                        <input type="text" name="locations[{{ $li }}][whatsapp]"
+                               value="{{ old("locations.$li.whatsapp", $locRow['whatsapp'] ?? '') }}"
+                               class="admin-filter-control @error('locations.'.$li.'.whatsapp') border-red-500 @enderror">
+                        @error('locations.'.$li.'.whatsapp')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Notes</label>
+                        <textarea name="locations[{{ $li }}][notes]" rows="2"
+                                  class="admin-form-textarea @error('locations.'.$li.'.notes') border-red-500 @enderror">{{ old("locations.$li.notes", $locRow['notes'] ?? '') }}</textarea>
+                        @error('locations.'.$li.'.notes')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                    </div>
+                </div>
+            </div>
+        @endforeach
+    </div>
+    <button type="button" id="add-vendor-location-row"
+            class="mt-3 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-800 hover:bg-slate-50">
+        Add branch location
+    </button>
+</section>
+
+<template id="vendor-location-row-template">
+    <div class="vendor-location-row rounded-lg border border-slate-200 bg-slate-50/50 p-4" data-location-index="__LIDX__">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
+            <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Branch __NUM__</span>
+            <label class="inline-flex cursor-pointer items-center gap-2 text-sm text-slate-800">
+                <input type="radio" name="primary_location_index" value="__LIDX__"
+                       class="border-slate-300 text-slate-900 focus:ring-slate-500">
+                Primary branch
+            </label>
         </div>
-        <div>
-            <label for="city_id" class="block text-xs font-medium uppercase tracking-wide text-slate-500">City</label>
-            @if ($countriesCollection->isNotEmpty())
-                <p class="mb-1 text-xs text-slate-500">Cities depend on the selected country.</p>
-            @endif
-            <select name="city_id" id="city_id" data-location-city
-                    class="admin-filter-control @error('city_id') border-red-500 @enderror">
-                <option value="">—</option>
-            </select>
-            @error('city_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-        </div>
-        <div class="md:col-span-2">
-            <label for="address" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Address</label>
-            <textarea name="address" id="address" rows="2"
-                      class="admin-form-textarea @error('address') border-red-500 @enderror">{{ old('address', $v?->address ?? '') }}</textarea>
-            @error('address')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+        <div class="mt-4 grid gap-4 md:grid-cols-2">
+            <div>
+                <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Country</label>
+                <select name="locations[__LIDX__][country_id]" data-vendor-location-country class="admin-filter-control !mt-1">
+                    <option value="">—</option>
+                    @foreach ($countriesCollection as $country)
+                        <option value="{{ $country->id }}">{{ $country->flag_emoji ? $country->flag_emoji.' ' : '' }}{{ $country->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">City</label>
+                <p class="mb-1 mt-1 text-xs text-slate-500">Depends on country.</p>
+                <select name="locations[__LIDX__][city_id]" data-vendor-location-city class="admin-filter-control !mt-0">
+                    <option value="">—</option>
+                </select>
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Address</label>
+                <textarea name="locations[__LIDX__][address]" rows="2" class="admin-form-textarea"></textarea>
+            </div>
+            <div>
+                <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Phone</label>
+                <input type="text" name="locations[__LIDX__][phone]" class="admin-filter-control">
+            </div>
+            <div>
+                <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">WhatsApp</label>
+                <input type="text" name="locations[__LIDX__][whatsapp]" class="admin-filter-control">
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Notes</label>
+                <textarea name="locations[__LIDX__][notes]" rows="2" class="admin-form-textarea"></textarea>
+            </div>
         </div>
     </div>
-</section>
+</template>
 
 {{-- 3. Contact Information --}}
 <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -265,18 +436,26 @@
             @error('pricing_frequency')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
         <div>
-            <label for="delivery_lead_time_days" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Delivery lead time (days)</label>
-            <input type="number" name="delivery_lead_time_days" id="delivery_lead_time_days" min="0" step="1"
-                   value="{{ old('delivery_lead_time_days', $v?->delivery_lead_time_days ?? '') }}"
-                   class="admin-filter-control @error('delivery_lead_time_days') border-red-500 @enderror">
-            @error('delivery_lead_time_days')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            <label for="delivery_lead_time" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Delivery lead time</label>
+            <select name="delivery_lead_time" id="delivery_lead_time"
+                    class="admin-filter-control @error('delivery_lead_time') border-red-500 @enderror">
+                <option value="">—</option>
+                @foreach (LeadTimeRange::cases() as $case)
+                    <option value="{{ $case->value }}" @selected(old('delivery_lead_time', ($v?->delivery_lead_time instanceof \BackedEnum) ? $v->delivery_lead_time->value : ($v?->delivery_lead_time ?? '')) === $case->value)>{{ $case->label() }}</option>
+                @endforeach
+            </select>
+            @error('delivery_lead_time')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
         <div>
-            <label for="execution_lead_time_days" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Execution lead time (days)</label>
-            <input type="number" name="execution_lead_time_days" id="execution_lead_time_days" min="0" step="1"
-                   value="{{ old('execution_lead_time_days', $v?->execution_lead_time_days ?? '') }}"
-                   class="admin-filter-control @error('execution_lead_time_days') border-red-500 @enderror">
-            @error('execution_lead_time_days')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            <label for="execution_lead_time" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Execution lead time</label>
+            <select name="execution_lead_time" id="execution_lead_time"
+                    class="admin-filter-control @error('execution_lead_time') border-red-500 @enderror">
+                <option value="">—</option>
+                @foreach (LeadTimeRange::cases() as $case)
+                    <option value="{{ $case->value }}" @selected(old('execution_lead_time', ($v?->execution_lead_time instanceof \BackedEnum) ? $v->execution_lead_time->value : ($v?->execution_lead_time ?? '')) === $case->value)>{{ $case->label() }}</option>
+                @endforeach
+            </select>
+            @error('execution_lead_time')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
         <div>
             <label for="bulletin_price_validity_days" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Bulletin price validity (days)</label>
@@ -405,7 +584,7 @@
 
     <div class="mt-8 border-t border-slate-100 pt-6">
         <h3 class="text-sm font-semibold text-slate-900">Categories &amp; subcategories</h3>
-        <p class="mt-1 text-xs text-slate-500">Add one or more combinations. Mark exactly one row as primary (required when any category is selected).</p>
+        <p class="mt-1 text-xs text-slate-500">One category per row; pick any subcategories for that category. Leave all subcategories unchecked to store the category only. Mark exactly one row as primary when any category is selected.</p>
         @error('categories')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
 
         <div class="mt-3 overflow-x-auto rounded-lg border border-slate-200">
@@ -413,15 +592,22 @@
                 <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <tr>
                     <th class="px-3 py-2 text-left">Primary</th>
-                    <th class="px-3 py-2 text-left">Category</th>
-                    <th class="px-3 py-2 text-left">Subcategory</th>
+                    <th class="px-3 py-2 text-left w-[min(14rem,40vw)]">Category</th>
+                    <th class="px-3 py-2 text-left min-w-[12rem]">Subcategories</th>
                 </tr>
                 </thead>
                 <tbody id="category-rows" class="divide-y divide-slate-100 bg-white">
                 @foreach ($categoryRows as $index => $row)
                     @php
                         $catId = old("categories.$index.category_id", $row['category_id'] ?? '');
-                        $subId = old("categories.$index.subcategory_id", $row['subcategory_id'] ?? '');
+                        $subIdsSel = old("categories.$index.subcategory_ids", $row['subcategory_ids'] ?? []);
+                        if (! is_array($subIdsSel)) {
+                            $subIdsSel = [];
+                        }
+                        $subIdsSel = array_map('intval', $subIdsSel);
+                        $subsForRow = $catId !== '' && $catId !== null
+                            ? ($categories->firstWhere('id', (int) $catId)?->subcategories ?? collect())
+                            : collect();
                     @endphp
                     <tr class="category-row" data-row-index="{{ $index }}">
                         <td class="px-3 py-2 align-top">
@@ -440,11 +626,20 @@
                             @error('categories.'.$index.'.category_id')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                         </td>
                         <td class="px-3 py-2 align-top">
-                            <select name="categories[{{ $index }}][subcategory_id]" data-subcategory-select
-                                    class="admin-filter-control !mt-0 min-w-[10rem] @error('categories.'.$index.'.subcategory_id') border-red-500 @enderror">
-                                <option value="">—</option>
-                            </select>
-                            @error('categories.'.$index.'.subcategory_id')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                            <div data-category-sub-checkboxes
+                                 class="max-h-44 space-y-2 overflow-y-auto rounded-lg border border-slate-200 bg-white p-2 @error('categories.'.$index.'.subcategory_ids') border-red-500 @enderror">
+                                @forelse ($subsForRow as $sub)
+                                    <label class="flex cursor-pointer items-start gap-2 text-sm text-slate-800">
+                                        <input type="checkbox" name="categories[{{ $index }}][subcategory_ids][]" value="{{ $sub->id }}"
+                                               class="mt-0.5 rounded border-slate-300 text-slate-900 focus:ring-slate-500"
+                                               @checked(in_array((int) $sub->id, $subIdsSel, true))>
+                                        <span dir="auto">{{ $sub->name_ar }} — {{ $sub->name_en }}</span>
+                                    </label>
+                                @empty
+                                    <p class="text-xs text-slate-500">Choose a category to list subcategories.</p>
+                                @endforelse
+                            </div>
+                            @error('categories.'.$index.'.subcategory_ids')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                         </td>
                     </tr>
                 @endforeach
@@ -474,10 +669,10 @@
             </select>
         </td>
         <td class="px-3 py-2 align-top">
-            <select name="categories[__IDX__][subcategory_id]" data-subcategory-select
-                    class="admin-filter-control !mt-0 min-w-[10rem]">
-                <option value="">—</option>
-            </select>
+            <div data-category-sub-checkboxes
+                 class="max-h-44 space-y-2 overflow-y-auto rounded-lg border border-slate-200 bg-white p-2">
+                <p class="text-xs text-slate-500">Choose a category to list subcategories.</p>
+            </div>
         </td>
     </tr>
 </template>
@@ -622,9 +817,9 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const subData = @json($subcategoriesByCategory);
-            const initial = @json($categoryInitialForJs);
+            const categoryInitial = @json($categoryInitialForJs);
             const citiesByCountry = @json($citiesByCountry);
-            const selectedCityIdInit = @json($selectedCityId);
+            const locationInitial = @json($locationInitialForJs);
             const brochureInitial = @json($brochureInitialForJs);
 
             function subcategoryList(categoryId) {
@@ -655,21 +850,45 @@
                 return frag;
             }
 
-            function refreshVendorCategorySubSelect(row, selectedSubId) {
+            function refreshCategorySubCheckboxes(row, selectedIds) {
                 const catSelect = row.querySelector('[data-category-select]');
-                const subSelect = row.querySelector('[data-subcategory-select]');
-                if (!catSelect || !subSelect) {
+                const wrap = row.querySelector('[data-category-sub-checkboxes]');
+                if (!catSelect || !wrap) {
                     return;
                 }
                 const categoryId = catSelect.value;
-                subSelect.innerHTML = '';
-                subSelect.appendChild(optionsForProcurementCategory(categoryId));
-                if (selectedSubId) {
-                    subSelect.value = String(selectedSubId);
-                    if (subSelect.value !== String(selectedSubId)) {
-                        subSelect.value = '';
-                    }
+                const list = subcategoryList(categoryId);
+                const rowIndex = row.getAttribute('data-row-index') || '';
+                wrap.innerHTML = '';
+                if (!list.length) {
+                    const p = document.createElement('p');
+                    p.className = 'text-xs text-slate-500';
+                    p.textContent = categoryId ? 'No subcategories for this category.' : 'Choose a category to list subcategories.';
+                    wrap.appendChild(p);
+
+                    return;
                 }
+                const sel = new Set((selectedIds || []).map(String));
+                list.forEach(function (item) {
+                    const label = document.createElement('label');
+                    label.className = 'flex cursor-pointer items-start gap-2 text-sm text-slate-800';
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.name = 'categories[' + rowIndex + '][subcategory_ids][]';
+                    cb.value = String(item.id);
+                    cb.className = 'mt-0.5 rounded border-slate-300 text-slate-900 focus:ring-slate-500';
+                    if (sel.has(String(item.id))) {
+                        cb.checked = true;
+                    }
+                    const span = document.createElement('span');
+                    span.setAttribute('dir', 'auto');
+                    const ar = item.name_ar || '';
+                    const en = item.name_en || '';
+                    span.textContent = en ? (ar + ' — ' + en) : ar;
+                    label.appendChild(cb);
+                    label.appendChild(span);
+                    wrap.appendChild(label);
+                });
             }
 
             function wireVendorCategoryRow(row) {
@@ -678,7 +897,7 @@
                     return;
                 }
                 catSelect.addEventListener('change', function () {
-                    refreshVendorCategorySubSelect(row, null);
+                    refreshCategorySubCheckboxes(row, []);
                 });
             }
 
@@ -689,8 +908,8 @@
                 const rows = tbody.querySelectorAll('tr.category-row');
                 rows.forEach(function (row, i) {
                     wireVendorCategoryRow(row);
-                    const meta = initial[i] || {};
-                    refreshVendorCategorySubSelect(row, meta.subcategory_id || '');
+                    const meta = categoryInitial[i] || {};
+                    refreshCategorySubCheckboxes(row, meta.subcategory_ids || []);
                 });
 
                 let nextIndex = rows.length;
@@ -700,7 +919,7 @@
                     tbody.insertAdjacentHTML('beforeend', html);
                     const row = tbody.lastElementChild;
                     wireVendorCategoryRow(row);
-                    refreshVendorCategorySubSelect(row, '');
+                    refreshCategorySubCheckboxes(row, []);
                     const radio = row.querySelector('input[type="radio"][name="primary_category_index"]');
                     if (radio) {
                         radio.checked = true;
@@ -709,41 +928,73 @@
                 });
             }
 
-            const countrySelect = document.querySelector('[data-location-country]');
-            const citySelect = document.querySelector('[data-location-city]');
-            if (countrySelect && citySelect) {
-                function cityOptionsForCountry(countryId) {
-                    const list = citiesByCountry[countryId] || citiesByCountry[String(countryId)] || [];
-                    const frag = document.createDocumentFragment();
-                    const empty = document.createElement('option');
-                    empty.value = '';
-                    empty.textContent = '—';
-                    frag.appendChild(empty);
-                    list.forEach(function (item) {
-                        const opt = document.createElement('option');
-                        opt.value = String(item.id);
-                        opt.textContent = item.name;
-                        frag.appendChild(opt);
-                    });
-                    return frag;
-                }
+            function cityOptionsForCountry(countryId) {
+                const list = citiesByCountry[countryId] || citiesByCountry[String(countryId)] || [];
+                const frag = document.createDocumentFragment();
+                const empty = document.createElement('option');
+                empty.value = '';
+                empty.textContent = '—';
+                frag.appendChild(empty);
+                list.forEach(function (item) {
+                    const opt = document.createElement('option');
+                    opt.value = String(item.id);
+                    opt.textContent = item.name;
+                    frag.appendChild(opt);
+                });
+                return frag;
+            }
 
-                function refreshCities(selectedCityId) {
-                    const cid = countrySelect.value;
-                    citySelect.innerHTML = '';
-                    citySelect.appendChild(cityOptionsForCountry(cid));
-                    if (selectedCityId) {
-                        citySelect.value = String(selectedCityId);
-                        if (citySelect.value !== String(selectedCityId)) {
-                            citySelect.value = '';
-                        }
+            function refreshVendorLocationCities(row, selectedCityId) {
+                const countryEl = row.querySelector('[data-vendor-location-country]');
+                const cityEl = row.querySelector('[data-vendor-location-city]');
+                if (!countryEl || !cityEl) {
+                    return;
+                }
+                const cid = countryEl.value;
+                cityEl.innerHTML = '';
+                cityEl.appendChild(cityOptionsForCountry(cid));
+                if (selectedCityId) {
+                    cityEl.value = String(selectedCityId);
+                    if (cityEl.value !== String(selectedCityId)) {
+                        cityEl.value = '';
                     }
                 }
+            }
 
-                countrySelect.addEventListener('change', function () {
-                    refreshCities(null);
+            function wireVendorLocationRow(row) {
+                const countryEl = row.querySelector('[data-vendor-location-country]');
+                if (!countryEl) {
+                    return;
+                }
+                countryEl.addEventListener('change', function () {
+                    refreshVendorLocationCities(row, null);
                 });
-                refreshCities(selectedCityIdInit || '');
+            }
+
+            const locContainer = document.getElementById('vendor-location-rows');
+            const locTemplate = document.getElementById('vendor-location-row-template');
+            const addLocBtn = document.getElementById('add-vendor-location-row');
+            if (locContainer && locTemplate && addLocBtn) {
+                locContainer.querySelectorAll('.vendor-location-row').forEach(function (row, i) {
+                    wireVendorLocationRow(row);
+                    const meta = locationInitial[i] || {};
+                    refreshVendorLocationCities(row, meta.city_id || '');
+                });
+
+                let nextLoc = locContainer.querySelectorAll('.vendor-location-row').length;
+                addLocBtn.addEventListener('click', function () {
+                    let html = locTemplate.innerHTML.replaceAll('__LIDX__', String(nextLoc));
+                    html = html.replaceAll('__NUM__', String(nextLoc + 1));
+                    locContainer.insertAdjacentHTML('beforeend', html);
+                    const row = locContainer.lastElementChild;
+                    wireVendorLocationRow(row);
+                    refreshVendorLocationCities(row, '');
+                    const radio = row.querySelector('input[type="radio"][name="primary_location_index"]');
+                    if (radio) {
+                        radio.checked = true;
+                    }
+                    nextLoc += 1;
+                });
             }
 
             function wireBrochureRow(row, selectedSubId) {

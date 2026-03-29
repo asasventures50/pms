@@ -11,7 +11,9 @@ class VendorPersistenceService
     /**
      * Replace all vendor category pivot rows.
      *
-     * @param  array<int, array{category_id?: int|string|null, subcategory_id?: int|string|null, is_primary?: bool|string|null}>|null  $categories
+     * One row per selected subcategory; category-only rows use null subcategory_id.
+     *
+     * @param  array<int, array{category_id?: int|string|null, subcategory_ids?: list<mixed>|null, is_primary?: bool|string|null}>|null  $categories
      */
     public function replaceCategories(Vendor $vendor, ?array $categories): void
     {
@@ -27,12 +29,82 @@ class VendorPersistenceService
                 continue;
             }
 
-            $vendor->vendorCategories()->create([
-                'category_id' => (int) $categoryId,
-                'subcategory_id' => isset($assignment['subcategory_id']) && $assignment['subcategory_id'] !== '' && $assignment['subcategory_id'] !== null
-                    ? (int) $assignment['subcategory_id']
+            $categoryId = (int) $categoryId;
+            $isPrimaryRow = filter_var($assignment['is_primary'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+            $rawSubs = $assignment['subcategory_ids'] ?? [];
+            if (! is_array($rawSubs)) {
+                $rawSubs = [];
+            }
+
+            $subIds = array_values(array_unique(array_filter(
+                array_map(static fn ($v) => (int) $v, $rawSubs),
+                static fn (int $id) => $id > 0
+            )));
+
+            if ($subIds === []) {
+                $vendor->vendorCategories()->create([
+                    'category_id' => $categoryId,
+                    'subcategory_id' => null,
+                    'is_primary' => $isPrimaryRow,
+                ]);
+
+                continue;
+            }
+
+            $first = true;
+            foreach ($subIds as $subId) {
+                $vendor->vendorCategories()->create([
+                    'category_id' => $categoryId,
+                    'subcategory_id' => $subId,
+                    'is_primary' => $isPrimaryRow && $first,
+                ]);
+                $first = false;
+            }
+        }
+    }
+
+    /**
+     * Replace all vendor location rows.
+     *
+     * @param  array<int, array<string, mixed>>|null  $locations
+     */
+    public function replaceLocations(Vendor $vendor, ?array $locations): void
+    {
+        $vendor->locations()->delete();
+
+        if (! is_array($locations)) {
+            return;
+        }
+
+        foreach ($locations as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            $countryId = $row['country_id'] ?? null;
+            if ($countryId === null || $countryId === '') {
+                continue;
+            }
+
+            $vendor->locations()->create([
+                'country_id' => (int) $countryId,
+                'city_id' => isset($row['city_id']) && $row['city_id'] !== '' && $row['city_id'] !== null
+                    ? (int) $row['city_id']
                     : null,
-                'is_primary' => filter_var($assignment['is_primary'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                'address' => isset($row['address']) && trim((string) $row['address']) !== ''
+                    ? (string) $row['address']
+                    : null,
+                'phone' => isset($row['phone']) && trim((string) $row['phone']) !== ''
+                    ? trim((string) $row['phone'])
+                    : null,
+                'whatsapp' => isset($row['whatsapp']) && trim((string) $row['whatsapp']) !== ''
+                    ? trim((string) $row['whatsapp'])
+                    : null,
+                'notes' => isset($row['notes']) && trim((string) $row['notes']) !== ''
+                    ? trim((string) $row['notes'])
+                    : null,
+                'is_primary' => filter_var($row['is_primary'] ?? false, FILTER_VALIDATE_BOOLEAN),
             ]);
         }
     }

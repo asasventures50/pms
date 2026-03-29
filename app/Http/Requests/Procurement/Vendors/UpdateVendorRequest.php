@@ -4,6 +4,7 @@ namespace App\Http\Requests\Procurement\Vendors;
 
 use App\Enums\Procurement\Vendors\CompanyType;
 use App\Enums\Procurement\Vendors\CoverageType;
+use App\Enums\Procurement\Vendors\LeadTimeRange;
 use App\Enums\Procurement\Vendors\PaymentMethod;
 use App\Enums\Procurement\Vendors\PricingFrequency;
 use App\Enums\Procurement\Vendors\RfqMethod;
@@ -60,10 +61,51 @@ class UpdateVendorRequest extends FormRequest
             }
         }
 
+        $this->normalizeCategorySubcategoryIds();
+        $this->applyPrimaryCategoryFlags();
+
+        if ($this->has('locations_sync') || $this->has('locations')) {
+            $this->applyPrimaryLocationFlags();
+        }
+    }
+
+    private function normalizeCategorySubcategoryIds(): void
+    {
+        if (! $this->has('categories')) {
+            return;
+        }
+
+        $categories = (array) $this->input('categories', []);
+        foreach (array_keys($categories) as $i) {
+            $row = $categories[$i];
+            if (! is_array($row)) {
+                continue;
+            }
+            $subs = $row['subcategory_ids'] ?? [];
+            if (! is_array($subs)) {
+                $subs = [];
+            }
+            $categories[$i]['subcategory_ids'] = array_values(array_unique(array_filter(
+                array_map(static fn ($v) => (int) $v, $subs),
+                static fn (int $id) => $id > 0
+            )));
+        }
+        $this->merge(['categories' => $categories]);
+    }
+
+    private function applyPrimaryCategoryFlags(): void
+    {
+        if (! $this->has('categories')) {
+            return;
+        }
+
         if ($this->filled('primary_category_index')) {
             $idx = $this->input('primary_category_index');
             $categories = (array) $this->input('categories', []);
             foreach (array_keys($categories) as $i) {
+                if (! is_array($categories[$i])) {
+                    continue;
+                }
                 $categories[$i]['is_primary'] = (string) $i === (string) $idx;
             }
             $this->merge(['categories' => $categories]);
@@ -72,16 +114,50 @@ class UpdateVendorRequest extends FormRequest
         $categories = (array) $this->input('categories', []);
         $filledIndexes = [];
         foreach ($categories as $i => $row) {
-            if (! empty($row['category_id'])) {
+            if (is_array($row) && ! empty($row['category_id'])) {
                 $filledIndexes[] = $i;
             }
         }
         if (count($filledIndexes) === 1) {
             $only = $filledIndexes[0];
             foreach (array_keys($categories) as $i) {
-                $categories[$i]['is_primary'] = (int) $i === (int) $only;
+                if (is_array($categories[$i])) {
+                    $categories[$i]['is_primary'] = (int) $i === (int) $only;
+                }
             }
             $this->merge(['categories' => $categories]);
+        }
+    }
+
+    private function applyPrimaryLocationFlags(): void
+    {
+        if ($this->filled('primary_location_index')) {
+            $idx = $this->input('primary_location_index');
+            $locations = (array) $this->input('locations', []);
+            foreach (array_keys($locations) as $i) {
+                if (! is_array($locations[$i])) {
+                    continue;
+                }
+                $locations[$i]['is_primary'] = (string) $i === (string) $idx;
+            }
+            $this->merge(['locations' => $locations]);
+        }
+
+        $locations = (array) $this->input('locations', []);
+        $filledIndexes = [];
+        foreach ($locations as $i => $row) {
+            if (is_array($row) && ! empty($row['country_id'])) {
+                $filledIndexes[] = $i;
+            }
+        }
+        if (count($filledIndexes) === 1) {
+            $only = $filledIndexes[0];
+            foreach (array_keys($locations) as $i) {
+                if (is_array($locations[$i])) {
+                    $locations[$i]['is_primary'] = (int) $i === (int) $only;
+                }
+            }
+            $this->merge(['locations' => $locations]);
         }
     }
 
@@ -106,10 +182,6 @@ class UpdateVendorRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'notes' => ['nullable', 'string'],
 
-            'country_id' => ['nullable', 'integer', 'exists:countries,id'],
-            'city_id' => ['nullable', 'integer', 'exists:cities,id'],
-            'address' => ['nullable', 'string'],
-
             'phone' => ['nullable', 'string', 'max:50'],
             'whatsapp' => ['nullable', 'string', 'max:50'],
             'email' => ['nullable', 'email:rfc,dns', 'max:255'],
@@ -128,8 +200,8 @@ class UpdateVendorRequest extends FormRequest
             'rfq_method' => ['sometimes', 'nullable', 'array'],
             'rfq_method.*' => ['string', Rule::in(RfqMethod::values())],
             'pricing_frequency' => ['nullable', 'string', Rule::in(PricingFrequency::values())],
-            'delivery_lead_time_days' => ['nullable', 'integer', 'min:0'],
-            'execution_lead_time_days' => ['nullable', 'integer', 'min:0'],
+            'delivery_lead_time' => ['nullable', 'string', Rule::in(LeadTimeRange::values())],
+            'execution_lead_time' => ['nullable', 'string', Rule::in(LeadTimeRange::values())],
 
             'payment_method' => ['nullable', 'string', Rule::in(PaymentMethod::values())],
             'payment_terms' => ['nullable', 'string'],
@@ -152,10 +224,22 @@ class UpdateVendorRequest extends FormRequest
 
             'categories' => ['sometimes', 'array'],
             'categories.*.category_id' => ['nullable', 'integer', 'exists:categories,id'],
-            'categories.*.subcategory_id' => ['nullable', 'integer', 'exists:subcategories,id'],
+            'categories.*.subcategory_ids' => ['nullable', 'array'],
+            'categories.*.subcategory_ids.*' => ['integer', 'exists:subcategories,id', 'distinct'],
             'categories.*.is_primary' => ['nullable', 'boolean'],
 
             'primary_category_index' => ['nullable', 'integer', 'min:0'],
+
+            'locations' => ['sometimes', 'array'],
+            'locations.*.country_id' => ['nullable', 'integer', 'exists:countries,id'],
+            'locations.*.city_id' => ['nullable', 'integer', 'exists:cities,id'],
+            'locations.*.address' => ['nullable', 'string'],
+            'locations.*.phone' => ['nullable', 'string', 'max:50'],
+            'locations.*.whatsapp' => ['nullable', 'string', 'max:50'],
+            'locations.*.notes' => ['nullable', 'string'],
+            'locations.*.is_primary' => ['boolean'],
+
+            'primary_location_index' => ['nullable', 'integer', 'min:0'],
 
             'business_types' => ['sometimes', 'array'],
             'business_types.*' => [
@@ -179,30 +263,76 @@ class UpdateVendorRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
-            $this->validateLocation($validator);
+            if ($this->has('locations_sync') || $this->has('locations')) {
+                $this->validateVendorLocations($validator);
+            }
             $this->validateCategoryAssignments($validator);
             $this->validateBrochureRows($validator);
         });
     }
 
-    private function validateLocation(Validator $validator): void
+    private function validateVendorLocations(Validator $validator): void
     {
-        $countryId = $this->input('country_id');
-        $cityId = $this->input('city_id');
-
-        if ($cityId && ! $countryId) {
-            $validator->errors()->add('country_id', 'Select a country when a city is chosen.');
+        $rows = $this->input('locations', []);
+        if (! is_array($rows)) {
+            return;
         }
 
-        if ($cityId && $countryId) {
+        $filledIndexes = [];
+        foreach ($rows as $index => $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            $countryId = $row['country_id'] ?? null;
+            if ($countryId === null || $countryId === '') {
+                $cityId = $row['city_id'] ?? null;
+                if ($cityId !== null && $cityId !== '') {
+                    $validator->errors()->add("locations.$index.country_id", 'Select a country when a city is chosen.');
+                }
+
+                continue;
+            }
+
+            $filledIndexes[] = $index;
+            $countryId = (int) $countryId;
+            $cityId = isset($row['city_id']) && $row['city_id'] !== '' && $row['city_id'] !== null
+                ? (int) $row['city_id']
+                : null;
+
+            if (! $cityId) {
+                $validator->errors()->add("locations.$index.city_id", 'Select a city for this branch location.');
+
+                continue;
+            }
+
             $belongs = City::query()
                 ->whereKey($cityId)
                 ->where('country_id', $countryId)
                 ->exists();
 
             if (! $belongs) {
-                $validator->errors()->add('city_id', 'The selected city does not belong to the selected country.');
+                $validator->errors()->add("locations.$index.city_id", 'The selected city does not belong to the selected country.');
             }
+        }
+
+        if (count($filledIndexes) === 0) {
+            return;
+        }
+
+        $primaryCount = 0;
+        foreach ($filledIndexes as $index) {
+            $row = $rows[$index] ?? [];
+            if (! is_array($row)) {
+                continue;
+            }
+            if (filter_var($row['is_primary'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+                $primaryCount++;
+            }
+        }
+
+        if ($primaryCount !== 1) {
+            $validator->errors()->add('locations', 'Select exactly one primary location among branches that have a country.');
         }
     }
 
@@ -218,34 +348,46 @@ class UpdateVendorRequest extends FormRequest
 
         foreach ($assignments as $index => $assignment) {
             $categoryId = $assignment['category_id'] ?? null;
-            $subcategoryId = $assignment['subcategory_id'] ?? null;
+            $subIds = $assignment['subcategory_ids'] ?? [];
+            if (! is_array($subIds)) {
+                $subIds = [];
+            }
 
             if ($categoryId === null || $categoryId === '') {
-                if ($subcategoryId !== null && $subcategoryId !== '') {
-                    $validator->errors()->add("categories.$index.subcategory_id", 'Select a category before choosing a subcategory.');
+                foreach ($subIds as $subId) {
+                    if ($subId !== null && $subId !== '' && (int) $subId > 0) {
+                        $validator->errors()->add("categories.$index.category_id", 'Select a category before choosing subcategories.');
+
+                        break;
+                    }
                 }
 
                 continue;
             }
 
-            $filledRowIndexes[] = $index;
-
-            $key = $categoryId.'|'.($subcategoryId ?? 'null');
-            if (isset($seen[$key])) {
-                $validator->errors()->add("categories.$index.category_id", 'Duplicate category assignment in payload.');
+            if (isset($seen[$categoryId])) {
+                $validator->errors()->add("categories.$index.category_id", 'Each category can only appear once.');
 
                 continue;
             }
-            $seen[$key] = true;
+            $seen[$categoryId] = true;
 
-            if ($subcategoryId !== null && $subcategoryId !== '') {
+            $filledRowIndexes[] = $index;
+
+            foreach ($subIds as $subcategoryId) {
+                if ($subcategoryId === null || $subcategoryId === '' || (int) $subcategoryId <= 0) {
+                    continue;
+                }
+
                 $belongs = Subcategory::query()
-                    ->whereKey($subcategoryId)
-                    ->where('category_id', $categoryId)
+                    ->whereKey((int) $subcategoryId)
+                    ->where('category_id', (int) $categoryId)
                     ->exists();
 
                 if (! $belongs) {
-                    $validator->errors()->add("categories.$index.subcategory_id", 'The selected subcategory does not belong to the selected category.');
+                    $validator->errors()->add("categories.$index.subcategory_ids", 'A selected subcategory does not belong to the selected category.');
+
+                    break;
                 }
             }
         }

@@ -33,21 +33,48 @@
         </section>
 
         <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 class="border-b border-slate-100 pb-2 text-base font-semibold text-slate-900">Location</h2>
-            <dl class="mt-4 grid gap-4 sm:grid-cols-2">
-                <div>
-                    <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Country</dt>
-                    <dd class="mt-1 text-sm text-slate-900">
-                        @if ($vendor->country)
-                            {{ $vendor->country->flag_emoji ? $vendor->country->flag_emoji.' ' : '' }}{{ $vendor->country->name }}
-                        @else
-                            —
-                        @endif
-                    </dd>
-                </div>
-                <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">City</dt><dd class="mt-1 text-sm text-slate-900">{{ $vendor->city?->name ?? '—' }}</dd></div>
-                <div class="sm:col-span-2"><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Address</dt><dd class="mt-1 whitespace-pre-wrap text-sm text-slate-900">{{ $vendor->address ?: '—' }}</dd></div>
-            </dl>
+            <h2 class="border-b border-slate-100 pb-2 text-base font-semibold text-slate-900">Branch locations</h2>
+            @if ($vendor->locations->isEmpty())
+                <p class="mt-3 text-sm text-slate-500">No branch locations on record.</p>
+            @else
+                <ul class="mt-4 space-y-4">
+                    @foreach ($vendor->locations->sortBy(fn ($l) => [$l->is_primary ? 0 : 1, $l->id]) as $loc)
+                        <li class="rounded-lg border border-slate-200 bg-slate-50/50 p-4">
+                            <div class="flex flex-wrap items-center gap-2">
+                                @if ($loc->is_primary)
+                                    <span class="inline-flex rounded-full bg-slate-900 px-2 py-0.5 text-xs font-medium text-white">Primary</span>
+                                @endif
+                            </div>
+                            <dl class="mt-3 grid gap-3 sm:grid-cols-2 text-sm">
+                                <div>
+                                    <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Country</dt>
+                                    <dd class="mt-1 text-slate-900">
+                                        @if ($loc->country)
+                                            {{ $loc->country->flag_emoji ? $loc->country->flag_emoji.' ' : '' }}{{ $loc->country->name }}
+                                        @else
+                                            —
+                                        @endif
+                                    </dd>
+                                </div>
+                                <div>
+                                    <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">City</dt>
+                                    <dd class="mt-1 text-slate-900">{{ $loc->city?->name ?? '—' }}</dd>
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Address</dt>
+                                    <dd class="mt-1 whitespace-pre-wrap text-slate-900">{{ $loc->address ?: '—' }}</dd>
+                                </div>
+                                <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Phone</dt><dd class="mt-1 text-slate-900">{{ $loc->phone ?: '—' }}</dd></div>
+                                <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">WhatsApp</dt><dd class="mt-1 text-slate-900">{{ $loc->whatsapp ?: '—' }}</dd></div>
+                                <div class="sm:col-span-2">
+                                    <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Notes</dt>
+                                    <dd class="mt-1 whitespace-pre-wrap text-slate-900">{{ $loc->notes ?: '—' }}</dd>
+                                </div>
+                            </dl>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
         </section>
 
         <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -96,8 +123,8 @@
                     </dd>
                 </div>
                 <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Pricing frequency</dt><dd class="mt-1 text-sm text-slate-900">{{ $vendor->pricing_frequency ? $label($vendor->pricing_frequency) : '—' }}</dd></div>
-                <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Delivery lead time (days)</dt><dd class="mt-1 text-sm text-slate-900">{{ $vendor->delivery_lead_time_days ?? '—' }}</dd></div>
-                <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Execution lead time (days)</dt><dd class="mt-1 text-sm text-slate-900">{{ $vendor->execution_lead_time_days ?? '—' }}</dd></div>
+                <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Delivery lead time</dt><dd class="mt-1 text-sm text-slate-900">{{ $vendor->delivery_lead_time instanceof \BackedEnum ? $vendor->delivery_lead_time->label() : ($vendor->delivery_lead_time ? \Illuminate\Support\Str::headline(str_replace('_', ' ', (string) $vendor->delivery_lead_time)) : '—') }}</dd></div>
+                <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Execution lead time</dt><dd class="mt-1 text-sm text-slate-900">{{ $vendor->execution_lead_time instanceof \BackedEnum ? $vendor->execution_lead_time->label() : ($vendor->execution_lead_time ? \Illuminate\Support\Str::headline(str_replace('_', ' ', (string) $vendor->execution_lead_time)) : '—') }}</dd></div>
                 <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Bulletin price validity (days)</dt><dd class="mt-1 text-sm text-slate-900">{{ $vendor->bulletin_price_validity_days ?? '—' }}</dd></div>
                 <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Currency code</dt><dd class="mt-1 text-sm text-slate-900">{{ $vendor->currency_code ? strtoupper($vendor->currency_code) : '—' }}</dd></div>
             </dl>
@@ -141,33 +168,53 @@
 
         <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 class="border-b border-slate-100 pb-2 text-base font-semibold text-slate-900">Categories &amp; subcategories</h2>
-            @php $assignments = $vendor->vendorCategories->sortBy('id')->values(); @endphp
-            @if ($assignments->isEmpty())
+            @php
+                $groupedCatalog = [];
+                foreach ($vendor->vendorCategories->sortBy('id') as $vc) {
+                    $cid = (string) $vc->category_id;
+                    if (! isset($groupedCatalog[$cid])) {
+                        $groupedCatalog[$cid] = [
+                            'category' => $vc->category,
+                            'subs' => collect(),
+                            'is_primary' => false,
+                            'category_only' => false,
+                        ];
+                    }
+                    if ($vc->subcategory_id === null) {
+                        $groupedCatalog[$cid]['category_only'] = true;
+                    } else {
+                        $groupedCatalog[$cid]['subs']->push($vc->subcategory);
+                    }
+                    if ($vc->is_primary) {
+                        $groupedCatalog[$cid]['is_primary'] = true;
+                    }
+                }
+            @endphp
+            @if (count($groupedCatalog) === 0)
                 <p class="mt-3 text-sm text-slate-500">None assigned.</p>
             @else
-                <div class="mt-3 overflow-x-auto rounded-lg border border-slate-200">
-                    <table class="min-w-full divide-y divide-slate-200 text-sm">
-                        <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        <tr>
-                            <th class="px-3 py-2 text-left">Primary</th>
-                            <th class="px-3 py-2 text-left">Category</th>
-                            <th class="px-3 py-2 text-left">Subcategory</th>
-                        </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100">
-                        @foreach ($assignments as $vc)
-                            <tr>
-                                <td class="px-3 py-2">{{ $vc->is_primary ? 'Yes' : '—' }}</td>
-                                <td class="px-3 py-2 align-top">
-                                    @include('procurement.vendors.partials.catalog-label', ['model' => $vc->category])
-                                </td>
-                                <td class="px-3 py-2 align-top">
-                                    @include('procurement.vendors.partials.catalog-label', ['model' => $vc->subcategory])
-                                </td>
-                            </tr>
-                        @endforeach
-                        </tbody>
-                    </table>
+                <div class="mt-3 space-y-4">
+                    @foreach ($groupedCatalog as $group)
+                        <div class="rounded-lg border border-slate-200 bg-slate-50/50 p-4">
+                            <div class="flex flex-wrap items-center gap-2">
+                                @if ($group['is_primary'])
+                                    <span class="inline-flex rounded-full bg-slate-900 px-2 py-0.5 text-xs font-medium text-white">Primary</span>
+                                @endif
+                            </div>
+                            <div class="mt-2 text-sm font-medium text-slate-900">
+                                @include('procurement.vendors.partials.catalog-label', ['model' => $group['category']])
+                            </div>
+                            @if ($group['subs']->isEmpty() && $group['category_only'])
+                                <p class="mt-2 text-xs text-slate-600">Whole category (no specific subcategories).</p>
+                            @elseif ($group['subs']->isNotEmpty())
+                                <ul class="mt-2 list-inside list-disc text-sm text-slate-800">
+                                    @foreach ($group['subs']->unique('id')->filter() as $sub)
+                                        <li>@include('procurement.vendors.partials.catalog-label', ['model' => $sub])</li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                        </div>
+                    @endforeach
                 </div>
             @endif
         </section>

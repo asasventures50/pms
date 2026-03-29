@@ -4,17 +4,16 @@ namespace App\Models\Procurement\Vendors;
 
 use App\Enums\Procurement\Vendors\CompanyType;
 use App\Enums\Procurement\Vendors\CoverageType;
+use App\Enums\Procurement\Vendors\LeadTimeRange;
 use App\Enums\Procurement\Vendors\PaymentMethod;
 use App\Enums\Procurement\Vendors\PricingFrequency;
 use App\Enums\Procurement\Vendors\VendorLanguage;
 use App\Enums\Procurement\Vendors\VendorStatus;
-use App\Models\Geo\City;
-use App\Models\Geo\Country;
 use App\Models\Procurement\Vendors\VendorBusinessType as VendorBusinessTypeModel;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Vendor extends Model
@@ -32,9 +31,6 @@ class Vendor extends Model
         'language',
         'description',
         'notes',
-        'country_id',
-        'city_id',
-        'address',
         'phone',
         'whatsapp',
         'email',
@@ -49,8 +45,8 @@ class Vendor extends Model
         'secondary_contact_email',
         'rfq_method',
         'pricing_frequency',
-        'delivery_lead_time_days',
-        'execution_lead_time_days',
+        'delivery_lead_time',
+        'execution_lead_time',
         'payment_method',
         'payment_terms',
         'commercial_terms',
@@ -73,6 +69,8 @@ class Vendor extends Model
             'language' => VendorLanguage::class,
             'rfq_method' => 'array',
             'pricing_frequency' => PricingFrequency::class,
+            'delivery_lead_time' => LeadTimeRange::class,
+            'execution_lead_time' => LeadTimeRange::class,
             'payment_method' => PaymentMethod::class,
             'company_type' => CompanyType::class,
             'status' => VendorStatus::class,
@@ -82,14 +80,14 @@ class Vendor extends Model
         ];
     }
 
-    public function country(): BelongsTo
+    public function locations(): HasMany
     {
-        return $this->belongsTo(Country::class, 'country_id');
+        return $this->hasMany(VendorLocation::class, 'vendor_id');
     }
 
-    public function city(): BelongsTo
+    public function primaryLocation(): HasOne
     {
-        return $this->belongsTo(City::class, 'city_id');
+        return $this->hasOne(VendorLocation::class, 'vendor_id')->where('is_primary', true);
     }
 
     public function brochures(): HasMany

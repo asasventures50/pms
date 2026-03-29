@@ -168,8 +168,11 @@
                         <td class="whitespace-nowrap px-3 py-2 font-mono text-xs text-slate-800">{{ $vendor->vendor_code }}</td>
                         <td class="max-w-[14rem] truncate px-3 py-2 text-slate-900" title="{{ $vendor->name }}">{{ $vendor->name }}</td>
                         <td class="whitespace-nowrap px-3 py-2 text-slate-700">{{ strtoupper($vendor->language instanceof \BackedEnum ? $vendor->language->value : $vendor->language) }}</td>
-                        <td class="px-3 py-2 text-slate-700">{{ $vendor->country?->name ?? '—' }}</td>
-                        <td class="px-3 py-2 text-slate-700">{{ $vendor->city?->name ?? '—' }}</td>
+                        @php
+                            $primaryLoc = $vendor->locations->firstWhere('is_primary', true) ?? $vendor->locations->first();
+                        @endphp
+                        <td class="px-3 py-2 text-slate-700">{{ $primaryLoc?->country?->name ?? '—' }}</td>
+                        <td class="px-3 py-2 text-slate-700">{{ $primaryLoc?->city?->name ?? '—' }}</td>
                         <td class="whitespace-nowrap px-3 py-2 text-slate-700">{{ $vendor->phone ?? '—' }}</td>
                         <td class="max-w-[12rem] truncate px-3 py-2 text-slate-700" title="{{ $vendor->email }}">{{ $vendor->email ?? '—' }}</td>
                         <td class="px-3 py-2">

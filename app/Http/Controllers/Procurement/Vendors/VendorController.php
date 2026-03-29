@@ -24,7 +24,7 @@ class VendorController extends Controller
         $perPage = max(1, min($perPage, 100));
 
         $query = Vendor::query()
-            ->with(['categories', 'businessTypes', 'brochures', 'country', 'city'])
+            ->with(['categories', 'businessTypes', 'brochures', 'locations.country', 'locations.city'])
             ->latest();
 
         if ($request->filled('language')) {
@@ -45,21 +45,24 @@ class VendorController extends Controller
         $categories = $validated['categories'] ?? null;
         $businessTypes = $validated['business_types'] ?? null;
         $brochureRows = $validated['brochure_rows'] ?? null;
+        $locations = $validated['locations'] ?? null;
 
         unset(
             $validated['categories'],
             $validated['business_types'],
             $validated['brochures'],
-            $validated['brochure_rows']
+            $validated['brochure_rows'],
+            $validated['locations'],
         );
 
         VendorPayloadResolver::finalizeForStore($validated);
 
         $vendor = null;
 
-        DB::transaction(function () use ($validated, $categories, $businessTypes, $brochureRows, $request, &$vendor) {
+        DB::transaction(function () use ($validated, $categories, $businessTypes, $brochureRows, $locations, $request, &$vendor) {
             $vendor = Vendor::query()->create($validated);
 
+            $this->persistence->replaceLocations($vendor, $locations);
             $this->persistence->replaceCategories($vendor, $categories);
             $this->persistence->replaceBusinessTypes($vendor, $businessTypes);
 
@@ -75,14 +78,14 @@ class VendorController extends Controller
             throw new \RuntimeException('Vendor could not be created.');
         }
 
-        $vendor->load(['categories', 'subcategories', 'businessTypes', 'brochures', 'country', 'city']);
+        $vendor->load(['categories', 'subcategories', 'businessTypes', 'brochures', 'locations.country', 'locations.city']);
 
         return response()->json($vendor, 201);
     }
 
     public function show(Vendor $vendor): JsonResponse
     {
-        $vendor->load(['categories', 'subcategories', 'businessTypes', 'brochures.category', 'brochures.subcategory', 'country', 'city']);
+        $vendor->load(['categories', 'subcategories', 'businessTypes', 'brochures.category', 'brochures.subcategory', 'locations.country', 'locations.city']);
 
         return response()->json($vendor);
     }
@@ -93,23 +96,30 @@ class VendorController extends Controller
 
         $categoriesProvided = array_key_exists('categories', $validated);
         $businessTypesProvided = array_key_exists('business_types', $validated);
+        $locationsProvided = array_key_exists('locations', $validated);
 
         $categories = $validated['categories'] ?? null;
         $businessTypes = $validated['business_types'] ?? null;
         $brochureRows = $validated['brochure_rows'] ?? null;
+        $locations = $validated['locations'] ?? null;
 
         unset(
             $validated['categories'],
             $validated['business_types'],
             $validated['brochures'],
-            $validated['brochure_rows']
+            $validated['brochure_rows'],
+            $validated['locations'],
         );
 
         VendorPayloadResolver::finalizeForUpdate($validated);
 
-        DB::transaction(function () use ($vendor, $validated, $categoriesProvided, $businessTypesProvided, $categories, $businessTypes, $brochureRows, $request) {
+        DB::transaction(function () use ($vendor, $validated, $categoriesProvided, $businessTypesProvided, $locationsProvided, $categories, $businessTypes, $locations, $brochureRows, $request) {
             $vendor->fill($validated);
             $vendor->save();
+
+            if ($locationsProvided) {
+                $this->persistence->replaceLocations($vendor, $locations);
+            }
 
             if ($businessTypesProvided) {
                 $this->persistence->replaceBusinessTypes($vendor, $businessTypes);
@@ -127,7 +137,7 @@ class VendorController extends Controller
             }
         });
 
-        $vendor->load(['categories', 'subcategories', 'businessTypes', 'brochures.category', 'brochures.subcategory', 'country', 'city']);
+        $vendor->load(['categories', 'subcategories', 'businessTypes', 'brochures.category', 'brochures.subcategory', 'locations.country', 'locations.city']);
 
         return response()->json($vendor);
     }
