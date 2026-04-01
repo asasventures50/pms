@@ -3,6 +3,7 @@
 @section('title', 'Locations Management')
 
 @section('content')
+    @php($locationsRoute = \Illuminate\Support\Facades\Route::has('locations.index') ? 'locations.index' : 'countries.index')
     <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Locations Management</h1>
@@ -14,7 +15,7 @@
         </a>
     </div>
 
-    <form method="get" action="{{ route('locations.index') }}" class="mb-6 space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <form method="get" action="{{ route($locationsRoute) }}" class="mb-6 space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <input type="hidden" name="sort_by" value="{{ $sortColumn }}">
         <input type="hidden" name="sort_direction" value="{{ $sortDirection }}">
         <div class="grid gap-4 md:grid-cols-3">
@@ -35,7 +36,7 @@
         </div>
         <div class="flex flex-wrap items-center gap-3">
             <button type="submit" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">Apply</button>
-            <a href="{{ route('locations.index') }}" class="text-sm font-medium text-slate-600 hover:text-slate-900">Reset</a>
+            <a href="{{ route($locationsRoute) }}" class="text-sm font-medium text-slate-600 hover:text-slate-900">Reset</a>
         </div>
     </form>
 
@@ -46,17 +47,17 @@
                 <tr>
                     <th class="px-3 py-2">ID</th>
                     <th class="px-3 py-2">
-                        @include('partials.table-sort-link', ['route' => 'locations.index', 'column' => 'name_ar', 'label' => 'Arabic Name', 'sortColumn' => $sortColumn, 'sortDirection' => $sortDirection])
+                        @include('partials.table-sort-link', ['route' => $locationsRoute, 'column' => 'name_ar', 'label' => 'Arabic Name', 'sortColumn' => $sortColumn, 'sortDirection' => $sortDirection])
                     </th>
                     <th class="px-3 py-2">
-                        @include('partials.table-sort-link', ['route' => 'locations.index', 'column' => 'name_en', 'label' => 'English Name', 'sortColumn' => $sortColumn, 'sortDirection' => $sortDirection])
+                        @include('partials.table-sort-link', ['route' => $locationsRoute, 'column' => 'name_en', 'label' => 'English Name', 'sortColumn' => $sortColumn, 'sortDirection' => $sortDirection])
                     </th>
                     <th class="px-3 py-2">ISO Code</th>
                     <th class="px-3 py-2">Flag</th>
                     <th class="px-3 py-2">Status</th>
                     <th class="px-3 py-2">Cities Count</th>
                     <th class="px-3 py-2">
-                        @include('partials.table-sort-link', ['route' => 'locations.index', 'column' => 'created_at', 'label' => 'Created At', 'sortColumn' => $sortColumn, 'sortDirection' => $sortDirection])
+                        @include('partials.table-sort-link', ['route' => $locationsRoute, 'column' => 'created_at', 'label' => 'Created At', 'sortColumn' => $sortColumn, 'sortDirection' => $sortDirection])
                     </th>
                     <th class="px-3 py-2 text-right">Actions</th>
                 </tr>
@@ -75,7 +76,7 @@
                         <td class="whitespace-nowrap px-3 py-2">{{ $country->cities_count }}</td>
                         <td class="whitespace-nowrap px-3 py-2 text-xs text-slate-600">{{ $country->created_at?->format('Y-m-d H:i') }}</td>
                         <td class="whitespace-nowrap px-3 py-2 text-right text-xs">
-                            <a href="{{ route('locations.index', array_merge(request()->query(), ['country_id' => $country->id])) }}" class="font-medium text-slate-700 hover:text-slate-900">Manage Cities</a>
+                            <a href="{{ route($locationsRoute, array_merge(request()->query(), ['country_id' => $country->id])) }}" class="font-medium text-slate-700 hover:text-slate-900">Manage Cities</a>
                             <span class="mx-1 text-slate-300">|</span>
                             <a href="{{ route('countries.edit', $country) }}" class="font-medium text-slate-700 hover:text-slate-900">Edit</a>
                             <span class="mx-1 text-slate-300">|</span>

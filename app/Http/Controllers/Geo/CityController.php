@@ -10,10 +10,16 @@ use App\Models\Geo\Country;
 use App\Support\TableSort;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use Illuminate\View\View;
 
 class CityController extends Controller
 {
+    private function locationsRouteName(): string
+    {
+        return Route::has('locations.index') ? 'locations.index' : 'countries.index';
+    }
+
     public function index(Request $request): View
     {
         $perPage = max(1, min(100, (int) $request->query('per_page', 15)));
@@ -66,7 +72,7 @@ class CityController extends Controller
         City::query()->create($data);
 
         return redirect()
-            ->route('locations.index', ['country_id' => $data['country_id']])
+            ->route($this->locationsRouteName(), ['country_id' => $data['country_id']])
             ->with('success', 'City created successfully.');
     }
 
@@ -86,7 +92,7 @@ class CityController extends Controller
         $city->update($data);
 
         return redirect()
-            ->route('locations.index', ['country_id' => $data['country_id']])
+            ->route($this->locationsRouteName(), ['country_id' => $data['country_id']])
             ->with('success', 'City updated successfully.');
     }
 
@@ -96,14 +102,14 @@ class CityController extends Controller
 
         if ($city->vendorLocations()->exists()) {
             return redirect()
-                ->route('locations.index', ['country_id' => $countryId])
+                ->route($this->locationsRouteName(), ['country_id' => $countryId])
                 ->with('error', 'Cannot delete this city because it is used in vendor locations.');
         }
 
         $city->delete();
 
         return redirect()
-            ->route('locations.index', ['country_id' => $countryId])
+            ->route($this->locationsRouteName(), ['country_id' => $countryId])
             ->with('success', 'City deleted successfully.');
     }
 }

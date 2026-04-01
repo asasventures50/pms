@@ -42,7 +42,7 @@
     <button type="submit" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">
         Save City
     </button>
-    <a href="{{ route('locations.index') }}" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+    <a href="{{ route(\Illuminate\Support\Facades\Route::has('locations.index') ? 'locations.index' : 'countries.index') }}" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
         Cancel
     </a>
 </div>
