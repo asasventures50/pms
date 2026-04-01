@@ -254,10 +254,10 @@
                         @error('locations.'.$li.'.country_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                     </div>
                     <div>
-                        <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">City</label>
+                        <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">City (optional)</label>
                         <select name="locations[{{ $li }}][city_id]" data-vendor-location-city
                                 class="admin-filter-control !mt-0 @error('locations.'.$li.'.city_id') border-red-500 @enderror">
-                            <option value="">—</option>
+                            <option value="">Select city (optional)</option>
                         </select>
                         @error('locations.'.$li.'.city_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                     </div>
@@ -324,10 +324,9 @@
                 </select>
             </div>
             <div>
-                <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">City</label>
-                <p class="mb-1 mt-1 text-xs text-slate-500">Depends on country.</p>
+                <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">City (optional)</label>
                 <select name="locations[__LIDX__][city_id]" data-vendor-location-city class="admin-filter-control !mt-0">
-                    <option value="">—</option>
+                    <option value="">Select city (optional)</option>
                 </select>
             </div>
             <div class="md:col-span-2">
@@ -845,7 +844,7 @@
                 const frag = document.createDocumentFragment();
                 const empty = document.createElement('option');
                 empty.value = '';
-                empty.textContent = '—';
+                empty.textContent = 'Select city (optional)';
                 frag.appendChild(empty);
                 list.forEach(function (item) {
                     const opt = document.createElement('option');

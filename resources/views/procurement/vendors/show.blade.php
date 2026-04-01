@@ -58,7 +58,7 @@
                                 </div>
                                 <div>
                                     <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">City</dt>
-                                    <dd class="mt-1 text-slate-900">{{ $loc->city?->name ?? '—' }}</dd>
+                                    <dd class="mt-1 text-slate-900">{{ $loc->city?->name ?? 'Not specified' }}</dd>
                                 </div>
                                 <div class="sm:col-span-2">
                                     <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Address</dt>

@@ -273,9 +273,16 @@ class UpdateVendorRequest extends FormRequest
 
             $countryId = $row['country_id'] ?? null;
             if ($countryId === null || $countryId === '') {
-                $cityId = $row['city_id'] ?? null;
-                if ($cityId !== null && $cityId !== '') {
-                    $validator->errors()->add("locations.$index.country_id", 'Select a country when a city is chosen.');
+                $hasAnyData = collect([
+                    $row['city_id'] ?? null,
+                    $row['address'] ?? null,
+                    $row['phone'] ?? null,
+                    $row['whatsapp'] ?? null,
+                    $row['notes'] ?? null,
+                ])->contains(static fn ($value) => $value !== null && trim((string) $value) !== '');
+
+                if ($hasAnyData) {
+                    $validator->errors()->add("locations.$index.country_id", 'Select a country for this branch location.');
                 }
 
                 continue;
@@ -287,19 +294,15 @@ class UpdateVendorRequest extends FormRequest
                 ? (int) $row['city_id']
                 : null;
 
-            if (! $cityId) {
-                $validator->errors()->add("locations.$index.city_id", 'Select a city for this branch location.');
+            if ($cityId) {
+                $belongs = City::query()
+                    ->whereKey($cityId)
+                    ->where('country_id', $countryId)
+                    ->exists();
 
-                continue;
-            }
-
-            $belongs = City::query()
-                ->whereKey($cityId)
-                ->where('country_id', $countryId)
-                ->exists();
-
-            if (! $belongs) {
-                $validator->errors()->add("locations.$index.city_id", 'The selected city does not belong to the selected country.');
+                if (! $belongs) {
+                    $validator->errors()->add("locations.$index.city_id", 'The selected city does not belong to the selected country.');
+                }
             }
         }
 

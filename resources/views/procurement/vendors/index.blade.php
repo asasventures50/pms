@@ -172,7 +172,7 @@
                             $primaryLoc = $vendor->locations->firstWhere('is_primary', true) ?? $vendor->locations->first();
                         @endphp
                         <td class="px-3 py-2 text-slate-700">{{ $primaryLoc?->country?->name ?? '—' }}</td>
-                        <td class="px-3 py-2 text-slate-700">{{ $primaryLoc?->city?->name ?? '—' }}</td>
+                        <td class="px-3 py-2 text-slate-700">{{ $primaryLoc?->city?->name ?? '' }}</td>
                         <td class="whitespace-nowrap px-3 py-2 text-slate-700">{{ $vendor->phone ?? '—' }}</td>
                         <td class="max-w-[12rem] truncate px-3 py-2 text-slate-700" title="{{ $vendor->email }}">{{ $vendor->email ?? '—' }}</td>
                         <td class="px-3 py-2">
