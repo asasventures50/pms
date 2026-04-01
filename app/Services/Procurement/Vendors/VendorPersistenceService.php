@@ -54,14 +54,12 @@ class VendorPersistenceService
                 continue;
             }
 
-            $first = true;
             foreach ($subIds as $subId) {
                 $vendor->vendorCategories()->create([
                     'category_id' => $categoryId,
                     'subcategory_id' => $subId,
-                    'is_primary' => $isPrimaryRow && $first,
+                    'is_primary' => $isPrimaryRow,
                 ]);
-                $first = false;
             }
         }
     }

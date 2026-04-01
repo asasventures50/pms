@@ -71,34 +71,14 @@ class StoreVendorRequest extends FormRequest
 
     private function applyPrimaryCategoryFlags(): void
     {
-        if ($this->filled('primary_category_index')) {
-            $idx = $this->input('primary_category_index');
-            $categories = (array) $this->input('categories', []);
-            foreach (array_keys($categories) as $i) {
-                if (! is_array($categories[$i])) {
-                    continue;
-                }
-                $categories[$i]['is_primary'] = (string) $i === (string) $idx;
-            }
-            $this->merge(['categories' => $categories]);
-        }
-
         $categories = (array) $this->input('categories', []);
-        $filledIndexes = [];
-        foreach ($categories as $i => $row) {
-            if (is_array($row) && ! empty($row['category_id'])) {
-                $filledIndexes[] = $i;
+        foreach (array_keys($categories) as $i) {
+            if (! is_array($categories[$i])) {
+                continue;
             }
+            $categories[$i]['is_primary'] = filter_var($categories[$i]['is_primary'] ?? false, FILTER_VALIDATE_BOOLEAN);
         }
-        if (count($filledIndexes) === 1) {
-            $only = $filledIndexes[0];
-            foreach (array_keys($categories) as $i) {
-                if (is_array($categories[$i])) {
-                    $categories[$i]['is_primary'] = (int) $i === (int) $only;
-                }
-            }
-            $this->merge(['categories' => $categories]);
-        }
+        $this->merge(['categories' => $categories]);
     }
 
     private function applyPrimaryLocationFlags(): void
@@ -190,9 +170,7 @@ class StoreVendorRequest extends FormRequest
             'categories.*.subcategory_ids.*' => ['integer', 'exists:subcategories,id', 'distinct'],
             'categories.*.is_primary' => ['nullable', 'boolean'],
 
-            'primary_category_index' => ['nullable', 'integer', 'min:0'],
-
-            'locations' => ['required', 'array'],
+            'locations' => ['nullable', 'array'],
             'locations.*.country_id' => ['nullable', 'integer', 'exists:countries,id'],
             'locations.*.city_id' => ['nullable', 'integer', 'exists:cities,id'],
             'locations.*.address' => ['nullable', 'string'],
@@ -356,17 +334,6 @@ class StoreVendorRequest extends FormRequest
             return;
         }
 
-        $primaryCount = 0;
-        foreach ($filledRowIndexes as $index) {
-            $assignment = $assignments[$index] ?? [];
-            if (filter_var($assignment['is_primary'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
-                $primaryCount++;
-            }
-        }
-
-        if ($primaryCount !== 1) {
-            $validator->errors()->add('categories', 'Select exactly one primary category assignment.');
-        }
     }
 
     private function validateBrochureRows(Validator $validator): void

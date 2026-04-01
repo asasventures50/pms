@@ -35,36 +35,13 @@
         unset($bRow);
         $defaultCategoryRows = array_values($bucket);
         if (count($defaultCategoryRows) === 0) {
-            $defaultCategoryRows = [['category_id' => '', 'subcategory_ids' => [], 'is_primary' => true]];
-        } else {
-            $pCount = collect($defaultCategoryRows)->where('is_primary', true)->count();
-            if ($pCount !== 1) {
-                foreach ($defaultCategoryRows as $i => &$r) {
-                    $r['is_primary'] = $i === 0;
-                }
-                unset($r);
-            }
+            $defaultCategoryRows = [['category_id' => '', 'subcategory_ids' => [], 'is_primary' => false]];
         }
     } else {
-        $defaultCategoryRows = [['category_id' => '', 'subcategory_ids' => [], 'is_primary' => true]];
+        $defaultCategoryRows = [['category_id' => '', 'subcategory_ids' => [], 'is_primary' => false]];
     }
 
     $categoryRows = old('categories', $defaultCategoryRows);
-
-    $primaryIdx = old('primary_category_index');
-    if ($primaryIdx === null) {
-        $found = false;
-        foreach ($categoryRows as $i => $row) {
-            if (is_array($row) && ! empty($row['is_primary'])) {
-                $primaryIdx = $i;
-                $found = true;
-                break;
-            }
-        }
-        if (! $found) {
-            $primaryIdx = 0;
-        }
-    }
 
     $countriesCollection = $countries ?? collect();
     $defaultCountryId = $defaultCountryId ?? null;
@@ -83,15 +60,7 @@
             'is_primary' => $loc->is_primary,
         ])->all();
     } else {
-        $defaultLocationRows = [[
-            'country_id' => $defaultCountryId,
-            'city_id' => $defaultCityId,
-            'address' => '',
-            'phone' => '',
-            'whatsapp' => '',
-            'notes' => '',
-            'is_primary' => true,
-        ]];
+        $defaultLocationRows = [];
     }
 
     $locationRows = old('locations', $defaultLocationRows);
@@ -242,7 +211,7 @@
             <p class="mt-2 text-xs text-amber-900/80">Ensure <span class="font-mono">.env</span> points to your database (<span class="font-mono">DB_CONNECTION=mysql</span>, etc.), then refresh this page.</p>
         </div>
     @endif
-    <p class="mt-4 text-xs text-slate-500">Select country first; cities update per country. Mark exactly one primary branch when a country is selected.</p>
+    <p class="mt-4 text-xs text-slate-500">Select country first; cities update per country. Branches are optional, but if you add branches then exactly one should be marked as primary.</p>
     @error('locations')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
     <div id="vendor-location-rows" class="mt-4 space-y-4">
         @foreach ($locationRows as $li => $locRow)
@@ -600,14 +569,14 @@
 
     <div class="mt-8 border-t border-slate-100 pt-6">
         <h3 class="text-sm font-semibold text-slate-900">Categories &amp; subcategories</h3>
-        <p class="mt-1 text-xs text-slate-500">One category per row; pick any subcategories for that category. Leave all subcategories unchecked to store the category only. Mark exactly one row as primary when any category is selected.</p>
+        <p class="mt-1 text-xs text-slate-500">One category per row; pick any subcategories for that category. Leave all subcategories unchecked to store the category only. You can mark multiple rows as primary categories.</p>
         @error('categories')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
 
         <div class="mt-3 overflow-x-auto rounded-lg border border-slate-200">
             <table class="min-w-full divide-y divide-slate-200 text-sm">
                 <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <tr>
-                    <th class="px-3 py-2 text-left">Primary</th>
+                    <th class="px-3 py-2 text-left">Primary Category</th>
                     <th class="px-3 py-2 text-left w-[min(14rem,40vw)]">Category</th>
                     <th class="px-3 py-2 text-left min-w-[12rem]">Subcategories</th>
                     <th class="px-3 py-2 text-right w-[5rem]">Actions</th>
@@ -628,9 +597,9 @@
                     @endphp
                     <tr class="category-row" data-row-index="{{ $index }}" data-category-row-persisted="{{ $mode === 'edit' ? '1' : '0' }}">
                         <td class="px-3 py-2 align-top">
-                            <input type="radio" name="primary_category_index" value="{{ $index }}"
-                                   class="mt-1 border-slate-300 text-slate-900 focus:ring-slate-500"
-                                   @checked((int) $primaryIdx === (int) $index)>
+                            <input type="checkbox" name="categories[{{ $index }}][is_primary]" value="1"
+                                   class="mt-1 rounded border-slate-300 text-slate-900 focus:ring-slate-500"
+                                   @checked((bool) old("categories.$index.is_primary", $row['is_primary'] ?? false))>
                         </td>
                         <td class="px-3 py-2 align-top">
                             <select name="categories[{{ $index }}][category_id]" data-category-select
@@ -679,8 +648,8 @@
 <template id="category-row-template">
     <tr class="category-row" data-row-index="__IDX__" data-category-row-persisted="0">
         <td class="px-3 py-2 align-top">
-            <input type="radio" name="primary_category_index" value="__IDX__"
-                   class="mt-1 border-slate-300 text-slate-900 focus:ring-slate-500">
+            <input type="checkbox" name="categories[__IDX__][is_primary]" value="1"
+                   class="mt-1 rounded border-slate-300 text-slate-900 focus:ring-slate-500">
         </td>
         <td class="px-3 py-2 align-top">
             <select name="categories[__IDX__][category_id]" data-category-select
@@ -987,10 +956,6 @@
                 }
                 tbodyEl.querySelectorAll('tr.category-row').forEach(function (row, i) {
                     row.setAttribute('data-row-index', String(i));
-                    const radio = row.querySelector('input[name="primary_category_index"]');
-                    if (radio) {
-                        radio.value = String(i);
-                    }
                     const select = row.querySelector('[data-category-select]');
                     if (select) {
                         select.name = 'categories[' + i + '][category_id]';
@@ -1007,22 +972,6 @@
                     }
                     refreshCategorySubCheckboxes(row, selected);
                 });
-            }
-
-            function ensurePrimaryCategoryRadios() {
-                const tbodyEl = document.getElementById('category-rows');
-                if (!tbodyEl) {
-                    return;
-                }
-                if (tbodyEl.querySelectorAll('tr.category-row').length === 0) {
-                    return;
-                }
-                if (!tbodyEl.querySelector('input[name="primary_category_index"]:checked')) {
-                    const first = tbodyEl.querySelector('input[name="primary_category_index"]');
-                    if (first) {
-                        first.checked = true;
-                    }
-                }
             }
 
             function reindexBrochureUploadRows() {
@@ -1081,7 +1030,6 @@
                     }
                     row.remove();
                     reindexCategoryRows();
-                    ensurePrimaryCategoryRadios();
                 });
 
                 addBtn.addEventListener('click', function () {
@@ -1091,10 +1039,6 @@
                     const row = tbody.lastElementChild;
                     wireVendorCategoryRow(row);
                     refreshCategorySubCheckboxes(row, []);
-                    const radio = row.querySelector('input[type="radio"][name="primary_category_index"]');
-                    if (radio) {
-                        radio.checked = true;
-                    }
                 });
             }
 
