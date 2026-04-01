@@ -36,6 +36,14 @@
                             Categories
                         </a>
                     @endif
+                    @if (request()->routeIs('locations.*') || request()->routeIs('countries.*') || request()->routeIs('cities.*'))
+                        <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Locations</span>
+                    @else
+                        <a href="{{ route('locations.index') }}"
+                           class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
+                            Locations
+                        </a>
+                    @endif
                 </nav>
                 <div class="flex shrink-0 items-center gap-3">
                     <span class="hidden max-w-[12rem] truncate text-xs text-slate-500 sm:inline" title="{{ auth()->user()->name }}">{{ auth()->user()->name }}</span>

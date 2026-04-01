@@ -5,6 +5,8 @@
  */
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Geo\CityController;
+use App\Http\Controllers\Geo\CountryController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\Procurement\Categories\CategoryController;
 use App\Http\Controllers\Procurement\Vendors\VendorWebController;
@@ -23,6 +25,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/categories/import', [CategoryController::class, 'import'])->name('categories.import');
 
     Route::resource('categories', CategoryController::class);
+    Route::get('/locations', [CountryController::class, 'index'])->name('locations.index');
+    Route::resource('countries', CountryController::class)->except(['show']);
+    Route::resource('cities', CityController::class)->except(['show']);
 
     Route::resource('vendors', VendorWebController::class)->except(['destroy']);
 });

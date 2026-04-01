@@ -122,13 +122,16 @@ class VendorWebController extends Controller
             ->get();
 
         $countries = Country::query()
-            ->with(['cities' => fn ($q) => $q->orderBy('name')])
-            ->orderBy('name')
+            ->active()
+            ->with(['cities' => fn ($q) => $q->active()->orderBy('name_ar')->orderBy('name_en')])
+            ->orderBy('name_ar')
             ->get();
 
-        $syria = Country::query()->where('iso_code', 'SY')->first();
+        $syria = Country::query()->active()->where('iso_code', 'SY')->first();
         $damascus = $syria
-            ? City::query()->where('country_id', $syria->id)->where('name', 'Damascus')->first()
+            ? City::query()->active()->where('country_id', $syria->id)->where(function ($q) {
+                $q->where('name_en', 'Damascus')->orWhere('name', 'Damascus');
+            })->first()
             : null;
 
         $suggestedVendorCode = app(VendorCodeGenerator::class)->next();
@@ -218,13 +221,16 @@ class VendorWebController extends Controller
             ->get();
 
         $countries = Country::query()
-            ->with(['cities' => fn ($q) => $q->orderBy('name')])
-            ->orderBy('name')
+            ->active()
+            ->with(['cities' => fn ($q) => $q->active()->orderBy('name_ar')->orderBy('name_en')])
+            ->orderBy('name_ar')
             ->get();
 
-        $syria = Country::query()->where('iso_code', 'SY')->first();
+        $syria = Country::query()->active()->where('iso_code', 'SY')->first();
         $damascus = $syria
-            ? City::query()->where('country_id', $syria->id)->where('name', 'Damascus')->first()
+            ? City::query()->active()->where('country_id', $syria->id)->where(function ($q) {
+                $q->where('name_en', 'Damascus')->orWhere('name', 'Damascus');
+            })->first()
             : null;
 
         return view('procurement.vendors.edit', [

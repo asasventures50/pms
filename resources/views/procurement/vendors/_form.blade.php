@@ -94,7 +94,10 @@
     )));
 
     $citiesByCountry = $countriesCollection->mapWithKeys(fn ($c) => [
-        $c->id => $c->cities->map(fn ($city) => ['id' => $city->id, 'name' => $city->name])->values(),
+        $c->id => $c->cities->map(fn ($city) => [
+            'id' => $city->id,
+            'name' => trim(($city->name_ar ?? '').' — '.($city->name_en ?? '')),
+        ])->values(),
     ]);
 
     $subcategoriesByCategory = $categories->mapWithKeys(fn ($c) => [
@@ -244,7 +247,7 @@
                             <option value="">—</option>
                             @foreach ($countriesCollection as $country)
                                 <option value="{{ $country->id }}" @selected((string) $locCountryId === (string) $country->id)>
-                                    {{ $country->flag_emoji ? $country->flag_emoji.' ' : '' }}{{ $country->name }}
+                                    {{ $country->flag_emoji ? $country->flag_emoji.' ' : '' }}{{ $country->name_ar }} — {{ $country->name_en }}
                                 </option>
                             @endforeach
                         </select>
@@ -316,7 +319,7 @@
                 <select name="locations[__LIDX__][country_id]" data-vendor-location-country class="admin-filter-control !mt-1">
                     <option value="">—</option>
                     @foreach ($countriesCollection as $country)
-                        <option value="{{ $country->id }}">{{ $country->flag_emoji ? $country->flag_emoji.' ' : '' }}{{ $country->name }}</option>
+                        <option value="{{ $country->id }}">{{ $country->flag_emoji ? $country->flag_emoji.' ' : '' }}{{ $country->name_ar }} — {{ $country->name_en }}</option>
                     @endforeach
                 </select>
             </div>
