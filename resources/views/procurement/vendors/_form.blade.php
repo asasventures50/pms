@@ -353,7 +353,7 @@
 <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
     <h2 class="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">Contact Information</h2>
     <div class="mt-4 grid gap-4 md:grid-cols-2">
-        @foreach (['phone' => 'Phone', 'whatsapp' => 'WhatsApp', 'email' => 'Email', 'website' => 'Website'] as $field => $label)
+        @foreach (['phone' => 'Phone', 'whatsapp' => 'WhatsApp', 'telegram' => 'Telegram', 'email' => 'Email', 'website' => 'Website'] as $field => $label)
             <div>
                 <label for="{{ $field }}" class="block text-xs font-medium uppercase tracking-wide text-slate-500">{{ $label }}</label>
                 <input type="{{ $field === 'email' ? 'email' : 'text' }}" name="{{ $field }}" id="{{ $field }}"
@@ -362,6 +362,26 @@
                 @error($field)<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
         @endforeach
+    </div>
+    <div class="mt-8 border-t border-slate-100 pt-6">
+        <h3 class="text-sm font-semibold text-slate-900">Social Media</h3>
+        <p class="mt-1 text-xs text-slate-500">Optional public profile links.</p>
+        <div class="mt-3 grid gap-4 md:grid-cols-2">
+            <div>
+                <label for="facebook_url" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Facebook URL</label>
+                <input type="url" name="facebook_url" id="facebook_url"
+                       value="{{ old('facebook_url', $v?->facebook_url ?? '') }}"
+                       class="admin-filter-control @error('facebook_url') border-red-500 @enderror">
+                @error('facebook_url')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <label for="instagram_url" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Instagram URL</label>
+                <input type="url" name="instagram_url" id="instagram_url"
+                       value="{{ old('instagram_url', $v?->instagram_url ?? '') }}"
+                       class="admin-filter-control @error('instagram_url') border-red-500 @enderror">
+                @error('instagram_url')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
+        </div>
     </div>
 </section>
 

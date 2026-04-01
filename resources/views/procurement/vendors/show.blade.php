@@ -82,9 +82,23 @@
             <dl class="mt-4 grid gap-4 sm:grid-cols-2">
                 <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Phone</dt><dd class="mt-1 text-sm text-slate-900">{{ $vendor->phone ?: '—' }}</dd></div>
                 <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">WhatsApp</dt><dd class="mt-1 text-sm text-slate-900">{{ $vendor->whatsapp ?: '—' }}</dd></div>
+                <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Telegram</dt><dd class="mt-1 text-sm text-slate-900">{{ $vendor->telegram ?: '—' }}</dd></div>
                 <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Email</dt><dd class="mt-1 text-sm text-slate-900">{{ $vendor->email ?: '—' }}</dd></div>
                 <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Website</dt><dd class="mt-1 break-all text-sm text-slate-900">{{ $vendor->website ?: '—' }}</dd></div>
             </dl>
+            <div class="mt-6 border-t border-slate-100 pt-4">
+                <h3 class="text-sm font-semibold text-slate-900">Social Media</h3>
+                <dl class="mt-3 grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Facebook URL</dt>
+                        <dd class="mt-1 break-all text-sm text-slate-900">{{ $vendor->facebook_url ?: '—' }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Instagram URL</dt>
+                        <dd class="mt-1 break-all text-sm text-slate-900">{{ $vendor->instagram_url ?: '—' }}</dd>
+                    </div>
+                </dl>
+            </div>
         </section>
 
         <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">

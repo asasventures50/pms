@@ -127,8 +127,11 @@ class StoreVendorRequest extends FormRequest
 
             'phone' => ['nullable', 'string', 'max:50'],
             'whatsapp' => ['nullable', 'string', 'max:50'],
+            'telegram' => ['nullable', 'string', 'max:50'],
             'email' => ['nullable', 'email:rfc,dns', 'max:255'],
             'website' => ['nullable', 'string', 'max:255'],
+            'facebook_url' => ['nullable', 'url', 'max:255'],
+            'instagram_url' => ['nullable', 'url', 'max:255'],
 
             'primary_contact_name' => ['nullable', 'string', 'max:255'],
             'primary_contact_position' => ['nullable', 'string', 'max:255'],

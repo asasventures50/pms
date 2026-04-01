@@ -8,6 +8,8 @@ enum RfqMethod: string
     case Portal = 'portal';
     case Whatsapp = 'whatsapp';
     case Phone = 'phone';
+    case Telegram = 'telegram';
+    case SocialMedia = 'social_media';
 
     /**
      * @return array<int, string>
