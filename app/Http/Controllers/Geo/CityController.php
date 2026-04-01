@@ -17,7 +17,15 @@ class CityController extends Controller
 {
     private function locationsRouteName(): string
     {
-        return Route::has('locations.index') ? 'locations.index' : 'countries.index';
+        if (Route::has('locations.index')) {
+            return 'locations.index';
+        }
+
+        if (Route::has('countries.index')) {
+            return 'countries.index';
+        }
+
+        return 'dashboard';
     }
 
     public function index(Request $request): View
