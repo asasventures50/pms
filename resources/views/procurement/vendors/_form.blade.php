@@ -648,6 +648,14 @@
                                 @endforelse
                             </div>
                             @error('categories.'.$index.'.subcategory_ids')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                            <div class="mt-2">
+                                <button type="button"
+                                        data-add-subcategory
+                                        @disabled($catId === '' || $catId === null)
+                                        class="inline-flex items-center rounded border border-slate-300 px-2 py-0.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">
+                                    + Add Subcategory
+                                </button>
+                            </div>
                         </td>
                         <td class="px-3 py-2 align-top text-right">
                             <button type="button" data-remove-category-row
@@ -686,6 +694,14 @@
             <div data-category-sub-checkboxes
                  class="max-h-44 space-y-2 overflow-y-auto rounded-lg border border-slate-200 bg-white p-2">
                 <p class="text-xs text-slate-500">Choose a category to list subcategories.</p>
+            </div>
+            <div class="mt-2">
+                <button type="button"
+                        data-add-subcategory
+                        disabled
+                        class="inline-flex items-center rounded border border-slate-300 px-2 py-0.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">
+                    + Add Subcategory
+                </button>
             </div>
         </td>
         <td class="px-3 py-2 align-top text-right">
@@ -843,6 +859,8 @@
     </div>
 </template>
 
+@include('procurement.vendors.partials.add-subcategory-modal')
+
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -926,10 +944,241 @@
                 if (!catSelect) {
                     return;
                 }
+                const addSubcategoryBtn = row.querySelector('[data-add-subcategory]');
+                function syncAddSubcategoryButton() {
+                    if (!addSubcategoryBtn) {
+                        return;
+                    }
+                    addSubcategoryBtn.disabled = !catSelect.value;
+                }
+                syncAddSubcategoryButton();
                 catSelect.addEventListener('change', function () {
                     refreshCategorySubCheckboxes(row, []);
+                    syncAddSubcategoryButton();
                 });
             }
+
+            const quickStoreUrl = "{{ route('subcategories.quick-store') }}";
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+            let quickAddTargetRow = null;
+
+            const quickAddModal = document.getElementById('add-subcategory-modal');
+            const quickAddForm = document.getElementById('add-subcategory-form');
+            const quickAddCategoryInput = document.getElementById('add-subcategory-category-id');
+            const quickAddNameArInput = document.getElementById('add-subcategory-name-ar');
+            const quickAddNameEnInput = document.getElementById('add-subcategory-name-en');
+            const quickAddErrNameAr = document.getElementById('add-subcategory-error-name-ar');
+            const quickAddErrNameEn = document.getElementById('add-subcategory-error-name-en');
+            const quickAddErrGeneral = document.getElementById('add-subcategory-error-general');
+            const quickAddCancelBtn = document.getElementById('add-subcategory-cancel');
+            const quickAddSaveBtn = document.getElementById('add-subcategory-save');
+
+            function clearQuickAddErrors() {
+                [quickAddErrNameAr, quickAddErrNameEn, quickAddErrGeneral].forEach(function (el) {
+                    if (!el) {
+                        return;
+                    }
+                    el.classList.add('hidden');
+                    el.textContent = '';
+                });
+                [quickAddNameArInput, quickAddNameEnInput].forEach(function (el) {
+                    if (!el) {
+                        return;
+                    }
+                    el.classList.remove('border-red-500');
+                });
+            }
+
+            function setFieldError(inputEl, errEl, message) {
+                if (!inputEl || !errEl) {
+                    return;
+                }
+                errEl.textContent = message;
+                errEl.classList.remove('hidden');
+                inputEl.classList.add('border-red-500');
+            }
+
+            function openQuickAddModal(row) {
+                if (!quickAddModal || !quickAddForm || !quickAddCategoryInput) {
+                    return false;
+                }
+                const catSelect = row.querySelector('[data-category-select]');
+                const categoryId = catSelect ? catSelect.value : '';
+                if (!categoryId) {
+                    quickAddErrGeneral.textContent = 'Select a category first.';
+                    quickAddErrGeneral.classList.remove('hidden');
+                    return false;
+                }
+
+                quickAddTargetRow = row;
+                quickAddCategoryInput.value = categoryId;
+                quickAddNameArInput.value = '';
+                quickAddNameEnInput.value = '';
+                clearQuickAddErrors();
+
+                quickAddModal.classList.remove('hidden');
+                quickAddModal.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('overflow-hidden');
+                setTimeout(function () {
+                    quickAddNameArInput.focus();
+                }, 0);
+
+                return true;
+            }
+
+            function closeQuickAddModal() {
+                quickAddTargetRow = null;
+                if (quickAddModal) {
+                    quickAddModal.classList.add('hidden');
+                    quickAddModal.setAttribute('aria-hidden', 'true');
+                }
+                document.body.classList.remove('overflow-hidden');
+                clearQuickAddErrors();
+            }
+
+            if (quickAddCancelBtn) {
+                quickAddCancelBtn.addEventListener('click', function () {
+                    closeQuickAddModal();
+                });
+            }
+
+            if (quickAddModal) {
+                const panel = quickAddModal.querySelector('.relative');
+                quickAddModal.addEventListener('click', function (e) {
+                    if (panel && !panel.contains(e.target)) {
+                        closeQuickAddModal();
+                    }
+                });
+            }
+
+            if (quickAddSaveBtn) {
+                quickAddSaveBtn.addEventListener('click', async function () {
+                    if (!quickAddTargetRow) {
+                        return;
+                    }
+
+                    const categoryId = (quickAddCategoryInput.value || '').trim();
+                    const nameAr = (quickAddNameArInput.value || '').trim();
+                    const nameEn = (quickAddNameEnInput.value || '').trim();
+
+                    clearQuickAddErrors();
+                    if (!categoryId) {
+                        quickAddErrGeneral.textContent = 'Category is required.';
+                        quickAddErrGeneral.classList.remove('hidden');
+                        return;
+                    }
+                    if (!nameAr) {
+                        setFieldError(quickAddNameArInput, quickAddErrNameAr, 'Arabic name is required.');
+                        return;
+                    }
+                    if (!nameEn) {
+                        setFieldError(quickAddNameEnInput, quickAddErrNameEn, 'English name is required.');
+                        return;
+                    }
+
+                    if (quickAddSaveBtn) {
+                        quickAddSaveBtn.disabled = true;
+                    }
+
+                    const formData = new FormData();
+                    formData.append('category_id', categoryId);
+                    formData.append('name_ar', nameAr);
+                    formData.append('name_en', nameEn);
+
+                    try {
+                        const res = await fetch(quickStoreUrl, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json',
+                            },
+                            body: formData
+                        });
+
+                        const payload = await res.json().catch(function () {
+                            return null;
+                        });
+
+                        if (!res.ok) {
+                            const errors = payload && payload.errors ? payload.errors : null;
+                            clearQuickAddErrors();
+                            if (errors) {
+                                if (errors.name_ar && errors.name_ar[0]) {
+                                    setFieldError(quickAddNameArInput, quickAddErrNameAr, errors.name_ar[0]);
+                                }
+                                if (errors.name_en && errors.name_en[0]) {
+                                    setFieldError(quickAddNameEnInput, quickAddErrNameEn, errors.name_en[0]);
+                                }
+                                if ((!errors.name_ar || !errors.name_ar[0]) && (!errors.name_en || !errors.name_en[0])) {
+                                    quickAddErrGeneral.textContent = 'Please fix the highlighted fields.';
+                                    quickAddErrGeneral.classList.remove('hidden');
+                                }
+                            } else {
+                                quickAddErrGeneral.textContent = 'Failed to create subcategory.';
+                                quickAddErrGeneral.classList.remove('hidden');
+                            }
+                            return;
+                        }
+
+                        const created = payload;
+                        if (!created || !created.id) {
+                            quickAddErrGeneral.textContent = 'Server did not return the created subcategory.';
+                            quickAddErrGeneral.classList.remove('hidden');
+                            return;
+                        }
+
+                        const newId = created.id;
+                        const catKey = String(categoryId);
+
+                        if (!Array.isArray(subData[catKey])) {
+                            subData[catKey] = [];
+                        }
+                        const alreadyExists = subData[catKey].some(function (it) {
+                            return String(it.id) === String(newId);
+                        });
+                        if (!alreadyExists) {
+                            subData[catKey].push({
+                                id: newId,
+                                name_ar: created.name_ar || '',
+                                name_en: created.name_en || '',
+                            });
+                        }
+
+                        const targetRow = quickAddTargetRow;
+                        closeQuickAddModal();
+
+                        const existingSelected = [];
+                        const wrap = targetRow ? targetRow.querySelector('[data-category-sub-checkboxes]') : null;
+                        if (wrap) {
+                            wrap.querySelectorAll('input[type="checkbox"]:checked').forEach(function (cb) {
+                                existingSelected.push(parseInt(cb.value, 10));
+                            });
+                        }
+                        const nextSelected = Array.from(new Set(existingSelected.concat([parseInt(newId, 10)])));
+                        refreshCategorySubCheckboxes(targetRow, nextSelected);
+                        const addBtn = targetRow ? targetRow.querySelector('[data-add-subcategory]') : null;
+                        if (addBtn && targetRow) {
+                            addBtn.disabled = !targetRow.querySelector('[data-category-select]')?.value;
+                        }
+                    } finally {
+                        if (quickAddSaveBtn) {
+                            quickAddSaveBtn.disabled = false;
+                        }
+                    }
+                });
+            }
+
+            document.addEventListener('click', function (e) {
+                const btn = e.target.closest('[data-add-subcategory]');
+                if (!btn) {
+                    return;
+                }
+                const row = btn.closest('tr.category-row');
+                if (!row) {
+                    return;
+                }
+                openQuickAddModal(row);
+            });
 
             function reindexVendorLocationRows() {
                 const container = document.getElementById('vendor-location-rows');

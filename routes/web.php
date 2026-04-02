@@ -9,6 +9,7 @@ use App\Http\Controllers\Geo\CityController;
 use App\Http\Controllers\Geo\CountryController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\Procurement\Categories\CategoryController;
+use App\Http\Controllers\Procurement\Catalog\SubcategoryQuickStoreController;
 use App\Http\Controllers\Procurement\Vendors\VendorWebController;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +26,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/categories/import', [CategoryController::class, 'import'])->name('categories.import');
 
     Route::resource('categories', CategoryController::class);
+
+    Route::post('/subcategories/quick-store', [SubcategoryQuickStoreController::class, 'quickStore'])
+        ->name('subcategories.quick-store');
+
     Route::get('/locations', [CountryController::class, 'index'])->name('locations.index');
     Route::resource('countries', CountryController::class)->except(['show']);
     Route::resource('cities', CityController::class)->except(['show']);
