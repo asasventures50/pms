@@ -158,7 +158,8 @@ class VendorPersistenceService
                 continue;
             }
 
-            $path = $file->store($directory, 'public');
+            //$path = $file->store($directory, 'public');
+            $path = $file->store($directory, 's3');
 
             $vendor->brochures()->create([
                 'file_name' => $file->getClientOriginalName(),
@@ -198,7 +199,7 @@ class VendorPersistenceService
 
         foreach ($brochures as $brochure) {
             if ($brochure->file_path) {
-                Storage::disk('public')->delete($brochure->file_path);
+                Storage::disk('s3')->delete($brochure->file_path);
             }
             $brochure->delete();
         }
@@ -225,7 +226,7 @@ class VendorPersistenceService
                 continue;
             }
 
-            $path = $file->store($directory, 'public');
+            $path = $file->store($directory, 's3');
 
             $vendor->brochures()->create([
                 'file_name' => $file->getClientOriginalName(),
