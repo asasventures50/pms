@@ -158,7 +158,18 @@ class VendorPersistenceService
                 continue;
             }
 
-            $path = $file->store($directory, 'public');
+            $path = Storage::disk('s3')->putFileAs(
+                $directory,
+                $file,
+                $file->hashName(),
+                ['visibility' => 'public'],
+            );
+
+            if ($path === false) {
+                throw new \RuntimeException(
+                    "Failed to upload brochure file '{$file->getClientOriginalName()}' to S3."
+                );
+            }
 
             $vendor->brochures()->create([
                 'file_name' => $file->getClientOriginalName(),
@@ -176,7 +187,7 @@ class VendorPersistenceService
     }
 
     /**
-     * Delete vendor brochures by id (scoped to vendor). Removes public disk files when present.
+     * Delete vendor brochures by id (scoped to vendor). Removes S3 files when present.
      *
      * @param  list<int>  $ids
      */
@@ -198,7 +209,7 @@ class VendorPersistenceService
 
         foreach ($brochures as $brochure) {
             if ($brochure->file_path) {
-                Storage::disk('public')->delete($brochure->file_path);
+                Storage::disk('s3')->delete($brochure->file_path);
             }
             $brochure->delete();
         }
@@ -225,7 +236,18 @@ class VendorPersistenceService
                 continue;
             }
 
-            $path = $file->store($directory, 'public');
+            $path = Storage::disk('s3')->putFileAs(
+                $directory,
+                $file,
+                $file->hashName(),
+                ['visibility' => 'public'],
+            );
+
+            if ($path === false) {
+                throw new \RuntimeException(
+                    "Failed to upload brochure file '{$file->getClientOriginalName()}' to S3."
+                );
+            }
 
             $vendor->brochures()->create([
                 'file_name' => $file->getClientOriginalName(),

@@ -2,8 +2,10 @@
 
 namespace App\Models\Procurement\Vendors;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 class VendorBrochure extends Model
 {
@@ -21,6 +23,21 @@ class VendorBrochure extends Model
         'file_type',
         'notes',
     ];
+
+    /**
+     * @var list<string>
+     */
+    protected $appends = ['url'];
+
+    protected function url(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->file_path
+                // @phpstan-ignore-next-line
+                ? Storage::disk('s3')->url($this->file_path)
+                : null,
+        );
+    }
 
     public function vendor(): BelongsTo
     {
