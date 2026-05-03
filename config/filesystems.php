@@ -53,7 +53,8 @@ return [
             'secret' => env('AWS_SECRET_ACCESS_KEY'),
             'region' => env('AWS_DEFAULT_REGION'),
             'bucket' => env('AWS_BUCKET'),
-            'url' => env('AWS_URL'),
+            // Public base URL for Storage::url() (e.g. CloudFront). S3 API still uses region + bucket; do not set AWS_ENDPOINT to CloudFront.
+            'url' => ($awsUrl = env('AWS_URL')) !== null && $awsUrl !== '' ? rtrim($awsUrl, '/') : null,
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
             'throw' => false,

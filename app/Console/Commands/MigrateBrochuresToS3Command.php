@@ -7,6 +7,7 @@ use Illuminate\Console\Command;
 use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use League\Flysystem\UnableToCheckExistence;
 
 class MigrateBrochuresToS3Command extends Command
 {
@@ -51,7 +52,7 @@ class MigrateBrochuresToS3Command extends Command
         $failed   = 0;
 
         foreach ($records as $brochure) {
-            $result = $this->migrateRecord($brochure, $migrated, $skipped, $failed);
+            $result = $this->migrateRecord($brochure);
 
             if ($result === 'migrated') {
                 $migrated++;
@@ -88,7 +89,7 @@ class MigrateBrochuresToS3Command extends Command
      *
      * Returns 'migrated', 'skipped', or 'failed'.
      */
-    private function migrateRecord(VendorBrochure $brochure, int &$migrated, int &$skipped, int &$failed): string
+    private function migrateRecord(VendorBrochure $brochure): string
     {
         try {
             // Skip records with null or empty file_path
@@ -100,7 +101,7 @@ class MigrateBrochuresToS3Command extends Command
             $path = $this->sanitizePath($brochure->file_path);
 
             // If the file already exists on S3, skip it (idempotency)
-            if (Storage::disk('s3')->exists($path)) {
+            if ($this->s3FileExists($path)) {
                 return 'skipped';
             }
 
@@ -119,12 +120,30 @@ class MigrateBrochuresToS3Command extends Command
             return 'migrated';
         } catch (\Throwable $e) {
             Log::error('MigrateBrochuresToS3: unexpected exception while processing record.', [
-                'id'        => $brochure->id,
-                'file_path' => $brochure->file_path,
-                'error'     => $e->getMessage(),
+                'id'          => $brochure->id,
+                'file_path'   => $brochure->file_path,
+                'error'       => $e->getMessage(),
+                'error_inner' => $e->getPrevious()?->getMessage(),
             ]);
 
             return 'failed';
+        }
+    }
+
+    /**
+     * True if the object exists on S3. If HeadObject/existence checks fail (e.g. IAM), logs and returns false so upload can still be attempted.
+     */
+    private function s3FileExists(string $path): bool
+    {
+        try {
+            return Storage::disk('s3')->exists($path);
+        } catch (UnableToCheckExistence $e) {
+            Log::warning('MigrateBrochuresToS3: cannot check S3 existence; will try upload.', [
+                'file_path'   => $path,
+                'error_inner' => $e->getPrevious()?->getMessage() ?? $e->getMessage(),
+            ]);
+
+            return false;
         }
     }
 
@@ -176,17 +195,34 @@ class MigrateBrochuresToS3Command extends Command
             return false;
         }
 
-        // Verify the file now exists on S3
-        if (! Storage::disk('s3')->exists($path)) {
-            Log::error('MigrateBrochuresToS3: post-upload S3 existence check failed.', [
-                'id'        => $id,
-                'file_path' => $path,
+        return $this->verifyS3ObjectAfterPut($id, $path);
+    }
+
+    /**
+     * After a successful PutObject, confirm the key exists when the API allows; if existence checks fail, trust PutObject.
+     */
+    private function verifyS3ObjectAfterPut(int $id, string $path): bool
+    {
+        try {
+            if (! Storage::disk('s3')->exists($path)) {
+                Log::error('MigrateBrochuresToS3: post-upload S3 existence check failed.', [
+                    'id'        => $id,
+                    'file_path' => $path,
+                ]);
+
+                return false;
+            }
+
+            return true;
+        } catch (UnableToCheckExistence $e) {
+            Log::warning('MigrateBrochuresToS3: post-upload existence check unavailable; treating upload as success.', [
+                'id'          => $id,
+                'file_path'   => $path,
+                'error_inner' => $e->getPrevious()?->getMessage() ?? $e->getMessage(),
             ]);
 
-            return false;
+            return true;
         }
-
-        return true;
     }
 
     /**
