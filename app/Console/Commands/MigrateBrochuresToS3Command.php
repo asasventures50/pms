@@ -96,13 +96,16 @@ class MigrateBrochuresToS3Command extends Command
                 return 'skipped';
             }
 
+            // Sanitize the path: remove whitespace, leading slashes, and known local prefixes
+            $path = $this->sanitizePath($brochure->file_path);
+
             // If the file already exists on S3, skip it (idempotency)
-            if (Storage::disk('s3')->exists($brochure->file_path)) {
+            if (Storage::disk('s3')->exists($path)) {
                 return 'skipped';
             }
 
             // Attempt upload to S3
-            $uploaded = $this->uploadToS3($brochure->id, $brochure->file_path);
+            $uploaded = $this->uploadToS3($brochure->id, $path);
 
             if (! $uploaded) {
                 return 'failed';
@@ -110,7 +113,7 @@ class MigrateBrochuresToS3Command extends Command
 
             // Optionally delete the local copy
             if ($this->option('delete-local')) {
-                $this->deleteLocal($brochure->id, $brochure->file_path);
+                $this->deleteLocal($brochure->id, $path);
             }
 
             return 'migrated';
@@ -132,6 +135,9 @@ class MigrateBrochuresToS3Command extends Command
      */
     private function uploadToS3(int $id, string $path): bool
     {
+        // Sanitize the path: remove whitespace, leading slashes, and known local prefixes
+        $path = $this->sanitizePath($path);
+
         // Verify the file exists locally before attempting to read it
         if (! Storage::disk('public')->exists($path)) {
             Log::error('MigrateBrochuresToS3: local file not found.', [
@@ -181,6 +187,39 @@ class MigrateBrochuresToS3Command extends Command
         }
 
         return true;
+    }
+
+    /**
+     * Normalize a raw file_path value coming from the database.
+     *
+     * Strips leading slashes and known local-disk prefixes so the result
+     * is always a clean relative path suitable for both the public and S3 disks.
+     *
+     * Examples:
+     *   "storage/app/public/vendors/brochures/1/file.pdf" → "vendors/brochures/1/file.pdf"
+     *   "/vendors/brochures/1/file.pdf"                   → "vendors/brochures/1/file.pdf"
+     *   "vendors/brochures/1/file.pdf"                    → "vendors/brochures/1/file.pdf"
+     */
+    private function sanitizePath(string $path): string
+    {
+        $path = trim($path);
+        $path = ltrim($path, '/');
+
+        // Strip known local-disk prefixes that should never be stored in file_path
+        $prefixes = [
+            'storage/app/public/',
+            'storage/app/',
+            'public/',
+        ];
+
+        foreach ($prefixes as $prefix) {
+            if (str_starts_with($path, $prefix)) {
+                $path = substr($path, strlen($prefix));
+                break;
+            }
+        }
+
+        return $path;
     }
 
     /**
