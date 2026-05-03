@@ -243,7 +243,7 @@
                         <li class="flex flex-col gap-2 px-3 py-3 sm:flex-row sm:items-start sm:justify-between">
                             <div class="min-w-0 flex-1">
                                 <div class="font-medium text-slate-900">{{ $brochure->file_name }}</div>
-                                <div class="break-all font-mono text-xs text-slate-500">{{ $brochure->file_path }}</div>
+                                <div class="break-all font-mono text-xs text-slate-500">{{ $brochure->url }}</div>
                                 @if ($brochure->file_type)
                                     <div class="text-xs text-slate-500">{{ $brochure->file_type }}</div>
                                 @endif
@@ -269,7 +269,7 @@
                                     </div>
                                 @endif
                             </div>
-                            <a href="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($brochure->file_path) }}"
+                            <a href="{{ $brochure->url }}"
                                target="_blank" rel="noopener"
                                class="shrink-0 text-sm font-medium text-slate-700 hover:text-slate-900">Open file</a>
                         </li>
