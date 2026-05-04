@@ -121,6 +121,88 @@
                     @endif
                 </p>
             </div>
+
+            {{-- Country / City filter --}}
+            @php
+                $filterCountryId = request('country_id');
+                $selectedCityIds = collect((array) request('city_ids', []))
+                    ->map(fn ($v) => (string) (int) $v)
+                    ->filter(fn (string $s) => $s !== '0')
+                    ->unique()
+                    ->values()
+                    ->all();
+                $filterCityOptions = $filterCountryId
+                    ? ($citiesByCountry->get((int) $filterCountryId) ?? collect())
+                    : collect();
+                if (! $filterCountryId) {
+                    $cityButtonLabel = 'Select a country first';
+                } elseif (count($selectedCityIds) === 0) {
+                    $cityButtonLabel = 'All cities';
+                } elseif (count($selectedCityIds) === 1) {
+                    $oneCity = $filterCityOptions->first(fn ($c) => (string) $c['id'] === $selectedCityIds[0]);
+                    $cityButtonLabel = $oneCity
+                        ? ($oneCity['name_ar'] . ($oneCity['name_en'] ? ' — ' . $oneCity['name_en'] : ''))
+                        : '1 city selected';
+                } else {
+                    $cityButtonLabel = count($selectedCityIds) . ' cities selected';
+                }
+            @endphp
+            <div class="flex flex-col lg:col-span-2">
+                <label for="vendor_filter_country_id" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Country</label>
+                <select name="country_id" id="vendor_filter_country_id" class="admin-filter-control">
+                    <option value="">All</option>
+                    @foreach ($filterCountries as $country)
+                        <option value="{{ $country->id }}" @selected((string) request('country_id') === (string) $country->id)>
+                            {{ $country->name_ar }}{{ $country->name_en ? ' — ' . $country->name_en : '' }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="flex flex-col lg:col-span-2" id="vendor_filter_city_wrap">
+                <span class="block text-xs font-medium uppercase tracking-wide text-slate-500" id="vendor_filter_city_label">City</span>
+                <div class="relative mt-1">
+                    <button type="button"
+                            id="vendor_filter_city_btn"
+                            @disabled(! $filterCountryId)
+                            aria-expanded="false"
+                            aria-haspopup="listbox"
+                            aria-labelledby="vendor_filter_city_label"
+                            class="admin-filter-dropdown-btn">
+                        <span id="vendor_filter_city_btn_label" class="min-w-0 flex-1 truncate">{{ $cityButtonLabel }}</span>
+                        <svg class="h-3.5 w-3.5 shrink-0 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
+                        </svg>
+                    </button>
+                    <div id="vendor_filter_city_panel"
+                         class="hidden absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg ring-1 ring-black/5"
+                         role="listbox">
+                        <div id="vendor_filter_city_list" class="max-h-52 overflow-y-auto py-1">
+                            @forelse ($filterCityOptions as $c)
+                                <label class="flex cursor-pointer items-start gap-2 px-3 py-2 text-sm hover:bg-slate-50">
+                                    <input type="checkbox" name="city_ids[]" value="{{ $c['id'] }}"
+                                           class="mt-0.5 rounded border-slate-300 text-slate-900 focus:ring-slate-500"
+                                           data-city-label="{{ e(($c['name_ar'] ?? '') . ($c['name_en'] ? ' — ' . $c['name_en'] : '')) }}"
+                                        @checked(in_array((string) $c['id'], $selectedCityIds, true))>
+                                    <span class="text-slate-800" dir="auto">
+                                        {{ $c['name_ar'] }}{{ $c['name_en'] ? ' — ' . $c['name_en'] : '' }}
+                                    </span>
+                                </label>
+                            @empty
+                                <p class="px-3 py-2 text-sm text-slate-500">No cities in this country.</p>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="md:col-span-2 lg:col-span-4">
+                <p id="vendor_filter_city_hint" class="text-xs leading-snug text-slate-500">
+                    @if ($filterCountryId)
+                        City is optional. Vendors matching <span class="font-medium text-slate-600">any</span> selected city are shown; leave empty to include all cities under the chosen country.
+                    @else
+                        Choose a country to enable the city filter.
+                    @endif
+                </p>
+            </div>
         </div>
         <div class="flex flex-wrap items-center gap-3">
             <button type="submit" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">Apply filters</button>
@@ -355,6 +437,117 @@
             updateButtonLabel();
 
             catSelect.addEventListener('change', fillSubcategories);
+
+            // ── Country / City filter ──────────────────────────────────────
+            const citiesByCnt = @json($citiesByCountry);
+            const cntSelect   = document.getElementById('vendor_filter_country_id');
+            const cityWrap    = document.getElementById('vendor_filter_city_wrap');
+            const cityBtn     = document.getElementById('vendor_filter_city_btn');
+            const cityBtnLbl  = document.getElementById('vendor_filter_city_btn_label');
+            const cityPanel   = document.getElementById('vendor_filter_city_panel');
+            const cityList    = document.getElementById('vendor_filter_city_list');
+            const cityHint    = document.getElementById('vendor_filter_city_hint');
+
+            if (cntSelect && cityWrap && cityBtn && cityBtnLbl && cityPanel && cityList) {
+
+                function closeCityPanel() {
+                    cityPanel.classList.add('hidden');
+                    cityBtn.setAttribute('aria-expanded', 'false');
+                }
+
+                function openCityPanel() {
+                    cityPanel.classList.remove('hidden');
+                    cityBtn.setAttribute('aria-expanded', 'true');
+                }
+
+                function updateCityButtonLabel() {
+                    if (cityBtn.disabled) {
+                        cityBtnLbl.textContent = 'Select a country first';
+                        return;
+                    }
+                    const boxes   = cityList.querySelectorAll('input[type="checkbox"][name="city_ids[]"]');
+                    const checked = Array.from(boxes).filter(c => c.checked);
+                    if (checked.length === 0) {
+                        cityBtnLbl.textContent = 'All cities';
+                    } else if (checked.length === 1) {
+                        const t = checked[0].getAttribute('data-city-label') || '1 city selected';
+                        cityBtnLbl.textContent = t.length > 48 ? t.slice(0, 45) + '…' : t;
+                    } else {
+                        cityBtnLbl.textContent = checked.length + ' cities selected';
+                    }
+                }
+
+                function fillCities() {
+                    const cid = cntSelect.value;
+                    cityList.innerHTML = '';
+
+                    if (!cid) {
+                        cityBtn.disabled = true;
+                        closeCityPanel();
+                        if (cityHint) cityHint.innerHTML = 'Choose a country to enable the city filter.';
+                        updateCityButtonLabel();
+                        return;
+                    }
+
+                    cityBtn.disabled = false;
+                    if (cityHint) cityHint.innerHTML = 'City is optional. Vendors matching <span class="font-medium text-slate-600">any</span> selected city are shown; leave empty to include all cities under the chosen country.';
+
+                    const list = citiesByCnt[cid] || citiesByCnt[String(cid)] || [];
+                    if (list.length === 0) {
+                        const empty = document.createElement('p');
+                        empty.className = 'px-3 py-2 text-sm text-slate-500';
+                        empty.textContent = 'No cities in this country.';
+                        cityList.appendChild(empty);
+                        updateCityButtonLabel();
+                        return;
+                    }
+
+                    list.forEach(function (item) {
+                        const label = (item.name_ar || '') + (item.name_en ? ' — ' + item.name_en : '');
+                        const row   = document.createElement('label');
+                        row.className = 'flex cursor-pointer items-start gap-2 px-3 py-2 text-sm hover:bg-slate-50';
+                        const cb  = document.createElement('input');
+                        cb.type   = 'checkbox';
+                        cb.name   = 'city_ids[]';
+                        cb.value  = String(item.id);
+                        cb.className = 'mt-0.5 rounded border-slate-300 text-slate-900 focus:ring-slate-500';
+                        cb.setAttribute('data-city-label', label);
+                        const span = document.createElement('span');
+                        span.className = 'text-slate-800';
+                        span.setAttribute('dir', 'auto');
+                        span.textContent = label;
+                        row.appendChild(cb);
+                        row.appendChild(span);
+                        cityList.appendChild(row);
+                    });
+
+                    cityList.querySelectorAll('input[type="checkbox"]').forEach(c => {
+                        c.addEventListener('change', updateCityButtonLabel);
+                    });
+                    updateCityButtonLabel();
+                }
+
+                cityBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    if (cityBtn.disabled) return;
+                    cityPanel.classList.contains('hidden') ? openCityPanel() : closeCityPanel();
+                });
+
+                document.addEventListener('click', function (e) {
+                    if (!cityWrap.contains(e.target)) closeCityPanel();
+                });
+
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape') closeCityPanel();
+                });
+
+                cityList.querySelectorAll('input[type="checkbox"]').forEach(c => {
+                    c.addEventListener('change', updateCityButtonLabel);
+                });
+                updateCityButtonLabel();
+
+                cntSelect.addEventListener('change', fillCities);
+            }
         });
     </script>
 @endpush

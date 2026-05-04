@@ -92,6 +92,40 @@ class VendorWebController extends Controller
             }
         }
 
+        if ($request->filled('country_id')) {
+            $countryId = $request->integer('country_id');
+
+            $cityIds = collect((array) $request->input('city_ids', []))
+                ->map(fn ($v) => (int) $v)
+                ->filter(fn (int $id) => $id > 0)
+                ->unique()
+                ->values()
+                ->all();
+
+            if (count($cityIds) > 0) {
+                $validCityIds = City::query()
+                    ->where('country_id', $countryId)
+                    ->whereIn('id', $cityIds)
+                    ->pluck('id')
+                    ->all();
+
+                if (count($validCityIds) > 0) {
+                    $query->whereHas('locations', function ($q) use ($countryId, $validCityIds) {
+                        $q->where('country_id', $countryId)
+                            ->whereIn('city_id', $validCityIds);
+                    });
+                } else {
+                    $query->whereHas('locations', function ($q) use ($countryId) {
+                        $q->where('country_id', $countryId);
+                    });
+                }
+            } else {
+                $query->whereHas('locations', function ($q) use ($countryId) {
+                    $q->where('country_id', $countryId);
+                });
+            }
+        }
+
         $vendors = $query->paginate($perPage)->withQueryString();
 
         $filterCategories = Category::query()
@@ -107,10 +141,26 @@ class VendorWebController extends Controller
             ])->values(),
         ]);
 
+        $filterCountries = Country::query()
+            ->active()
+            ->with(['cities' => fn ($q) => $q->active()->orderBy('name_ar')])
+            ->orderBy('name_ar')
+            ->get();
+
+        $citiesByCountry = $filterCountries->mapWithKeys(fn (Country $c) => [
+            $c->id => $c->cities->map(fn (City $city) => [
+                'id'      => $city->id,
+                'name_ar' => $city->name_ar,
+                'name_en' => $city->name_en,
+            ])->values(),
+        ]);
+
         return view('procurement.vendors.index', [
-            'vendors' => $vendors,
-            'filterCategories' => $filterCategories,
+            'vendors'              => $vendors,
+            'filterCategories'     => $filterCategories,
             'subcategoriesByCategory' => $subcategoriesByCategory,
+            'filterCountries'      => $filterCountries,
+            'citiesByCountry'      => $citiesByCountry,
         ]);
     }
 
