@@ -223,6 +223,7 @@ class MigrateBrochuresToS3Command extends Command
 
             return true;
         }
+        ////
     }
 
     /**
