@@ -42,6 +42,33 @@
                     @endforeach
                 </select>
             </div>
+            <div>
+                <label for="company_type" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Company Type</label>
+                <select name="company_type" id="company_type" class="admin-filter-control">
+                    <option value="">All</option>
+                    @foreach (\App\Enums\Procurement\Vendors\CompanyType::cases() as $case)
+                        <option value="{{ $case->value }}" @selected(request('company_type') === $case->value)>{{ \Illuminate\Support\Str::headline($case->value) }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label for="coverage_type" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Coverage Type</label>
+                <select name="coverage_type" id="coverage_type" class="admin-filter-control">
+                    <option value="">All</option>
+                    @foreach (\App\Enums\Procurement\Vendors\CoverageType::cases() as $case)
+                        <option value="{{ $case->value }}" @selected(request('coverage_type') === $case->value)>{{ \Illuminate\Support\Str::headline($case->value) }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label for="business_type" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Business Type</label>
+                <select name="business_type" id="business_type" class="admin-filter-control">
+                    <option value="">All</option>
+                    @foreach (\App\Enums\Procurement\Vendors\VendorBusinessType::cases() as $case)
+                        <option value="{{ $case->value }}" @selected(request('business_type') === $case->value)>{{ \Illuminate\Support\Str::headline($case->value) }}</option>
+                    @endforeach
+                </select>
+            </div>
             @php
                 $filterCategoryId = request('category_id');
                 $selectedSubcategoryIds = collect((array) request('subcategory_ids', []))

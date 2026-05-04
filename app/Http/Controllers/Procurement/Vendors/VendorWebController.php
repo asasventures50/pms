@@ -92,6 +92,20 @@ class VendorWebController extends Controller
             }
         }
 
+        if ($request->filled('company_type')) {
+            $query->where('company_type', $request->string('company_type'));
+        }
+
+        if ($request->filled('coverage_type')) {
+            $query->where('coverage_type', $request->string('coverage_type'));
+        }
+
+        if ($request->filled('business_type')) {
+            $query->whereHas('businessTypes', function ($q) use ($request) {
+                $q->where('business_type', $request->string('business_type'));
+            });
+        }
+
         if ($request->filled('country_id')) {
             $countryId = $request->integer('country_id');
 
