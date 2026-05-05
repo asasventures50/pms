@@ -1,4 +1,5 @@
 *.log
+.kiro/specs
 .DS_Store
 .env
 .env.backup

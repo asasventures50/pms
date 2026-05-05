@@ -35,4 +35,6 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('cities', CityController::class)->except(['show']);
 
     Route::resource('vendors', VendorWebController::class)->except(['destroy']);
+
+    Route::resource('purchase-orders', \App\Http\Controllers\Procurement\PurchaseOrders\PurchaseOrderController::class);
 });
