@@ -20,37 +20,63 @@
                             Dashboard
                         </a>
                     @endif
-                    @if (request()->routeIs('vendors.*'))
-                        <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Vendors</span>
-                    @else
-                        <a href="{{ route('vendors.index') }}"
-                           class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
-                            Vendors
-                        </a>
+                    @if (auth()->user()->hasPermission('vendors.view'))
+                        @if (request()->routeIs('vendors.*'))
+                            <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Vendors</span>
+                        @else
+                            <a href="{{ route('vendors.index') }}"
+                               class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
+                                Vendors
+                            </a>
+                        @endif
                     @endif
-                    @if (request()->routeIs('categories.*'))
-                        <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Categories</span>
-                    @else
-                        <a href="{{ route('categories.index') }}"
-                           class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
-                            Categories
-                        </a>
+                    @if (auth()->user()->hasPermission('categories.view'))
+                        @if (request()->routeIs('categories.*'))
+                            <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Categories</span>
+                        @else
+                            <a href="{{ route('categories.index') }}"
+                               class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
+                                Categories
+                            </a>
+                        @endif
                     @endif
-                    @if (request()->routeIs('purchase-orders.*'))
-                        <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Purchase Orders</span>
-                    @else
-                        <a href="{{ route('purchase-orders.index') }}"
-                           class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
-                            Purchase Orders
-                        </a>
+                    @if (auth()->user()->hasPermission('purchase-orders.view'))
+                        @if (request()->routeIs('purchase-orders.*'))
+                            <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Purchase Orders</span>
+                        @else
+                            <a href="{{ route('purchase-orders.index') }}"
+                               class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
+                                Purchase Orders
+                            </a>
+                        @endif
                     @endif
                     @if (request()->routeIs('locations.*') || request()->routeIs('countries.*') || request()->routeIs('cities.*'))
                         <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Locations</span>
-                    @else
+                    @elseif (auth()->user()->hasPermission('locations.view'))
                         <a href="{{ route(\Illuminate\Support\Facades\Route::has('locations.index') ? 'locations.index' : (\Illuminate\Support\Facades\Route::has('countries.index') ? 'countries.index' : 'dashboard')) }}"
                            class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
                             Locations
                         </a>
+                    @endif
+                    @if (auth()->user()->hasPermission('users.view'))
+                        @if (request()->routeIs('users.*'))
+                            <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Users</span>
+                        @else
+                            <a href="{{ route('users.index') }}"
+                               class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
+                                Users
+                            </a>
+                        @endif
+                    @endif
+                    @if (auth()->user()->hasPermission('roles.view'))
+                        @if (request()->routeIs('roles.*'))
+                            <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Roles</span>
+                        @else
+                            <a href="{{ route('roles.index') }}"
+                               class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
+                                Roles
+                            </a>
+                        @endif
                     @endif
                 </nav>
                 <div class="flex shrink-0 items-center gap-3">
