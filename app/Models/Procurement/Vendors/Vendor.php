@@ -9,6 +9,7 @@ use App\Enums\Procurement\Vendors\PaymentMethod;
 use App\Enums\Procurement\Vendors\PricingFrequency;
 use App\Enums\Procurement\Vendors\VendorLanguage;
 use App\Enums\Procurement\Vendors\VendorStatus;
+use App\Models\Concerns\LogsActivity;
 use App\Models\Procurement\Vendors\VendorBusinessType as VendorBusinessTypeModel;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -21,7 +22,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Vendor extends Model
 {
-    use SoftDeletes;
+    use LogsActivity, SoftDeletes;
+
+    protected static string $activityLogKey = 'vendor';
 
     protected $table = 'vendors';
 

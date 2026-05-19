@@ -55,15 +55,22 @@
             </dl>
         </section>
 
+        @php
+            $currency = $purchaseOrder->displayCurrency();
+        @endphp
+
         <section class="mt-8 overflow-x-auto">
+            @if ($currency)
+                <p class="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">Currency: {{ $currency }}</p>
+            @endif
             <table class="min-w-full border border-slate-200 text-sm">
                 <thead class="bg-slate-50 text-xs font-semibold uppercase text-slate-600">
                 <tr>
                     <th class="border border-slate-200 px-3 py-2 text-left">Item</th>
                     <th class="border border-slate-200 px-3 py-2 text-left">Item or service description</th>
                     <th class="border border-slate-200 px-3 py-2 text-right">Quantity</th>
-                    <th class="border border-slate-200 px-3 py-2 text-right">Price per unit</th>
-                    <th class="border border-slate-200 px-3 py-2 text-right">Total</th>
+                    <th class="border border-slate-200 px-3 py-2 text-right">Price per unit{{ $currency ? ' ('.$currency.')' : '' }}</th>
+                    <th class="border border-slate-200 px-3 py-2 text-right">Total{{ $currency ? ' ('.$currency.')' : '' }}</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -83,8 +90,8 @@
                 </tbody>
                 <tfoot>
                 <tr class="bg-slate-50 font-semibold">
-                    <td colspan="4" class="border border-slate-200 px-3 py-2 text-right">Grand Total:</td>
-                    <td class="border border-slate-200 px-3 py-2 text-right font-mono">{{ number_format($purchaseOrder->total_price ?? 0, 2) }}</td>
+                    <td colspan="4" class="border border-slate-200 px-3 py-2 text-right">Grand Total:{{ $currency ? ' ('.$currency.')' : '' }}</td>
+                    <td class="border border-slate-200 px-3 py-2 text-right font-mono">{{ $purchaseOrder->formatMoneyAmount($purchaseOrder->total_price ?? 0) }}</td>
                 </tr>
                 </tfoot>
             </table>

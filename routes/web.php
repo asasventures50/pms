@@ -6,12 +6,14 @@
 
 use App\Http\Controllers\Access\RoleController;
 use App\Http\Controllers\Access\UserController;
+use App\Http\Controllers\Activity\ActivityLogController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Geo\CityController;
 use App\Http\Controllers\Geo\CountryController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\Procurement\Categories\CategoryController;
 use App\Http\Controllers\Procurement\Catalog\SubcategoryQuickStoreController;
+use App\Http\Controllers\Procurement\ProcurementRequests\ProcurementRequestController;
 use App\Http\Controllers\Procurement\PurchaseOrders\PurchaseOrderController;
 use App\Http\Controllers\Procurement\Rfqs\RfqController;
 use App\Http\Controllers\Procurement\Vendors\VendorWebController;
@@ -45,6 +47,14 @@ Route::middleware(['auth'])->group(function () {
             'update' => 'permission:roles.update',
             'destroy' => 'permission:roles.delete',
         ]);
+
+    Route::get('activity-logs', [ActivityLogController::class, 'index'])
+        ->middleware('permission:activity-logs.view')
+        ->name('activity-logs.index');
+
+    Route::get('activity-logs/{activityLog}', [ActivityLogController::class, 'show'])
+        ->middleware('permission:activity-logs.view')
+        ->name('activity-logs.show');
 
     Route::get('/categories/export', [CategoryController::class, 'export'])
         ->middleware('permission:categories.export')
@@ -142,5 +152,16 @@ Route::middleware(['auth'])->group(function () {
             'edit' => 'permission:rfqs.update',
             'update' => 'permission:rfqs.update',
             'destroy' => 'permission:rfqs.update',
+        ]);
+
+    Route::resource('procurement-requests', ProcurementRequestController::class)
+        ->middleware([
+            'index' => 'permission:procurement-requests.view',
+            'show' => 'permission:procurement-requests.view',
+            'create' => 'permission:procurement-requests.create',
+            'store' => 'permission:procurement-requests.create',
+            'edit' => 'permission:procurement-requests.update',
+            'update' => 'permission:procurement-requests.update',
+            'destroy' => 'permission:procurement-requests.update',
         ]);
 });

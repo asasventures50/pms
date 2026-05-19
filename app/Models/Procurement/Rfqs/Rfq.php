@@ -3,6 +3,7 @@
 namespace App\Models\Procurement\Rfqs;
 
 use App\Enums\Procurement\Rfqs\RfqStatus;
+use App\Models\Concerns\LogsActivity;
 use App\Models\Procurement\Vendors\Vendor;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -12,7 +13,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Rfq extends Model
 {
-    use SoftDeletes;
+    use LogsActivity, SoftDeletes;
+
+    protected static string $activityLogKey = 'rfq';
 
     protected $table = 'rfqs';
 

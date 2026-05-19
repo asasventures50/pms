@@ -86,7 +86,10 @@
         </div>
     </section>
 
-    @include('procurement.purchase-orders._line-items', ['lineItems' => $lineItems])
+    @include('procurement.purchase-orders._line-items', [
+        'lineItems' => $lineItems,
+        'po' => $po,
+    ])
 
     <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 class="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">Order terms</h2>

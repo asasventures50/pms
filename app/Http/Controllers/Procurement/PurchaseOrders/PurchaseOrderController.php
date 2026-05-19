@@ -81,6 +81,7 @@ class PurchaseOrderController extends Controller
         }
 
         PurchaseOrderPayloadResolver::finalizeForStore($validated);
+        PurchaseOrderPayloadResolver::normalizeCurrency($validated, $request->user());
         $validated['created_by'] = $request->user()->id;
         $validated['status'] ??= PurchaseOrderStatus::Draft->value;
         $validated['payment_status'] ??= PaymentStatus::Unpaid->value;
@@ -136,6 +137,7 @@ class PurchaseOrderController extends Controller
         }
 
         PurchaseOrderPayloadResolver::finalizeForUpdate($validated);
+        PurchaseOrderPayloadResolver::normalizeCurrency($validated, $request->user());
 
         $this->persistence->update($purchaseOrder, $validated, $items);
 

@@ -35,6 +35,10 @@ final class PermissionCatalog
             'rfqs.create' => ['label' => 'Create RFQs', 'group' => 'RFQs'],
             'rfqs.update' => ['label' => 'Update RFQs', 'group' => 'RFQs'],
 
+            'procurement-requests.view' => ['label' => 'View procurement requests', 'group' => 'Procurement requests'],
+            'procurement-requests.create' => ['label' => 'Create procurement requests', 'group' => 'Procurement requests'],
+            'procurement-requests.update' => ['label' => 'Update procurement requests', 'group' => 'Procurement requests'],
+
             'locations.view' => ['label' => 'View locations', 'group' => 'Locations'],
             'locations.manage' => ['label' => 'Manage countries and cities', 'group' => 'Locations'],
 
@@ -47,6 +51,8 @@ final class PermissionCatalog
             'roles.create' => ['label' => 'Create roles', 'group' => 'Access control'],
             'roles.update' => ['label' => 'Update roles', 'group' => 'Access control'],
             'roles.delete' => ['label' => 'Delete roles', 'group' => 'Access control'],
+
+            'activity-logs.view' => ['label' => 'View activity log', 'group' => 'Access control'],
         ];
     }
 

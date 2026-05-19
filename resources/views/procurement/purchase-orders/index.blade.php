@@ -70,7 +70,7 @@
                         <td class="px-3 py-2 text-slate-700">{{ $po->creator?->name ?? '—' }}</td>
                         <td class="max-w-[10rem] truncate px-3 py-2 text-slate-700" title="{{ $po->vendor_company_name }}">{{ $po->vendor_company_name ?? $po->vendor?->name ?? '—' }}</td>
                         <td class="whitespace-nowrap px-3 py-2 text-xs text-slate-600">{{ $po->ordered_at?->format('Y-m-d') ?? '—' }}</td>
-                        <td class="whitespace-nowrap px-3 py-2 text-slate-700">{{ $po->total_price !== null ? number_format($po->total_price, 2) : '—' }}</td>
+                        <td class="whitespace-nowrap px-3 py-2 font-mono text-slate-700">{{ $po->formatMoneyAmount($po->total_price) }}</td>
                         <td class="whitespace-nowrap px-3 py-2">
                             <span class="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-800">{{ ucfirst($po->status->value) }}</span>
                         </td>

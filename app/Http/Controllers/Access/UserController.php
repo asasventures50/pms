@@ -61,6 +61,7 @@ class UserController extends Controller
         $user = User::query()->create([
             'name' => $data['name'],
             'email' => $data['email'],
+            'currency_code' => self::normalizeCurrencyCode($data['currency_code'] ?? null),
             'password' => Hash::make($data['password']),
         ]);
 
@@ -89,6 +90,7 @@ class UserController extends Controller
         $user->fill([
             'name' => $data['name'],
             'email' => $data['email'],
+            'currency_code' => self::normalizeCurrencyCode($data['currency_code'] ?? null),
         ]);
 
         if (! empty($data['password'])) {
@@ -123,5 +125,14 @@ class UserController extends Controller
         return redirect()
             ->route('users.index')
             ->with('success', 'User deleted successfully.');
+    }
+
+    private static function normalizeCurrencyCode(mixed $raw): ?string
+    {
+        if ($raw === null || trim((string) $raw) === '') {
+            return null;
+        }
+
+        return strtoupper(trim((string) $raw));
     }
 }

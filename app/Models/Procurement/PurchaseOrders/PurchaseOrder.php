@@ -4,6 +4,7 @@ namespace App\Models\Procurement\PurchaseOrders;
 
 use App\Enums\Procurement\PurchaseOrders\PaymentStatus;
 use App\Enums\Procurement\PurchaseOrders\PurchaseOrderStatus;
+use App\Models\Concerns\LogsActivity;
 use App\Models\Procurement\Vendors\Vendor;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +14,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PurchaseOrder extends Model
 {
-    use SoftDeletes;
+    use LogsActivity, SoftDeletes;
+
+    protected static string $activityLogKey = 'po';
 
     protected $table = 'purchase_orders';
 
@@ -35,6 +38,7 @@ class PurchaseOrder extends Model
         'vendor_email',
         'vendor_phone',
         'vendor_address',
+        'currency_code',
         'total_price',
         'payment_terms',
         'delivery_time',
@@ -75,5 +79,24 @@ class PurchaseOrder extends Model
     public function items(): HasMany
     {
         return $this->hasMany(PurchaseOrderItem::class)->orderBy('sort_order');
+    }
+
+    public function displayCurrency(): ?string
+    {
+        $code = trim((string) ($this->currency_code ?? ''));
+
+        return $code !== '' ? strtoupper($code) : null;
+    }
+
+    public function formatMoneyAmount(float|string|null $amount): string
+    {
+        if ($amount === null || $amount === '') {
+            return '—';
+        }
+
+        $formatted = number_format((float) $amount, 2);
+        $currency = $this->displayCurrency();
+
+        return $currency ? "{$formatted} {$currency}" : $formatted;
     }
 }

@@ -18,6 +18,16 @@
     </div>
 
     <div>
+        <label for="currency_code" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Default currency (ISO 4217)</label>
+        <input type="text" id="currency_code" name="currency_code" maxlength="3"
+               value="{{ old('currency_code', $user?->defaultCurrencyCode() ?? '') }}"
+               class="admin-filter-control uppercase @error('currency_code') border-red-500 @enderror"
+               placeholder="USD">
+        @error('currency_code')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+        <p class="mt-1 text-xs text-slate-500">Used on purchase orders when no vendor currency is set.</p>
+    </div>
+
+    <div>
         <label for="password" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
             Password @if (! $user?->exists)<span class="text-red-600">*</span>@else<span class="normal-case text-slate-400">(leave blank to keep)</span>@endif
         </label>

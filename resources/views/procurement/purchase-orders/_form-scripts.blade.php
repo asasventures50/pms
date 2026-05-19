@@ -5,13 +5,46 @@ document.addEventListener('DOMContentLoaded', function () {
     const addBtn = document.getElementById('po-add-line');
     const grandTotalEl = document.getElementById('po-grand-total');
     const vendorSelect = document.getElementById('vendor_id');
+    const currencyInput = document.getElementById('currency_code');
+    const userDefaultCurrency = (currencyInput?.dataset.userDefaultCurrency || '').trim().toUpperCase();
 
     if (!linesBody || !template) {
         return;
     }
 
+    function currencyFromVendor(vendorCode) {
+        const fromVendor = (vendorCode || '').trim().toUpperCase();
+        return fromVendor || userDefaultCurrency || '';
+    }
+
     function formatMoney(value) {
         return (Math.round(value * 100) / 100).toFixed(2);
+    }
+
+    function effectiveCurrencyCode() {
+        const typed = (currencyInput?.value || '').trim().toUpperCase();
+        if (typed) {
+            return typed;
+        }
+        return userDefaultCurrency || '';
+    }
+
+    function updateCurrencyLabels() {
+        const code = effectiveCurrencyCode();
+        const suffix = code ? ' (' + code + ')' : '';
+
+        document.querySelectorAll('[data-po-price-label]').forEach(function (el) {
+            const base = el.getAttribute('data-po-price-label-base') || '';
+            el.textContent = base + suffix;
+        });
+    }
+
+    function applyUserDefaultIfEmpty() {
+        if (!currencyInput || currencyInput.value.trim() || !userDefaultCurrency) {
+            return;
+        }
+        currencyInput.value = userDefaultCurrency;
+        updateCurrencyLabels();
     }
 
     function reindexRows() {
@@ -79,13 +112,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
     linesBody.querySelectorAll('.po-line-row').forEach(bindRow);
     recalcAll();
+    applyUserDefaultIfEmpty();
+    updateCurrencyLabels();
 
     addBtn?.addEventListener('click', addRow);
+
+    currencyInput?.addEventListener('input', function () {
+        currencyInput.value = currencyInput.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3);
+        updateCurrencyLabels();
+    });
+
+    currencyInput?.addEventListener('blur', applyUserDefaultIfEmpty);
+    currencyInput?.closest('form')?.addEventListener('submit', applyUserDefaultIfEmpty);
 
     if (vendorSelect) {
         vendorSelect.addEventListener('change', async function () {
             const vendorId = vendorSelect.value;
             if (!vendorId) {
+                if (currencyInput && userDefaultCurrency) {
+                    currencyInput.value = userDefaultCurrency;
+                    updateCurrencyLabels();
+                }
                 return;
             }
             const base = vendorSelect.getAttribute('data-snapshot-url');
@@ -97,13 +144,19 @@ document.addEventListener('DOMContentLoaded', function () {
                     return;
                 }
                 const data = await response.json();
-                const fields = ['vendor_company_name', 'vendor_contact', 'vendor_email', 'vendor_phone', 'vendor_address', 'payment_terms'];
+                const fields = ['vendor_company_name', 'vendor_contact', 'vendor_email', 'vendor_phone', 'vendor_address', 'payment_terms', 'currency_code'];
                 fields.forEach(function (key) {
                     const el = document.getElementById(key);
-                    if (el && data[key]) {
+                    if (!el) {
+                        return;
+                    }
+                    if (key === 'currency_code') {
+                        el.value = currencyFromVendor(data.currency_code);
+                    } else if (data[key]) {
                         el.value = data[key];
                     }
                 });
+                updateCurrencyLabels();
             } catch (e) {
                 console.error(e);
             }

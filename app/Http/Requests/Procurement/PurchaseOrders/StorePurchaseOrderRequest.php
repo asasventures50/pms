@@ -43,6 +43,7 @@ class StorePurchaseOrderRequest extends FormRequest
             'vendor_email' => ['nullable', 'string', 'email', 'max:255'],
             'vendor_phone' => ['nullable', 'string', 'max:50'],
             'vendor_address' => ['nullable', 'string', 'max:2000'],
+            'currency_code' => ['nullable', 'string', 'size:3', 'alpha'],
             'payment_terms' => ['nullable', 'string', 'max:5000'],
             'delivery_time' => ['nullable', 'string', 'max:255'],
             'delivery_location' => ['nullable', 'string', 'max:2000'],

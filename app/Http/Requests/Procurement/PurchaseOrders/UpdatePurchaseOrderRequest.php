@@ -29,6 +29,7 @@ class UpdatePurchaseOrderRequest extends FormRequest
             'vendor_email' => ['sometimes', 'nullable', 'string', 'email', 'max:255'],
             'vendor_phone' => ['sometimes', 'nullable', 'string', 'max:50'],
             'vendor_address' => ['sometimes', 'nullable', 'string', 'max:2000'],
+            'currency_code' => ['sometimes', 'nullable', 'string', 'size:3', 'alpha'],
             'payment_terms' => ['sometimes', 'nullable', 'string', 'max:5000'],
             'delivery_time' => ['sometimes', 'nullable', 'string', 'max:255'],
             'delivery_location' => ['sometimes', 'nullable', 'string', 'max:2000'],

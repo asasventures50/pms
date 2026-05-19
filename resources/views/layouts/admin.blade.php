@@ -60,6 +60,16 @@
                             </a>
                         @endif
                     @endif
+                    @if (auth()->user()->hasPermission('procurement-requests.view'))
+                        @if (request()->routeIs('procurement-requests.*'))
+                            <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Procurement Requests</span>
+                        @else
+                            <a href="{{ route('procurement-requests.index') }}"
+                               class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
+                                Procurement Requests
+                            </a>
+                        @endif
+                    @endif
                     @if (request()->routeIs('locations.*') || request()->routeIs('countries.*') || request()->routeIs('cities.*'))
                         <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Locations</span>
                     @elseif (auth()->user()->hasPermission('locations.view'))
@@ -85,6 +95,16 @@
                             <a href="{{ route('roles.index') }}"
                                class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
                                 Roles
+                            </a>
+                        @endif
+                    @endif
+                    @if (auth()->user()->hasPermission('activity-logs.view'))
+                        @if (request()->routeIs('activity-logs.*'))
+                            <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Activity Log</span>
+                        @else
+                            <a href="{{ route('activity-logs.index') }}"
+                               class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
+                                Activity Log
                             </a>
                         @endif
                     @endif

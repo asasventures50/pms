@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Services\Activity\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,6 +12,9 @@ use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
+    public function __construct(
+        protected ActivityLogger $activityLogger,
+    ) {}
     /**
      * Display the login view.
      */
@@ -28,6 +32,8 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        $this->activityLogger->logLogin((int) Auth::id(), $request);
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 
@@ -36,6 +42,10 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        $userId = Auth::id();
+
+        $this->activityLogger->logLogout($userId ? (int) $userId : null, $request);
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

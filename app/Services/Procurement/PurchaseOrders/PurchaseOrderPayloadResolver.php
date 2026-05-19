@@ -2,6 +2,8 @@
 
 namespace App\Services\Procurement\PurchaseOrders;
 
+use App\Models\User;
+
 class PurchaseOrderPayloadResolver
 {
     /**
@@ -40,5 +42,24 @@ class PurchaseOrderPayloadResolver
         }
 
         $validated['po_number'] = trim((string) $raw);
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    public static function normalizeCurrency(array &$validated, ?User $actor = null): void
+    {
+        if (! array_key_exists('currency_code', $validated)) {
+            return;
+        }
+
+        $raw = $validated['currency_code'];
+        if ($raw === null || trim((string) $raw) === '') {
+            $validated['currency_code'] = $actor?->defaultCurrencyCode();
+
+            return;
+        }
+
+        $validated['currency_code'] = strtoupper(trim((string) $raw));
     }
 }
