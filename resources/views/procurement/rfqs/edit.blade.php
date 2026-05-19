@@ -14,7 +14,7 @@
         </div>
     </div>
 
-    <form action="{{ route('rfqs.update', $rfq) }}" method="post" class="space-y-8">
+    <form action="{{ route('rfqs.update', $rfq) }}" method="post" class="space-y-6">
         @csrf
         @method('PUT')
         @include('procurement.rfqs._form', [

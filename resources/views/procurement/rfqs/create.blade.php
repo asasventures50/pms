@@ -11,7 +11,7 @@
         <a href="{{ route('rfqs.index') }}" class="text-sm font-medium text-slate-600 hover:text-slate-900">Back to list</a>
     </div>
 
-    <form action="{{ route('rfqs.store') }}" method="post" class="space-y-8">
+    <form action="{{ route('rfqs.store') }}" method="post" class="space-y-6">
         @csrf
         @include('procurement.rfqs._form', [
             'vendors' => $vendors,

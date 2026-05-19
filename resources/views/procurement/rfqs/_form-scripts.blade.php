@@ -2,16 +2,13 @@
 document.addEventListener('DOMContentLoaded', function () {
     const linesBody = document.getElementById('rfq-lines-body');
     const template = document.getElementById('rfq-line-template');
+    const quotationBody = document.getElementById('rfq-quotation-body');
+    const quotationTemplate = document.getElementById('rfq-quotation-template');
     const addBtn = document.getElementById('rfq-add-line');
-    const grandTotalEl = document.getElementById('rfq-grand-total');
     const vendorSelect = document.getElementById('vendor_id');
 
     if (!linesBody || !template) {
         return;
-    }
-
-    function formatMoney(value) {
-        return (Math.round(value * 100) / 100).toFixed(2);
     }
 
     function reindexRows() {
@@ -27,53 +24,56 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
         });
-    }
 
-    function recalcRow(row) {
-        const qty = parseFloat(row.querySelector('.rfq-qty')?.value || '0');
-        const unit = parseFloat(row.querySelector('.rfq-unit')?.value || '0');
-        const total = qty * unit;
-        const totalEl = row.querySelector('.rfq-line-total');
-        if (totalEl) {
-            totalEl.textContent = formatMoney(total);
-        }
-        return total;
-    }
-
-    function recalcAll() {
-        let grand = 0;
-        linesBody.querySelectorAll('.rfq-line-row').forEach(function (row) {
-            grand += recalcRow(row);
-        });
-        if (grandTotalEl) {
-            grandTotalEl.textContent = formatMoney(grand);
+        if (quotationBody) {
+            quotationBody.querySelectorAll('.rfq-quotation-row').forEach(function (row, index) {
+                const indexCell = row.querySelector('.rfq-quotation-index');
+                if (indexCell) {
+                    indexCell.textContent = String(index + 1);
+                }
+                row.querySelectorAll('[data-name]').forEach(function (input) {
+                    const field = input.getAttribute('data-name');
+                    input.setAttribute('name', 'items[' + index + '][' + field + ']');
+                });
+                row.querySelectorAll('[name^="items["]').forEach(function (input) {
+                    const match = input.getAttribute('name').match(/items\[\d+]\[(\w+)]/);
+                    if (match) {
+                        input.setAttribute('name', 'items[' + index + '][' + match[1] + ']');
+                    }
+                });
+            });
         }
     }
 
     function bindRow(row) {
-        row.querySelectorAll('.rfq-qty, .rfq-unit').forEach(function (input) {
-            input.addEventListener('input', recalcAll);
-        });
         row.querySelector('.rfq-remove-line')?.addEventListener('click', function () {
             if (linesBody.querySelectorAll('.rfq-line-row').length <= 1) {
                 return;
             }
+            const rows = Array.from(linesBody.querySelectorAll('.rfq-line-row'));
+            const index = rows.indexOf(row);
             row.remove();
+            if (quotationBody && index >= 0) {
+                const quoteRows = quotationBody.querySelectorAll('.rfq-quotation-row');
+                if (quoteRows[index]) {
+                    quoteRows[index].remove();
+                }
+            }
             reindexRows();
-            recalcAll();
         });
     }
 
     function addRow() {
         const row = template.content.cloneNode(true).querySelector('tr');
         linesBody.appendChild(row);
+        if (quotationBody && quotationTemplate) {
+            quotationBody.appendChild(quotationTemplate.content.cloneNode(true).querySelector('tr'));
+        }
         reindexRows();
         bindRow(row);
-        recalcAll();
     }
 
     linesBody.querySelectorAll('.rfq-line-row').forEach(bindRow);
-    recalcAll();
     addBtn?.addEventListener('click', addRow);
 
     if (vendorSelect) {

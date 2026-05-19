@@ -56,7 +56,7 @@ class RfqController extends Controller
         return view('procurement.rfqs.create', [
             'nextCode' => app(RfqCodeGenerator::class)->next(),
             'vendors' => Vendor::query()->orderBy('name')->get(['id', 'vendor_code', 'name']),
-            'defaultItems' => [[
+            'defaultItems' => array_fill(0, 2, [
                 'item' => '',
                 'description' => '',
                 'quantity' => 1,
@@ -66,7 +66,7 @@ class RfqController extends Controller
                 'unit_price' => '',
                 'quote_lead_time' => '',
                 'warranty' => '',
-            ]],
+            ]),
         ]);
     }
 
@@ -119,7 +119,7 @@ class RfqController extends Controller
         ])->all();
 
         if ($defaultItems === []) {
-            $defaultItems = [[
+            $defaultItems = array_fill(0, 2, [
                 'item' => '',
                 'description' => '',
                 'quantity' => 1,
@@ -129,7 +129,7 @@ class RfqController extends Controller
                 'unit_price' => '',
                 'quote_lead_time' => '',
                 'warranty' => '',
-            ]];
+            ]);
         }
 
         return view('procurement.rfqs.edit', [
