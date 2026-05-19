@@ -12,6 +12,12 @@
         <div>
             <h1 class="text-2xl font-semibold tracking-tight text-slate-900">{{ $vendor->name }}</h1>
             <p class="mt-1 font-mono text-sm text-slate-600">{{ $vendor->vendor_code }}</p>
+            <p class="mt-1 text-sm text-slate-500">
+                Created by {{ $vendor->creator?->name ?? '—' }}
+                @if ($vendor->created_at)
+                    · {{ $vendor->created_at->format('Y-m-d H:i') }}
+                @endif
+            </p>
         </div>
         <div class="flex flex-wrap gap-3">
             <a href="{{ route('vendors.edit', $vendor) }}"
@@ -25,6 +31,7 @@
         <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 class="border-b border-slate-100 pb-2 text-base font-semibold text-slate-900">Basic Information</h2>
             <dl class="mt-4 grid gap-4 sm:grid-cols-2">
+                <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Created by</dt><dd class="mt-1 text-sm text-slate-900">{{ $vendor->creator?->name ?? '—' }}</dd></div>
                 <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Language</dt><dd class="mt-1 text-sm text-slate-900">{{ strtoupper($e($vendor->language)) }}</dd></div>
                 <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Status</dt><dd class="mt-1 text-sm text-slate-900">{{ $label($vendor->status) }}</dd></div>
                 <div class="sm:col-span-2"><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Description</dt><dd class="mt-1 whitespace-pre-wrap text-sm text-slate-900">{{ $vendor->description ?: '—' }}</dd></div>

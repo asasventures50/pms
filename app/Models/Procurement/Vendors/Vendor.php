@@ -10,8 +10,10 @@ use App\Enums\Procurement\Vendors\PricingFrequency;
 use App\Enums\Procurement\Vendors\VendorLanguage;
 use App\Enums\Procurement\Vendors\VendorStatus;
 use App\Models\Procurement\Vendors\VendorBusinessType as VendorBusinessTypeModel;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -27,6 +29,7 @@ class Vendor extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'created_by',
         'vendor_code',
         'name',
         'language',
@@ -80,6 +83,11 @@ class Vendor extends Model
             'coverage_type' => CoverageType::class,
             'rating' => 'integer',
         ];
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function locations(): HasMany

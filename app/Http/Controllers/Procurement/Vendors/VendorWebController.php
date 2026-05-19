@@ -31,6 +31,7 @@ class VendorWebController extends Controller
 
         $query = Vendor::query()
             ->with([
+                'creator',
                 'vendorCategories.category',
                 'vendorCategories.subcategory',
                 'businessTypes',
@@ -231,6 +232,7 @@ class VendorWebController extends Controller
         $vendor = null;
 
         DB::transaction(function () use ($validated, $categories, $businessTypes, $brochureRows, $locations, $request, &$vendor) {
+            $validated['created_by'] = $request->user()->id;
             $vendor = Vendor::query()->create($validated);
 
             $this->persistence->replaceLocations($vendor, $locations);
@@ -253,6 +255,7 @@ class VendorWebController extends Controller
     public function show(Vendor $vendor): View
     {
         $vendor->load([
+            'creator',
             'locations.country',
             'locations.city',
             'vendorCategories.category',

@@ -243,6 +243,7 @@
                 <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <tr>
                     <th class="px-3 py-3">Vendor Code</th>
+                    <th class="px-3 py-3">Created by</th>
                     <th class="px-3 py-3">Vendor Name</th>
                     <th class="px-3 py-3">Language</th>
                     <th class="px-3 py-3">Country</th>
@@ -275,6 +276,7 @@
                     @endphp
                     <tr class="hover:bg-slate-50/80">
                         <td class="whitespace-nowrap px-3 py-2 font-mono text-xs text-slate-800">{{ $vendor->vendor_code }}</td>
+                        <td class="whitespace-nowrap px-3 py-2 text-slate-700">{{ $vendor->creator?->name ?? '—' }}</td>
                         <td class="max-w-[14rem] truncate px-3 py-2 text-slate-900" title="{{ $vendor->name }}">{{ $vendor->name }}</td>
                         <td class="whitespace-nowrap px-3 py-2 text-slate-700">{{ strtoupper($vendor->language instanceof \BackedEnum ? $vendor->language->value : $vendor->language) }}</td>
                         @php
@@ -323,7 +325,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="13" class="px-3 py-10 text-center text-sm text-slate-500">No vendors found.</td>
+                        <td colspan="14" class="px-3 py-10 text-center text-sm text-slate-500">No vendors found.</td>
                     </tr>
                 @endforelse
                 </tbody>
