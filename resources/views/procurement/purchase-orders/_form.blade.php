@@ -1,109 +1,172 @@
 @php
     $po = $purchaseOrder ?? null;
+    $lineItems = old('items', $defaultItems ?? [['item' => '', 'description' => '', 'quantity' => 1, 'unit_price' => 0]]);
 @endphp
 
-<section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-    <h2 class="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">Purchase Order Details</h2>
-    <div class="mt-4 grid gap-4 md:grid-cols-2">
-
-        <div>
-            <label for="po_number" class="block text-xs font-medium uppercase tracking-wide text-slate-500">PO Number</label>
-            <input type="text" name="po_number" id="po_number"
-                   value="{{ old('po_number', $po?->po_number ?? ($nextCode ?? '')) }}"
-                   placeholder="Auto-generated if empty"
-                   class="admin-filter-control font-mono @error('po_number') border-red-500 @enderror">
-            @error('po_number')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+<div class="space-y-8">
+    <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="flex flex-col gap-1 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
+            <h2 class="text-lg font-semibold text-slate-900">Purchase Order</h2>
+            <p class="text-sm text-slate-500">Procurement Department</p>
         </div>
 
-        <div>
-            <label for="title" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Title <span class="text-red-600">*</span></label>
-            <input type="text" name="title" id="title" required
-                   value="{{ old('title', $po?->title ?? '') }}"
-                   class="admin-filter-control @error('title') border-red-500 @enderror">
-            @error('title')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+        <h3 class="mt-6 text-sm font-semibold uppercase tracking-wide text-slate-700">Order information</h3>
+<div class="mt-4 grid gap-4 md:grid-cols-3">
+            <div>
+                <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Requested by</label>
+                <p class="mt-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800">
+                    {{ $po?->creator?->name ?? auth()->user()->name }}
+                </p>
+                @if ($po?->exists)
+                    <p class="mt-1 text-xs text-slate-500">Created {{ $po->created_at?->format('Y-m-d H:i') }}</p>
+                @endif
+            </div>
+            <div>
+                <label for="po_number" class="block text-xs font-medium uppercase tracking-wide text-slate-500">P.O. number</label>
+                <input type="text" name="po_number" id="po_number"
+                       value="{{ old('po_number', $po?->po_number ?? ($nextCode ?? '')) }}"
+                       class="admin-filter-control font-mono @error('po_number') border-red-500 @enderror">
+                @error('po_number')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
+<div>
+                <label for="ordered_at" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Date</label>
+                <input type="date" name="ordered_at" id="ordered_at"
+                       value="{{ old('ordered_at', $po?->ordered_at?->format('Y-m-d') ?? now()->format('Y-m-d')) }}"
+                       class="admin-filter-control @error('ordered_at') border-red-500 @enderror">
+                @error('ordered_at')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
         </div>
+    </section>
 
-        <div>
-            <label for="vendor_id" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Vendor (Supplier)</label>
-            <select name="vendor_id" id="vendor_id"
-                    class="admin-filter-control @error('vendor_id') border-red-500 @enderror">
-                <option value="">— Select vendor —</option>
-                @foreach ($vendors as $vendor)
-                    <option value="{{ $vendor->id }}"
-                        @selected(old('vendor_id', $po?->vendor_id) == $vendor->id)>
-                        {{ $vendor->vendor_code }} — {{ $vendor->name }}
-                    </option>
-                @endforeach
-            </select>
-            @error('vendor_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+    <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 class="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">Vendor</h2>
+        <div class="mt-4 grid gap-4 md:grid-cols-2">
+            <div class="md:col-span-2">
+                <label for="vendor_id" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Vendor (from system)</label>
+                <select name="vendor_id" id="vendor_id" data-snapshot-url="{{ url('/vendors') }}"
+                        class="admin-filter-control @error('vendor_id') border-red-500 @enderror">
+                    <option value="">— Manual entry —</option>
+                    @foreach ($vendors as $vendor)
+                        <option value="{{ $vendor->id }}" @selected(old('vendor_id', $po?->vendor_id) == $vendor->id)>
+                            {{ $vendor->vendor_code }} — {{ $vendor->name }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('vendor_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <label for="vendor_company_name" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Company name</label>
+                <input type="text" name="vendor_company_name" id="vendor_company_name"
+                       value="{{ old('vendor_company_name', $po?->vendor_company_name ?? '') }}"
+                       class="admin-filter-control @error('vendor_company_name') border-red-500 @enderror">
+            </div>
+            <div>
+                <label for="vendor_contact" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Contact</label>
+                <input type="text" name="vendor_contact" id="vendor_contact"
+                       value="{{ old('vendor_contact', $po?->vendor_contact ?? '') }}"
+                       class="admin-filter-control @error('vendor_contact') border-red-500 @enderror">
+            </div>
+            <div>
+                <label for="vendor_email" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Email</label>
+                <input type="email" name="vendor_email" id="vendor_email"
+                       value="{{ old('vendor_email', $po?->vendor_email ?? '') }}"
+                       class="admin-filter-control @error('vendor_email') border-red-500 @enderror">
+            </div>
+            <div>
+                <label for="vendor_phone" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Phone</label>
+                <input type="text" name="vendor_phone" id="vendor_phone"
+                       value="{{ old('vendor_phone', $po?->vendor_phone ?? '') }}"
+                       class="admin-filter-control @error('vendor_phone') border-red-500 @enderror">
+            </div>
+            <div class="md:col-span-2">
+                <label for="vendor_address" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Address</label>
+                <textarea name="vendor_address" id="vendor_address" rows="2"
+                          class="admin-form-textarea @error('vendor_address') border-red-500 @enderror">{{ old('vendor_address', $po?->vendor_address ?? '') }}</textarea>
+            </div>
         </div>
+    </section>
 
-        <div>
-            <label for="total_price" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Total Price</label>
-            <input type="number" name="total_price" id="total_price" min="0" step="0.01"
-                   value="{{ old('total_price', $po?->total_price ?? '') }}"
-                   placeholder="0.00"
-                   class="admin-filter-control @error('total_price') border-red-500 @enderror">
-            @error('total_price')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+    @include('procurement.purchase-orders._line-items', ['lineItems' => $lineItems])
+
+    <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 class="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">Order terms</h2>
+        <div class="mt-4 grid gap-4 md:grid-cols-2">
+
+<div class="md:col-span-2">
+                <label for="payment_terms" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Payment terms</label>
+                <textarea name="payment_terms" id="payment_terms" rows="2"
+                          class="admin-form-textarea @error('payment_terms') border-red-500 @enderror">{{ old('payment_terms', $po?->payment_terms ?? '') }}</textarea>
+            </div>
+            <div>
+                <label for="delivery_time" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Delivery time</label>
+                <input type="text" name="delivery_time" id="delivery_time"
+                       value="{{ old('delivery_time', $po?->delivery_time ?? '') }}"
+                       class="admin-filter-control @error('delivery_time') border-red-500 @enderror">
+            </div>
+            <div>
+                <label for="delivery_location" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Delivery location</label>
+                <input type="text" name="delivery_location" id="delivery_location"
+                       value="{{ old('delivery_location', $po?->delivery_location ?? '') }}"
+                       class="admin-filter-control @error('delivery_location') border-red-500 @enderror">
+            </div>
+            <div class="md:col-span-2">
+                <label for="notes" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Notes</label>
+                <textarea name="notes" id="notes" rows="3"
+                          class="admin-form-textarea @error('notes') border-red-500 @enderror">{{ old('notes', $po?->notes ?? '') }}</textarea>
+            </div>
         </div>
+    </section>
 
-        <div>
-            <label for="ordered_at" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Order Date</label>
-            <input type="date" name="ordered_at" id="ordered_at"
-                   value="{{ old('ordered_at', $po?->ordered_at?->format('Y-m-d') ?? '') }}"
-                   class="admin-filter-control @error('ordered_at') border-red-500 @enderror">
-            @error('ordered_at')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+    <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 class="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">Approval</h2>
+
+
+@foreach ([
+            'procurement' => 'Procurement',
+            'finance' => 'Finance',
+            'ceo' => 'CEO',
+        ] as $key => $label)
+            <div class="mt-4 grid gap-4 border-t border-slate-100 pt-4 first:mt-0 first:border-0 first:pt-0 md:grid-cols-3">
+                <p class="text-sm font-medium text-slate-800 md:pt-2">{{ $label }}</p>
+                <div>
+                    <label for="{{ $key }}_signature" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Signature</label>
+                    <input type="text" name="{{ $key }}_signature" id="{{ $key }}_signature"
+                           value="{{ old($key.'_signature', $po?->{$key.'_signature'} ?? '') }}"
+                           class="admin-filter-control">
+                </div>
+                <div>
+                    <label for="{{ $key }}_signed_at" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Date</label>
+                    <input type="date" name="{{ $key }}_signed_at" id="{{ $key }}_signed_at"
+                           value="{{ old($key.'_signed_at', $po?->{$key.'_signed_at'}?->format('Y-m-d') ?? '') }}"
+                           class="admin-filter-control">
+                </div>
+            </div>
+        @endforeach
+    </section>
+
+    <details class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
+        <summary class="cursor-pointer font-medium text-slate-700">Internal tracking (optional)</summary>
+        <div class="mt-4 grid gap-4 md:grid-cols-2">
+            <div>
+                <label for="status" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Order status</label>
+                <select name="status" id="status" class="admin-filter-control">
+                    @foreach (\App\Enums\Procurement\PurchaseOrders\PurchaseOrderStatus::cases() as $case)
+                        <option value="{{ $case->value }}" @selected(old('status', $po?->status?->value ?? 'draft') === $case->value)>{{ ucfirst($case->value) }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label for="payment_status" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Payment status</label>
+                <select name="payment_status" id="payment_status" class="admin-filter-control">
+                    @foreach (\App\Enums\Procurement\PurchaseOrders\PaymentStatus::cases() as $case)
+                        <option value="{{ $case->value }}" @selected(old('payment_status', $po?->payment_status?->value ?? 'unpaid') === $case->value)>{{ ucfirst($case->value) }}</option>
+                    @endforeach
+                </select>
+            </div>
         </div>
+    </details>
+</div>
 
-        <div>
-            <label for="delivered_at" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Delivery Date</label>
-            <input type="date" name="delivered_at" id="delivered_at"
-                   value="{{ old('delivered_at', $po?->delivered_at?->format('Y-m-d') ?? '') }}"
-                   class="admin-filter-control @error('delivered_at') border-red-500 @enderror">
-            @error('delivered_at')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-        </div>
-
-        <div>
-            <label for="status" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Order Status</label>
-            <select name="status" id="status"
-                    class="admin-filter-control @error('status') border-red-500 @enderror">
-                @foreach (\App\Enums\Procurement\PurchaseOrders\PurchaseOrderStatus::cases() as $case)
-                    <option value="{{ $case->value }}"
-                        @selected(old('status', $po?->status?->value ?? 'draft') === $case->value)>
-                        {{ ucfirst($case->value) }}
-                    </option>
-                @endforeach
-            </select>
-            @error('status')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-        </div>
-
-        <div>
-            <label for="payment_status" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Payment Status</label>
-            <select name="payment_status" id="payment_status"
-                    class="admin-filter-control @error('payment_status') border-red-500 @enderror">
-                @foreach (\App\Enums\Procurement\PurchaseOrders\PaymentStatus::cases() as $case)
-                    <option value="{{ $case->value }}"
-                        @selected(old('payment_status', $po?->payment_status?->value ?? 'unpaid') === $case->value)>
-                        {{ ucfirst($case->value) }}
-                    </option>
-                @endforeach
-            </select>
-            @error('payment_status')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-        </div>
-
-        <div class="md:col-span-2">
-            <label for="description" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Description</label>
-            <textarea name="description" id="description" rows="3"
-                      class="admin-form-textarea @error('description') border-red-500 @enderror">{{ old('description', $po?->description ?? '') }}</textarea>
-            @error('description')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-        </div>
-
-        <div class="md:col-span-2">
-            <label for="notes" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Notes</label>
-            <textarea name="notes" id="notes" rows="2"
-                      class="admin-form-textarea @error('notes') border-red-500 @enderror">{{ old('notes', $po?->notes ?? '') }}</textarea>
-            @error('notes')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-        </div>
-
-    </div>
-</section>
+@push('scripts')
+    @include('procurement.purchase-orders._form-scripts')
+@endpush

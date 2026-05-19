@@ -102,6 +102,10 @@ Route::middleware(['auth'])->group(function () {
             'destroy' => 'permission:locations.manage',
         ]);
 
+    Route::get('/vendors/{vendor}/purchase-order-snapshot', [PurchaseOrderController::class, 'vendorSnapshot'])
+        ->middleware('permission:purchase-orders.create')
+        ->name('vendors.purchase-order-snapshot');
+
     Route::resource('vendors', VendorWebController::class)
         ->except(['destroy'])
         ->middleware([

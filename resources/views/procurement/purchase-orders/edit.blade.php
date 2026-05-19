@@ -17,7 +17,11 @@
     <form action="{{ route('purchase-orders.update', $purchaseOrder) }}" method="post" class="space-y-8">
         @csrf
         @method('PUT')
-        @include('procurement.purchase-orders._form', ['mode' => 'edit', 'purchaseOrder' => $purchaseOrder])
+        @include('procurement.purchase-orders._form', [
+            'purchaseOrder' => $purchaseOrder,
+            'vendors' => $vendors,
+            'defaultItems' => $defaultItems,
+        ])
 
         <div class="flex flex-wrap items-center gap-3">
             <button type="submit"

@@ -13,7 +13,11 @@
 
     <form action="{{ route('purchase-orders.store') }}" method="post" class="space-y-8">
         @csrf
-        @include('procurement.purchase-orders._form', ['mode' => 'create'])
+        @include('procurement.purchase-orders._form', [
+            'vendors' => $vendors,
+            'nextCode' => $nextCode,
+            'defaultItems' => $defaultItems,
+        ])
 
         <div class="flex flex-wrap items-center gap-3">
             <button type="submit"

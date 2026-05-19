@@ -11,23 +11,33 @@ use App\Models\Procurement\PurchaseOrders\PurchaseOrder;
 use App\Models\Procurement\Vendors\Vendor;
 use App\Services\Procurement\PurchaseOrders\PurchaseOrderCodeGenerator;
 use App\Services\Procurement\PurchaseOrders\PurchaseOrderPayloadResolver;
+use App\Services\Procurement\PurchaseOrders\PurchaseOrderPersistenceService;
+use App\Services\Procurement\PurchaseOrders\VendorPurchaseOrderSnapshot;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class PurchaseOrderController extends Controller
 {
+    public function __construct(
+        private readonly PurchaseOrderPersistenceService $persistence,
+    ) {}
+
     public function index(Request $request): View
     {
         $perPage = max(1, min(100, (int) $request->query('per_page', 15)));
 
-        $query = PurchaseOrder::query()->with('vendor')->latest();
+        $query = PurchaseOrder::query()
+            ->with(['vendor', 'creator'])
+            ->latest();
 
         if ($request->filled('q')) {
             $term = '%'.$request->string('q').'%';
             $query->where(function ($q) use ($term) {
-                $q->where('title', 'like', $term)
-                    ->orWhere('po_number', 'like', $term);
+                $q->where('po_number', 'like', $term)
+                    ->orWhere('vendor_company_name', 'like', $term)
+                    ->orWhereHas('creator', fn ($c) => $c->where('name', 'like', $term));
             });
         }
 
@@ -42,8 +52,8 @@ class PurchaseOrderController extends Controller
         $purchaseOrders = $query->paginate($perPage)->withQueryString();
 
         return view('procurement.purchase-orders.index', [
-            'purchaseOrders'  => $purchaseOrders,
-            'statuses'        => PurchaseOrderStatus::cases(),
+            'purchaseOrders' => $purchaseOrders,
+            'statuses' => PurchaseOrderStatus::cases(),
             'paymentStatuses' => PaymentStatus::cases(),
         ]);
     }
@@ -51,21 +61,32 @@ class PurchaseOrderController extends Controller
     public function create(): View
     {
         $nextCode = app(PurchaseOrderCodeGenerator::class)->next();
-        $vendors  = Vendor::query()->orderBy('name')->get();
+        $vendors = Vendor::query()->orderBy('name')->get(['id', 'vendor_code', 'name']);
 
         return view('procurement.purchase-orders.create', [
             'nextCode' => $nextCode,
-            'vendors'  => $vendors,
+            'vendors' => $vendors,
+            'defaultItems' => [['item' => '', 'description' => '', 'quantity' => 1, 'unit_price' => 0]],
         ]);
     }
 
     public function store(StorePurchaseOrderRequest $request): RedirectResponse
     {
         $validated = $request->validated();
+        $items = PurchaseOrderPersistenceService::normalizeItems($validated['items'] ?? []);
+        unset($validated['items']);
+
+        if ($items === []) {
+            return back()->withInput()->withErrors(['items' => 'Add at least one line item with a description.']);
+        }
 
         PurchaseOrderPayloadResolver::finalizeForStore($validated);
+        $validated['created_by'] = $request->user()->id;
+        $validated['status'] ??= PurchaseOrderStatus::Draft->value;
+        $validated['payment_status'] ??= PaymentStatus::Unpaid->value;
+        $validated['ordered_at'] ??= now()->toDateString();
 
-        $purchaseOrder = PurchaseOrder::query()->create($validated);
+        $purchaseOrder = $this->persistence->create($validated, $items);
 
         return redirect()
             ->route('purchase-orders.show', $purchaseOrder)
@@ -74,7 +95,7 @@ class PurchaseOrderController extends Controller
 
     public function show(PurchaseOrder $purchaseOrder): View
     {
-        $purchaseOrder->load('vendor');
+        $purchaseOrder->load(['vendor', 'creator', 'items']);
 
         return view('procurement.purchase-orders.show', [
             'purchaseOrder' => $purchaseOrder,
@@ -83,22 +104,40 @@ class PurchaseOrderController extends Controller
 
     public function edit(PurchaseOrder $purchaseOrder): View
     {
-        $vendors = Vendor::query()->orderBy('name')->get();
+        $purchaseOrder->load(['items', 'creator']);
+        $vendors = Vendor::query()->orderBy('name')->get(['id', 'vendor_code', 'name']);
+
+        $defaultItems = $purchaseOrder->items->map(fn ($row) => [
+            'item' => $row->item,
+            'description' => $row->description,
+            'quantity' => $row->quantity,
+            'unit_price' => $row->unit_price,
+        ])->all();
+
+        if ($defaultItems === []) {
+            $defaultItems = [['item' => '', 'description' => '', 'quantity' => 1, 'unit_price' => 0]];
+        }
 
         return view('procurement.purchase-orders.edit', [
             'purchaseOrder' => $purchaseOrder,
-            'vendors'       => $vendors,
+            'vendors' => $vendors,
+            'defaultItems' => $defaultItems,
         ]);
     }
 
     public function update(UpdatePurchaseOrderRequest $request, PurchaseOrder $purchaseOrder): RedirectResponse
     {
         $validated = $request->validated();
+        $items = PurchaseOrderPersistenceService::normalizeItems($validated['items'] ?? []);
+        unset($validated['items']);
+
+        if ($items === []) {
+            return back()->withInput()->withErrors(['items' => 'Add at least one line item with a description.']);
+        }
 
         PurchaseOrderPayloadResolver::finalizeForUpdate($validated);
 
-        $purchaseOrder->fill($validated);
-        $purchaseOrder->save();
+        $this->persistence->update($purchaseOrder, $validated, $items);
 
         return redirect()
             ->route('purchase-orders.show', $purchaseOrder)
@@ -112,5 +151,10 @@ class PurchaseOrderController extends Controller
         return redirect()
             ->route('purchase-orders.index')
             ->with('success', 'Purchase order deleted successfully.');
+    }
+
+    public function vendorSnapshot(Vendor $vendor): JsonResponse
+    {
+        return response()->json(VendorPurchaseOrderSnapshot::fromVendor($vendor));
     }
 }
