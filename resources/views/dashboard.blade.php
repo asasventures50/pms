@@ -35,6 +35,13 @@
                 <p class="mt-2 text-sm text-slate-600">Create and track purchase orders.</p>
             </a>
         @endif
+        @if (auth()->user()->hasPermission('rfqs.view'))
+            <a href="{{ route('rfqs.index') }}"
+               class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow">
+                <h2 class="text-base font-semibold text-slate-900">RFQs</h2>
+                <p class="mt-2 text-sm text-slate-600">Request for quotation forms.</p>
+            </a>
+        @endif
         @if (auth()->user()->hasPermission('users.view'))
             <a href="{{ route('users.index') }}"
                class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow">

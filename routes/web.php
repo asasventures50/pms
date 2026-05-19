@@ -13,6 +13,7 @@ use App\Http\Controllers\LandingController;
 use App\Http\Controllers\Procurement\Categories\CategoryController;
 use App\Http\Controllers\Procurement\Catalog\SubcategoryQuickStoreController;
 use App\Http\Controllers\Procurement\PurchaseOrders\PurchaseOrderController;
+use App\Http\Controllers\Procurement\Rfqs\RfqController;
 use App\Http\Controllers\Procurement\Vendors\VendorWebController;
 use Illuminate\Support\Facades\Route;
 
@@ -106,6 +107,10 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('permission:purchase-orders.create')
         ->name('vendors.purchase-order-snapshot');
 
+    Route::get('/vendors/{vendor}/rfq-snapshot', [RfqController::class, 'vendorSnapshot'])
+        ->middleware('permission:rfqs.create')
+        ->name('vendors.rfq-snapshot');
+
     Route::resource('vendors', VendorWebController::class)
         ->except(['destroy'])
         ->middleware([
@@ -126,5 +131,16 @@ Route::middleware(['auth'])->group(function () {
             'edit' => 'permission:purchase-orders.update',
             'update' => 'permission:purchase-orders.update',
             'destroy' => 'permission:purchase-orders.update',
+        ]);
+
+    Route::resource('rfqs', RfqController::class)
+        ->middleware([
+            'index' => 'permission:rfqs.view',
+            'show' => 'permission:rfqs.view',
+            'create' => 'permission:rfqs.create',
+            'store' => 'permission:rfqs.create',
+            'edit' => 'permission:rfqs.update',
+            'update' => 'permission:rfqs.update',
+            'destroy' => 'permission:rfqs.update',
         ]);
 });

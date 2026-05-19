@@ -50,6 +50,16 @@
                             </a>
                         @endif
                     @endif
+                    @if (auth()->user()->hasPermission('rfqs.view'))
+                        @if (request()->routeIs('rfqs.*'))
+                            <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">RFQs</span>
+                        @else
+                            <a href="{{ route('rfqs.index') }}"
+                               class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
+                                RFQs
+                            </a>
+                        @endif
+                    @endif
                     @if (request()->routeIs('locations.*') || request()->routeIs('countries.*') || request()->routeIs('cities.*'))
                         <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Locations</span>
                     @elseif (auth()->user()->hasPermission('locations.view'))

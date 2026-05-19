@@ -31,6 +31,10 @@ final class PermissionCatalog
             'purchase-orders.create' => ['label' => 'Create purchase orders', 'group' => 'Purchase orders'],
             'purchase-orders.update' => ['label' => 'Update purchase orders', 'group' => 'Purchase orders'],
 
+            'rfqs.view' => ['label' => 'View RFQs', 'group' => 'RFQs'],
+            'rfqs.create' => ['label' => 'Create RFQs', 'group' => 'RFQs'],
+            'rfqs.update' => ['label' => 'Update RFQs', 'group' => 'RFQs'],
+
             'locations.view' => ['label' => 'View locations', 'group' => 'Locations'],
             'locations.manage' => ['label' => 'Manage countries and cities', 'group' => 'Locations'],
 
