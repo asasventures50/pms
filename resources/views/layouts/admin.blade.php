@@ -42,11 +42,11 @@
                     @endif
                     @if (auth()->user()->hasPermission('purchase-orders.view'))
                         @if (request()->routeIs('purchase-orders.*'))
-                            <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Purchase Orders</span>
+                            <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">PO</span>
                         @else
                             <a href="{{ route('purchase-orders.index') }}"
                                class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
-                                Purchase Orders
+                                PO
                             </a>
                         @endif
                     @endif
@@ -62,11 +62,11 @@
                     @endif
                     @if (auth()->user()->hasPermission('procurement-requests.view'))
                         @if (request()->routeIs('procurement-requests.*'))
-                            <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Procurement Requests</span>
+                            <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">PR</span>
                         @else
                             <a href="{{ route('procurement-requests.index') }}"
                                class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
-                                Procurement Requests
+                                PR
                             </a>
                         @endif
                     @endif
