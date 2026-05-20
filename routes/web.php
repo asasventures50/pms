@@ -121,6 +121,14 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('permission:rfqs.create')
         ->name('vendors.rfq-snapshot');
 
+    Route::get('/vendors/import', [VendorWebController::class, 'importForm'])
+        ->middleware('permission:vendors.create')
+        ->name('vendors.import.form');
+
+    Route::post('/vendors/import', [VendorWebController::class, 'import'])
+        ->middleware('permission:vendors.create')
+        ->name('vendors.import');
+
     Route::resource('vendors', VendorWebController::class)
         ->except(['destroy'])
         ->middleware([

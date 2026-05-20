@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Procurement\Vendors;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Procurement\Vendors\StoreVendorRequest;
+use App\Http\Requests\Procurement\Vendors\ImportVendorsRequest;
 use App\Http\Requests\Procurement\Vendors\UpdateVendorRequest;
+use App\Imports\Procurement\VendorsImport;
 use App\Models\Geo\City;
 use App\Models\Geo\Country;
 use App\Models\Procurement\Vendors\Category;
@@ -17,6 +19,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use Maatwebsite\Excel\Facades\Excel;
 
 class VendorWebController extends Controller
 {
@@ -208,6 +211,36 @@ class VendorWebController extends Controller
             'defaultCityId' => $damascus?->id,
             'suggestedVendorCode' => $suggestedVendorCode,
         ]);
+    }
+
+    public function importForm(): View
+    {
+        return view('procurement.vendors.import');
+    }
+
+    public function import(ImportVendorsRequest $request): RedirectResponse
+    {
+        /** @var VendorsImport $import */
+        $import = app(VendorsImport::class);
+
+        Excel::import($import, $request->file('file'));
+
+        $result = $import->result;
+
+        if ($result->failedRows > 0 || count($result->errors) > 0) {
+            $detail = count($result->errors) > 10
+                ? array_merge(array_slice($result->errors, 0, 10), ['Additional errors omitted.'])
+                : $result->errors;
+
+            return redirect()
+                ->route('vendors.import.form')
+                ->with('error', $result->summaryLine())
+                ->with('import_errors', $detail);
+        }
+
+        return redirect()
+            ->route('vendors.index')
+            ->with('success', 'Import completed successfully.');
     }
 
     public function store(StoreVendorRequest $request): RedirectResponse
