@@ -14,6 +14,7 @@ use App\Http\Controllers\LandingController;
 use App\Http\Controllers\Procurement\Categories\CategoryController;
 use App\Http\Controllers\Procurement\Catalog\SubcategoryQuickStoreController;
 use App\Http\Controllers\Procurement\ProcurementRequests\ProcurementRequestController;
+use App\Http\Controllers\Procurement\Projects\ProjectController;
 use App\Http\Controllers\Procurement\PurchaseOrders\PurchaseOrderController;
 use App\Http\Controllers\Procurement\Rfqs\RfqController;
 use App\Http\Controllers\Procurement\Vendors\VendorWebController;
@@ -86,6 +87,17 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/subcategories/quick-store', [SubcategoryQuickStoreController::class, 'quickStore'])
         ->middleware('permission:categories.create')
         ->name('subcategories.quick-store');
+
+    Route::resource('projects', ProjectController::class)
+        ->middleware([
+            'index' => 'permission:projects.view',
+            'show' => 'permission:projects.view',
+            'create' => 'permission:projects.create',
+            'store' => 'permission:projects.create',
+            'edit' => 'permission:projects.update',
+            'update' => 'permission:projects.update',
+            'destroy' => 'permission:projects.update',
+        ]);
 
     Route::get('/locations', [CountryController::class, 'index'])
         ->middleware('permission:locations.view')

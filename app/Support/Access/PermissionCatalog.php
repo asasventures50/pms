@@ -39,6 +39,10 @@ final class PermissionCatalog
             'procurement-requests.create' => ['label' => 'Create procurement requests', 'group' => 'Procurement requests'],
             'procurement-requests.update' => ['label' => 'Update procurement requests', 'group' => 'Procurement requests'],
 
+            'projects.view' => ['label' => 'View projects', 'group' => 'Projects'],
+            'projects.create' => ['label' => 'Create projects', 'group' => 'Projects'],
+            'projects.update' => ['label' => 'Update projects', 'group' => 'Projects'],
+
             'locations.view' => ['label' => 'View locations', 'group' => 'Locations'],
             'locations.manage' => ['label' => 'Manage countries and cities', 'group' => 'Locations'],
 

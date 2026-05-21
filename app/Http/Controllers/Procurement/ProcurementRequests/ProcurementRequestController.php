@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Procurement\ProcurementRequests\StoreProcurementRequestRequest;
 use App\Http\Requests\Procurement\ProcurementRequests\UpdateProcurementRequestRequest;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
+use App\Models\Procurement\Projects\Project;
 use App\Services\Procurement\ProcurementRequests\ProcurementRequestCodeGenerator;
 use App\Services\Procurement\ProcurementRequests\ProcurementRequestPayloadResolver;
 use App\Services\Procurement\ProcurementRequests\ProcurementRequestPersistenceService;
@@ -56,6 +57,7 @@ class ProcurementRequestController extends Controller
         return view('procurement.procurement-requests.create', [
             'nextCode' => app(ProcurementRequestCodeGenerator::class)->next(),
             'defaultItems' => $this->emptyLineItems(2),
+            'projects' => $this->activeProjects(),
         ]);
     }
 
@@ -90,7 +92,7 @@ class ProcurementRequestController extends Controller
 
     public function show(ProcurementRequest $procurementRequest): View
     {
-        $procurementRequest->load(['creator', 'items', 'documents']);
+        $procurementRequest->load(['creator', 'items.project', 'items.zone', 'documents']);
 
         return view('procurement.procurement-requests.show', [
             'procurementRequest' => $procurementRequest,
@@ -99,12 +101,12 @@ class ProcurementRequestController extends Controller
 
     public function edit(ProcurementRequest $procurementRequest): View
     {
-        $procurementRequest->load(['items', 'creator', 'documents']);
+        $procurementRequest->load(['items.project', 'items.zone', 'creator', 'documents']);
 
         $defaultItems = $procurementRequest->items->map(fn ($row) => [
             'line_number' => $row->line_number,
-            'project' => $row->project,
-            'zone' => $row->zone,
+            'project_id' => $row->project_id,
+            'zone_id' => $row->zone_id,
             'category' => $row->category,
             'subcategory' => $row->subcategory,
             'scope_type' => $row->scope_type,
@@ -121,6 +123,7 @@ class ProcurementRequestController extends Controller
         return view('procurement.procurement-requests.edit', [
             'procurementRequest' => $procurementRequest,
             'defaultItems' => $defaultItems,
+            'projects' => $this->activeProjects(),
         ]);
     }
 
@@ -167,8 +170,8 @@ class ProcurementRequestController extends Controller
     private function emptyLineItems(int $count): array
     {
         return array_fill(0, $count, [
-            'project' => '',
-            'zone' => '',
+            'project_id' => '',
+            'zone_id' => '',
             'category' => '',
             'subcategory' => '',
             'scope_type' => '',
@@ -177,5 +180,17 @@ class ProcurementRequestController extends Controller
             'quantity' => 1,
             'justification' => '',
         ]);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection<int, Project>
+     */
+    private function activeProjects()
+    {
+        return Project::query()
+            ->active()
+            ->with(['zones' => fn ($query) => $query->active()->orderBy('name')])
+            ->orderBy('name')
+            ->get();
     }
 }

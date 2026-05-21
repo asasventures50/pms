@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Database\Seeders\Access\RolePermissionSeeder;
 use Database\Seeders\Geo\CountryCitySeeder;
+use Database\Seeders\Procurement\ProjectZoneSeeder;
 use Database\Seeders\Procurement\VendorCatalogSeeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -21,5 +22,6 @@ class DatabaseSeeder extends Seeder
         $this->call(AdminUserSeeder::class);
         $this->call(CountryCitySeeder::class);
         $this->call(VendorCatalogSeeder::class);
+        $this->call(ProjectZoneSeeder::class);
     }
 }

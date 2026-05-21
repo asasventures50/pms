@@ -1,13 +1,13 @@
 @php
     $index = $index ?? 0;
     $line = $line ?? null;
-    $lineNo = $line?->line_number
-        ?? ($line && $procurementRequest
-            ? \App\Services\Procurement\ProcurementRequests\ProcurementRequestLineNumberFormatter::format(
-                $procurementRequest->request_number,
-                $index
-            )
-            : null);
+    $lineNo = $line?->line_number;
+    if (($lineNo === null || $lineNo === '') && $line && $procurementRequest) {
+        $lineNo = \App\Services\Procurement\ProcurementRequests\ProcurementRequestLineNumberFormatter::format(
+            $procurementRequest->request_number,
+            $index
+        );
+    }
 @endphp
 
 <article class="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
@@ -17,11 +17,23 @@
     <dl class="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-5">
         <div>
             <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Project</dt>
-            <dd class="mt-0.5 text-slate-900">{{ $line->project ?: '—' }}</dd>
+            <dd class="mt-0.5 text-slate-900">
+                @if ($line->project)
+                    {{ $line->project->code }} — {{ $line->project->name }}
+                @else
+                    —
+                @endif
+            </dd>
         </div>
         <div>
             <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Zone</dt>
-            <dd class="mt-0.5 text-slate-900">{{ $line->zone ?: '—' }}</dd>
+            <dd class="mt-0.5 text-slate-900">
+                @if ($line->zone)
+                    {{ $line->zone->code }} — {{ $line->zone->name }}
+                @else
+                    —
+                @endif
+            </dd>
         </div>
         <div>
             <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Category</dt>

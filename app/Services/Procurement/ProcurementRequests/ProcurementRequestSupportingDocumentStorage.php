@@ -9,13 +9,17 @@ use Illuminate\Support\Facades\Storage;
 
 class ProcurementRequestSupportingDocumentStorage
 {
-    private const DISK = 'public';
+    private const DISK = 's3';
 
     /**
      * @param  list<UploadedFile>  $files
      */
     public function append(ProcurementRequest $request, array $files): int
     {
+        if ($files !== []) {
+            set_time_limit(max(120, (int) ini_get('max_execution_time')));
+        }
+
         $stored = 0;
         $directory = 'procurement-requests/'.$request->id;
 
@@ -24,11 +28,16 @@ class ProcurementRequestSupportingDocumentStorage
                 continue;
             }
 
-            $path = $file->store($directory, self::DISK);
+            $path = Storage::disk(self::DISK)->putFileAs(
+                $directory,
+                $file,
+                $file->hashName(),
+                ['visibility' => 'public'],
+            );
 
             if ($path === false) {
                 throw new \RuntimeException(
-                    "Failed to upload supporting document '{$file->getClientOriginalName()}'."
+                    "Failed to upload supporting document '{$file->getClientOriginalName()}' to S3."
                 );
             }
 
@@ -63,10 +72,27 @@ class ProcurementRequestSupportingDocumentStorage
             ->get();
 
         foreach ($documents as $document) {
-            if ($document->file_path && Storage::disk(self::DISK)->exists($document->file_path)) {
-                Storage::disk(self::DISK)->delete($document->file_path);
-            }
+            $this->deleteFile($document->file_path);
             $document->delete();
+        }
+    }
+
+    public function deleteFile(?string $path): void
+    {
+        if ($path === null || $path === '') {
+            return;
+        }
+
+        try {
+            Storage::disk(self::DISK)->delete($path);
+        } catch (\Throwable) {
+            // Best-effort; object may already be gone or S3 unreachable.
+        }
+
+        try {
+            Storage::disk('public')->delete($path);
+        } catch (\Throwable) {
+            // Best-effort for legacy local files.
         }
     }
 }

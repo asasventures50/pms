@@ -4,12 +4,14 @@ namespace App\Http\Requests\Procurement\ProcurementRequests;
 
 use App\Enums\Procurement\ProcurementRequests\ProcurementRequestStatus;
 use App\Http\Requests\Procurement\ProcurementRequests\Concerns\NormalizesProcurementDeliveryDate;
+use App\Http\Requests\Procurement\ProcurementRequests\Concerns\ValidatesProcurementRequestLineItems;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StoreProcurementRequestRequest extends FormRequest
 {
     use NormalizesProcurementDeliveryDate;
+    use ValidatesProcurementRequestLineItems;
     public function authorize(): bool
     {
         return $this->user()?->hasPermission('procurement-requests.create') ?? false;
@@ -30,8 +32,8 @@ class StoreProcurementRequestRequest extends FormRequest
             'classification' => ['nullable', 'string', 'max:500'],
             'status' => ['nullable', 'string', Rule::in(ProcurementRequestStatus::values())],
             'items' => ['required', 'array', 'min:1'],
-            'items.*.project' => ['nullable', 'string', 'max:255'],
-            'items.*.zone' => ['nullable', 'string', 'max:100'],
+            'items.*.project_id' => ['nullable', 'integer', 'exists:projects,id'],
+            'items.*.zone_id' => ['nullable', 'integer', 'exists:zones,id'],
             'items.*.category' => ['nullable', 'string', 'max:255'],
             'items.*.subcategory' => ['nullable', 'string', 'max:255'],
             'items.*.scope_type' => ['nullable', 'string', 'max:100'],

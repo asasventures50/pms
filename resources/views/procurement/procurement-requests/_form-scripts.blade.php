@@ -112,7 +112,44 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    function syncZonesForRow(row) {
+        const projectSelect = row.querySelector('[data-pr-project-select]');
+        const zoneSelect = row.querySelector('[data-pr-zone-select]');
+        if (!projectSelect || !zoneSelect) {
+            return;
+        }
+
+        const projectId = projectSelect.value;
+
+        zoneSelect.querySelectorAll('option').forEach(function (option) {
+            if (!option.value) {
+                option.hidden = false;
+                option.disabled = false;
+                return;
+            }
+
+            const matches = !projectId || option.dataset.projectId === projectId;
+            option.hidden = !matches;
+            option.disabled = !matches;
+        });
+
+        const selected = zoneSelect.selectedOptions[0];
+        if (selected && (selected.disabled || selected.hidden)) {
+            zoneSelect.value = '';
+        }
+    }
+
+    function bindProjectZone(row) {
+        const projectSelect = row.querySelector('[data-pr-project-select]');
+        projectSelect?.addEventListener('change', function () {
+            syncZonesForRow(row);
+        });
+        syncZonesForRow(row);
+    }
+
     function bindRow(row) {
+        bindProjectZone(row);
+
         row.querySelector('.pr-remove-line')?.addEventListener('click', function () {
             if (linesBody.querySelectorAll('.pr-line-row').length <= 1) {
                 return;
@@ -127,6 +164,7 @@ document.addEventListener('DOMContentLoaded', function () {
         linesBody.appendChild(row);
         reindexRows();
         bindRow(row);
+        syncZonesForRow(row);
     }
 
     linesBody.querySelectorAll('.pr-line-row').forEach(bindRow);

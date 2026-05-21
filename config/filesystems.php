@@ -59,6 +59,12 @@ return [
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
             'throw' => false,
             'report' => false,
+            'options' => [
+                'http' => [
+                    'connect_timeout' => (int) env('AWS_HTTP_CONNECT_TIMEOUT', 10),
+                    'timeout' => (int) env('AWS_HTTP_TIMEOUT', 60),
+                ],
+            ],
         ],
 
     ],

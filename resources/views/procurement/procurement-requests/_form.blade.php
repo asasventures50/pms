@@ -44,7 +44,10 @@
     </section>
 
     <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        @include('procurement.procurement-requests._line-items', ['lineItems' => $lineItems])
+        @include('procurement.procurement-requests._line-items', [
+            'lineItems' => $lineItems,
+            'projects' => $projects ?? collect(),
+        ])
     </section>
 
     <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">

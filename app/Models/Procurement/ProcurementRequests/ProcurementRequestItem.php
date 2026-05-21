@@ -2,6 +2,8 @@
 
 namespace App\Models\Procurement\ProcurementRequests;
 
+use App\Models\Procurement\Projects\Project;
+use App\Models\Procurement\Projects\Zone;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -16,8 +18,8 @@ class ProcurementRequestItem extends Model
         'procurement_request_id',
         'sort_order',
         'line_number',
-        'project',
-        'zone',
+        'project_id',
+        'zone_id',
         'category',
         'subcategory',
         'scope_type',
@@ -37,5 +39,15 @@ class ProcurementRequestItem extends Model
     public function procurementRequest(): BelongsTo
     {
         return $this->belongsTo(ProcurementRequest::class);
+    }
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
+    }
+
+    public function zone(): BelongsTo
+    {
+        return $this->belongsTo(Zone::class);
     }
 }

@@ -1,12 +1,13 @@
 @php
     $index = $index ?? 0;
     $row = $row ?? [];
+    $projects = $projects ?? collect();
+    $selectedProjectId = old("items.$index.project_id", $row['project_id'] ?? '');
+    $selectedZoneId = old("items.$index.zone_id", $row['zone_id'] ?? '');
     $lineNo = $row['line_number'] ?? null;
     if ($lineNo === null || $lineNo === '') {
-        $requestNumber = old('request_number', $procurementRequest?->request_number ?? ($nextCode ?? ''));
-        if ($requestNumber !== '') {
-            $lineNo = \App\Services\Procurement\ProcurementRequests\ProcurementRequestLineNumberFormatter::format($requestNumber, $index);
-        }
+        $requestNumber = trim((string) (old('request_number') ?? $procurementRequest?->request_number ?? ($nextCode ?? '')));
+        $lineNo = \App\Services\Procurement\ProcurementRequests\ProcurementRequestLineNumberFormatter::format($requestNumber, $index);
     }
 @endphp
 
@@ -25,15 +26,31 @@
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <div>
             <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Project</label>
-            <input type="text" name="items[{{ $index }}][project]" value="{{ $row['project'] ?? '' }}"
-                   data-name="project"
-                   class="admin-filter-control mt-1 w-full">
+            <select name="items[{{ $index }}][project_id]" data-name="project_id" data-pr-project-select
+                    class="admin-filter-control mt-1 w-full">
+                <option value="">—</option>
+                @foreach ($projects as $project)
+                    <option value="{{ $project->id }}" @selected((string) $selectedProjectId === (string) $project->id)>
+                        {{ $project->code }} — {{ $project->name }}
+                    </option>
+                @endforeach
+            </select>
         </div>
         <div>
             <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Zone</label>
-            <input type="text" name="items[{{ $index }}][zone]" value="{{ $row['zone'] ?? '' }}"
-                   data-name="zone"
-                   class="admin-filter-control mt-1 w-full">
+            <select name="items[{{ $index }}][zone_id]" data-name="zone_id" data-pr-zone-select
+                    class="admin-filter-control mt-1 w-full">
+                <option value="">—</option>
+                @foreach ($projects as $project)
+                    @foreach ($project->zones as $zone)
+                        <option value="{{ $zone->id }}"
+                                data-project-id="{{ $project->id }}"
+                                @selected((string) $selectedZoneId === (string) $zone->id)>
+                            {{ $zone->code }} — {{ $zone->name }}
+                        </option>
+                    @endforeach
+                @endforeach
+            </select>
         </div>
         <div>
             <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Category</label>

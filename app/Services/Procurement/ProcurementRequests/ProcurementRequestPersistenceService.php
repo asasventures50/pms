@@ -49,8 +49,8 @@ class ProcurementRequestPersistenceService
                 'procurement_request_id' => $request->id,
                 'sort_order' => $index,
                 'line_number' => ProcurementRequestLineNumberFormatter::format($request->request_number, $index),
-                'project' => $row['project'] ?? null,
-                'zone' => $row['zone'] ?? null,
+                'project_id' => $row['project_id'] ?? null,
+                'zone_id' => $row['zone_id'] ?? null,
                 'category' => $row['category'] ?? null,
                 'subcategory' => $row['subcategory'] ?? null,
                 'scope_type' => $row['scope_type'] ?? null,
@@ -80,9 +80,12 @@ class ProcurementRequestPersistenceService
                 continue;
             }
 
+            $projectId = $row['project_id'] ?? null;
+            $zoneId = $row['zone_id'] ?? null;
+
             $normalized[] = [
-                'project' => isset($row['project']) ? trim((string) $row['project']) : null,
-                'zone' => isset($row['zone']) ? trim((string) $row['zone']) : null,
+                'project_id' => $projectId !== null && $projectId !== '' ? (int) $projectId : null,
+                'zone_id' => $zoneId !== null && $zoneId !== '' ? (int) $zoneId : null,
                 'category' => isset($row['category']) ? trim((string) $row['category']) : null,
                 'subcategory' => isset($row['subcategory']) ? trim((string) $row['subcategory']) : null,
                 'scope_type' => isset($row['scope_type']) ? trim((string) $row['scope_type']) : null,

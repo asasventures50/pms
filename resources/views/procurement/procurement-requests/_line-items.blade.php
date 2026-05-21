@@ -1,5 +1,6 @@
 ﻿@php
     $lineItems = $lineItems ?? [];
+    $projects = $projects ?? collect();
 @endphp
 
 <section>
@@ -18,21 +19,29 @@
 
     <div id="pr-lines-body" class="mt-4 space-y-4">
         @foreach ($lineItems as $index => $row)
-            @include('procurement.procurement-requests._line-item-card', ['index' => $index, 'row' => $row])
+            @include('procurement.procurement-requests._line-item-card', [
+                'index' => $index,
+                'row' => $row,
+                'projects' => $projects,
+            ])
         @endforeach
     </div>
 
     <template id="pr-line-template">
-        @include('procurement.procurement-requests._line-item-card', ['index' => 0, 'row' => [
-            'project' => '',
-            'zone' => '',
-            'category' => '',
-            'subcategory' => '',
-            'scope_type' => '',
-            'description' => '',
-            'unit' => '',
-            'quantity' => 1,
-            'justification' => '',
-        ]])
+        @include('procurement.procurement-requests._line-item-card', [
+            'index' => 0,
+            'projects' => $projects,
+            'row' => [
+                'project_id' => '',
+                'zone_id' => '',
+                'category' => '',
+                'subcategory' => '',
+                'scope_type' => '',
+                'description' => '',
+                'unit' => '',
+                'quantity' => 1,
+                'justification' => '',
+            ],
+        ])
     </template>
 </section>
