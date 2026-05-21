@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Access;
 
+use App\Support\Access\UserDepartment;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -22,6 +23,7 @@ class UpdateUserRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
+            'department' => ['required', 'string', Rule::in(array_keys(UserDepartment::options()))],
             'currency_code' => ['nullable', 'string', 'size:3', 'alpha'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
             'roles' => ['nullable', 'array'],

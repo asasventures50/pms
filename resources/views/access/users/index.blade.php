@@ -1,3 +1,7 @@
+@php
+    use App\Support\Access\UserDepartment;
+@endphp
+
 @extends('layouts.admin')
 
 @section('title', 'Users')
@@ -19,12 +23,21 @@
     <form method="get" action="{{ route('users.index') }}" class="mb-6 space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <input type="hidden" name="sort_by" value="{{ $sortColumn }}">
         <input type="hidden" name="sort_direction" value="{{ $sortDirection }}">
-        <div class="grid gap-4 md:grid-cols-3">
+        <div class="grid gap-4 md:grid-cols-4">
             <div class="md:col-span-2">
                 <label for="q" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Search</label>
                 <input type="search" id="q" name="q" value="{{ request('q') }}"
-                       placeholder="Name or email"
+                       placeholder="Name, email, or department"
                        class="admin-filter-control">
+            </div>
+            <div>
+                <label for="department" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Department</label>
+                <select id="department" name="department" class="admin-filter-control">
+                    <option value="">All</option>
+                    @foreach ($departments as $value => $label)
+                        <option value="{{ $value }}" @selected(request('department') === $value)>{{ $label }}</option>
+                    @endforeach
+                </select>
             </div>
             <div>
                 <label for="role" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Role</label>
@@ -54,6 +67,9 @@
                     <th class="px-3 py-2">
                         @include('partials.table-sort-link', ['route' => 'users.index', 'column' => 'email', 'label' => 'Email', 'sortColumn' => $sortColumn, 'sortDirection' => $sortDirection])
                     </th>
+                    <th class="px-3 py-2">
+                        @include('partials.table-sort-link', ['route' => 'users.index', 'column' => 'department', 'label' => 'Department', 'sortColumn' => $sortColumn, 'sortDirection' => $sortDirection])
+                    </th>
                     <th class="px-3 py-2">Roles</th>
                     <th class="px-3 py-2">
                         @include('partials.table-sort-link', ['route' => 'users.index', 'column' => 'created_at', 'label' => 'Created', 'sortColumn' => $sortColumn, 'sortDirection' => $sortDirection])
@@ -67,6 +83,7 @@
                         <td class="whitespace-nowrap px-3 py-2 font-mono text-xs text-slate-700">{{ $user->id }}</td>
                         <td class="px-3 py-2 font-medium text-slate-900">{{ $user->name }}</td>
                         <td class="px-3 py-2 text-slate-600">{{ $user->email }}</td>
+                        <td class="px-3 py-2 text-slate-600">{{ UserDepartment::label($user->department) }}</td>
                         <td class="px-3 py-2">
                             @forelse ($user->roles as $role)
                                 <span class="mr-1 inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">{{ $role->label }}</span>
@@ -91,7 +108,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="px-3 py-10 text-center text-sm text-slate-500">No users found.</td>
+                        <td colspan="7" class="px-3 py-10 text-center text-sm text-slate-500">No users found.</td>
                     </tr>
                 @endforelse
                 </tbody>

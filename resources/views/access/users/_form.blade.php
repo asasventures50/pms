@@ -1,4 +1,7 @@
-@php($user = $user ?? null)
+@php
+    use App\Support\Access\UserDepartment;
+    $user = $user ?? null;
+@endphp
 
 <div class="grid gap-4 md:grid-cols-2">
     <div>
@@ -15,6 +18,17 @@
                value="{{ old('email', $user?->email ?? '') }}"
                class="admin-filter-control @error('email') border-red-500 @enderror">
         @error('email')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+    </div>
+
+    <div>
+        <label for="department" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Department <span class="text-red-600">*</span></label>
+        <select id="department" name="department" required
+                class="admin-filter-control @error('department') border-red-500 @enderror">
+            @foreach (UserDepartment::options() as $value => $label)
+                <option value="{{ $value }}" @selected(old('department', $user?->department ?? UserDepartment::DEFAULT) === $value)>{{ $label }}</option>
+            @endforeach
+        </select>
+        @error('department')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
     </div>
 
     <div>

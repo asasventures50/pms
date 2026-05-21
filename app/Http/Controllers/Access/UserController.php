@@ -8,6 +8,7 @@ use App\Http\Requests\Access\UpdateUserRequest;
 use App\Models\Access\Role;
 use App\Models\User;
 use App\Support\Access\PermissionCatalog;
+use App\Support\Access\UserDepartment;
 use App\Support\TableSort;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,7 +20,7 @@ class UserController extends Controller
     public function index(Request $request): View
     {
         $perPage = max(1, min(100, (int) $request->query('per_page', 15)));
-        $sort = TableSort::resolve($request, ['name', 'email', 'created_at'], 'name', 'asc');
+        $sort = TableSort::resolve($request, ['name', 'email', 'department', 'created_at'], 'name', 'asc');
 
         $query = User::query()->with('roles');
 
@@ -27,7 +28,8 @@ class UserController extends Controller
             $term = '%'.$request->string('q').'%';
             $query->where(function ($q) use ($term) {
                 $q->where('name', 'like', $term)
-                    ->orWhere('email', 'like', $term);
+                    ->orWhere('email', 'like', $term)
+                    ->orWhere('department', 'like', $term);
             });
         }
 
@@ -35,11 +37,16 @@ class UserController extends Controller
             $query->whereHas('roles', fn ($q) => $q->where('name', $request->string('role')));
         }
 
+        if ($request->filled('department')) {
+            $query->where('department', $request->string('department'));
+        }
+
         $query->orderBy($sort['column'], $sort['direction'])->orderBy('id');
 
         return view('access.users.index', [
             'users' => $query->paginate($perPage)->appends($request->query()),
             'roles' => Role::query()->orderBy('label')->get(),
+            'departments' => UserDepartment::options(),
             'sortColumn' => $sort['column'],
             'sortDirection' => $sort['direction'],
         ]);
@@ -61,6 +68,7 @@ class UserController extends Controller
         $user = User::query()->create([
             'name' => $data['name'],
             'email' => $data['email'],
+            'department' => $data['department'],
             'currency_code' => self::normalizeCurrencyCode($data['currency_code'] ?? null),
             'password' => Hash::make($data['password']),
         ]);
@@ -90,6 +98,7 @@ class UserController extends Controller
         $user->fill([
             'name' => $data['name'],
             'email' => $data['email'],
+            'department' => $data['department'],
             'currency_code' => self::normalizeCurrencyCode($data['currency_code'] ?? null),
         ]);
 

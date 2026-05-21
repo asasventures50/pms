@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use App\Support\Access\PermissionCatalog;
+use App\Support\Access\UserDepartment;
 use Illuminate\Database\Seeder;
 
 class AdminUserSeeder extends Seeder
@@ -17,6 +18,7 @@ class AdminUserSeeder extends Seeder
             ['email' => 'pms@tamkeensy.com'],
             [
                 'name' => 'PMS Admin',
+                'department' => UserDepartment::DEFAULT,
                 'password' => 'AdminPMS@2030!',
             ]
         );
