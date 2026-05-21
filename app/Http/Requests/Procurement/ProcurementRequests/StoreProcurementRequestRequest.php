@@ -37,7 +37,7 @@ class StoreProcurementRequestRequest extends FormRequest
             'required_delivery_date' => ['nullable', 'date', 'required_unless:flexible_delivery_date,1,true'],
             'flexible_delivery_date' => ['nullable', 'boolean'],
             'supporting_documents' => ['nullable', 'array'],
-            'supporting_documents.*' => ['nullable', 'file', 'max:10240', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp'],
+            'supporting_documents.*' => ['nullable', 'file', 'max:10240', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp,zip,rar'],
             'delivery_location' => ['nullable', 'string', 'max:500'],
             'classification' => ['nullable', 'string', 'max:500'],
             'status' => ['nullable', 'string', Rule::in(ProcurementRequestStatus::values())],

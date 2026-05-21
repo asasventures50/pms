@@ -48,7 +48,7 @@ class UpdateProcurementRequestRequest extends FormRequest
             'delivery_location' => ['nullable', 'string', 'max:500'],
             'classification' => ['nullable', 'string', 'max:500'],
             'supporting_documents' => ['nullable', 'array'],
-            'supporting_documents.*' => ['nullable', 'file', 'max:10240', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp'],
+            'supporting_documents.*' => ['nullable', 'file', 'max:10240', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp,zip,rar'],
             'remove_supporting_document_ids' => ['nullable', 'array'],
             'remove_supporting_document_ids.*' => ['integer'],
             'status' => ['nullable', 'string', Rule::in(ProcurementRequestStatus::values())],
