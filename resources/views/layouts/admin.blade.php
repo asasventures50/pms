@@ -12,7 +12,7 @@
         <header class="border-b border-slate-200 bg-white">
             <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
                 <nav class="flex flex-wrap items-center gap-4 text-sm" aria-label="Main">
-                    @if (request()->routeIs('dashboard'))
+                    @if (request()->routeIs('dashboard', 'procurement-requests.*', 'purchase-orders.*', 'projects.*'))
                         <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Dashboard</span>
                     @else
                         <a href="{{ route('dashboard') }}"
@@ -40,26 +40,6 @@
                             </a>
                         @endif
                     @endif
-                    @if (auth()->user()->hasPermission('projects.view'))
-                        @if (request()->routeIs('projects.*'))
-                            <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Projects</span>
-                        @else
-                            <a href="{{ route('projects.index') }}"
-                               class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
-                                Projects
-                            </a>
-                        @endif
-                    @endif
-                    @if (auth()->user()->hasPermission('purchase-orders.view'))
-                        @if (request()->routeIs('purchase-orders.*'))
-                            <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">PO</span>
-                        @else
-                            <a href="{{ route('purchase-orders.index') }}"
-                               class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
-                                PO
-                            </a>
-                        @endif
-                    @endif
                     @if (auth()->user()->hasPermission('rfqs.view'))
                         @if (request()->routeIs('rfqs.*'))
                             <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">RFQs</span>
@@ -67,16 +47,6 @@
                             <a href="{{ route('rfqs.index') }}"
                                class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
                                 RFQs
-                            </a>
-                        @endif
-                    @endif
-                    @if (auth()->user()->hasPermission('procurement-requests.view'))
-                        @if (request()->routeIs('procurement-requests.*'))
-                            <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">PR</span>
-                        @else
-                            <a href="{{ route('procurement-requests.index') }}"
-                               class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
-                                PR
                             </a>
                         @endif
                     @endif

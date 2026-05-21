@@ -8,7 +8,10 @@
             <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Add Project</h1>
             <p class="mt-1 text-sm text-slate-600">Create a project and define its zones.</p>
         </div>
-        <a href="{{ route('projects.index') }}" class="text-sm font-medium text-slate-600 hover:text-slate-900">Back to list</a>
+        <div class="flex gap-3 text-sm">
+            <a href="{{ route('dashboard') }}" class="font-medium text-slate-600 hover:text-slate-900">Dashboard</a>
+            <a href="{{ route('projects.index') }}" class="font-medium text-slate-600 hover:text-slate-900">Projects list</a>
+        </div>
     </div>
 
     <form action="{{ route('projects.store') }}" method="post" class="space-y-8">

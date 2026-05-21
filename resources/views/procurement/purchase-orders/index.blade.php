@@ -8,12 +8,15 @@
             <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Purchase Orders</h1>
             <p class="mt-1 text-sm text-slate-600">Track and manage procurement purchase orders.</p>
         </div>
-        @if (auth()->user()->hasPermission('purchase-orders.create'))
-            <a href="{{ route('purchase-orders.create') }}"
-               class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800">
-                Add Purchase Order
-            </a>
-        @endif
+        <div class="flex flex-wrap items-center gap-3">
+            <a href="{{ route('dashboard') }}" class="text-sm font-medium text-slate-600 hover:text-slate-900">Dashboard</a>
+            @if (auth()->user()->hasPermission('purchase-orders.create'))
+                <a href="{{ route('purchase-orders.create') }}"
+                   class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800">
+                    Add Purchase Order
+                </a>
+            @endif
+        </div>
     </div>
 
     <form method="get" action="{{ route('purchase-orders.index') }}" class="mb-6 space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
