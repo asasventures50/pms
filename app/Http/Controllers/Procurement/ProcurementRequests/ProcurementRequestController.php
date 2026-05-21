@@ -74,16 +74,13 @@ class ProcurementRequestController extends Controller
         $validated['created_by'] = $request->user()->id;
         $validated['status'] ??= ProcurementRequestStatus::Draft->value;
 
-        $supportingDocument = $request->file('supporting_document');
-        unset(
-            $validated['supporting_document'],
-            $validated['remove_supporting_document'],
-        );
+        $supportingDocuments = array_values($request->file('supporting_documents', []) ?? []);
+        unset($validated['supporting_documents'], $validated['remove_supporting_document_ids']);
 
         $procurementRequest = $this->persistence->create($validated, $items);
 
-        if ($supportingDocument) {
-            $this->documents->store($procurementRequest, $supportingDocument);
+        if ($supportingDocuments !== []) {
+            $this->documents->append($procurementRequest, $supportingDocuments);
         }
 
         return redirect()
@@ -93,7 +90,7 @@ class ProcurementRequestController extends Controller
 
     public function show(ProcurementRequest $procurementRequest): View
     {
-        $procurementRequest->load(['creator', 'items']);
+        $procurementRequest->load(['creator', 'items', 'documents']);
 
         return view('procurement.procurement-requests.show', [
             'procurementRequest' => $procurementRequest,
@@ -102,7 +99,7 @@ class ProcurementRequestController extends Controller
 
     public function edit(ProcurementRequest $procurementRequest): View
     {
-        $procurementRequest->load(['items', 'creator']);
+        $procurementRequest->load(['items', 'creator', 'documents']);
 
         $defaultItems = $procurementRequest->items->map(fn ($row) => [
             'line_number' => $row->line_number,
@@ -139,19 +136,15 @@ class ProcurementRequestController extends Controller
 
         ProcurementRequestPayloadResolver::finalizeForUpdate($validated);
 
-        $supportingDocument = $request->file('supporting_document');
-        $removeSupportingDocument = $request->boolean('remove_supporting_document');
-        unset(
-            $validated['supporting_document'],
-            $validated['remove_supporting_document'],
-        );
+        $supportingDocuments = array_values($request->file('supporting_documents', []) ?? []);
+        $removeDocumentIds = $request->input('remove_supporting_document_ids', []);
+        unset($validated['supporting_documents'], $validated['remove_supporting_document_ids']);
 
         $this->persistence->update($procurementRequest, $validated, $items);
 
-        if ($removeSupportingDocument) {
-            $this->documents->remove($procurementRequest);
-        } elseif ($supportingDocument) {
-            $this->documents->store($procurementRequest->fresh(), $supportingDocument);
+        $this->documents->removeByIds($procurementRequest, is_array($removeDocumentIds) ? $removeDocumentIds : []);
+        if ($supportingDocuments !== []) {
+            $this->documents->append($procurementRequest->fresh(), $supportingDocuments);
         }
 
         return redirect()

@@ -69,8 +69,8 @@
                     <dd class="mt-0.5">{{ $procurementRequest->delivery_location ?: '—' }}</dd>
                 </div>
                 <div class="sm:col-span-2">
-                    <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Is Delivered</dt>
-                    <dd class="mt-0.5">{{ $procurementRequest->delivery_completed ? 'Yes' : 'No' }}</dd>
+                    <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Flexible delivery date</dt>
+                    <dd class="mt-0.5">{{ $procurementRequest->flexible_delivery_date ? 'Yes' : 'No' }}</dd>
                 </div>
             </dl>
         </section>
@@ -82,15 +82,19 @@
 
         <section class="rounded-xl border border-slate-200 bg-white p-6 text-sm shadow-sm">
             <h3 class="text-sm font-semibold text-slate-900">Supporting documents</h3>
-            @if ($procurementRequest->supporting_document_path)
-                <p class="mt-4">
-                    <a href="{{ $procurementRequest->supportingDocumentUrl() }}" target="_blank" rel="noopener"
-                       class="font-medium text-slate-900 underline hover:text-slate-700">
-                        {{ $procurementRequest->supporting_document_name ?: 'Download file' }}
-                    </a>
-                </p>
-            @else
+            @if ($procurementRequest->documents->isEmpty())
                 <p class="mt-4 text-slate-900">—</p>
+            @else
+                <ul class="mt-4 space-y-2">
+                    @foreach ($procurementRequest->documents as $document)
+                        <li>
+                            <a href="{{ $document->url }}" target="_blank" rel="noopener"
+                               class="font-medium text-slate-900 underline hover:text-slate-700">
+                                {{ $document->file_name }}
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
             @endif
         </section>
 

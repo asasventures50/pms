@@ -12,7 +12,7 @@
 
 <article class="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
     <p class="mb-3 text-sm font-semibold text-slate-900">
-        No. <span class="font-mono">{{ $lineNo ?: '—' }}</span>
+        Line <span class="font-mono text-xs">{{ $lineNo ?: '—' }}</span>
     </p>
     <dl class="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-5">
         <div>

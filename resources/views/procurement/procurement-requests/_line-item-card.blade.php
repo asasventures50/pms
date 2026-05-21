@@ -13,7 +13,7 @@
 <article class="pr-line-row rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
     <div class="mb-4 flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
         <p class="text-sm font-semibold text-slate-900">
-            No. <span class="pr-line-no font-mono">{{ $lineNo ?: '—' }}</span>
+            Line <span class="pr-line-no font-mono text-xs">{{ $lineNo ?: '—' }}</span>
         </p>
         <button type="button"
                 class="pr-remove-line rounded-lg px-2 py-1 text-sm font-medium text-red-700 hover:bg-red-50 print:hidden"

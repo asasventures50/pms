@@ -22,11 +22,12 @@ class StoreProcurementRequestRequest extends FormRequest
     {
         return [
             'request_number' => ['nullable', 'string', 'max:100', Rule::unique('procurement_requests', 'request_number')],
-            'required_delivery_date' => ['nullable', 'date'],
-            'delivery_completed' => ['nullable', 'boolean'],
+            'required_delivery_date' => ['nullable', 'date', 'required_unless:flexible_delivery_date,1,true'],
+            'flexible_delivery_date' => ['nullable', 'boolean'],
+            'supporting_documents' => ['nullable', 'array'],
+            'supporting_documents.*' => ['file', 'max:10240', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp'],
             'delivery_location' => ['nullable', 'string', 'max:500'],
             'classification' => ['nullable', 'string', 'max:500'],
-            'supporting_document' => ['nullable', 'file', 'max:10240', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp'],
             'status' => ['nullable', 'string', Rule::in(ProcurementRequestStatus::values())],
             'items' => ['required', 'array', 'min:1'],
             'items.*.project' => ['nullable', 'string', 'max:255'],

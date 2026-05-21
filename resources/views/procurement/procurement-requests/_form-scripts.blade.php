@@ -1,48 +1,69 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const supportingInput = document.getElementById('supporting_document');
-    const supportingNameWrap = document.getElementById('pr-supporting-document-name');
-    const supportingNameEl = supportingNameWrap?.querySelector('[data-filename]');
+    const supportingInput = document.getElementById('supporting_documents');
+    const supportingList = document.getElementById('pr-supporting-document-list');
+    const supportingDropZone = document.getElementById('pr-supporting-dropzone');
 
-    function showSelectedSupportingFile() {
-        if (!supportingNameWrap || !supportingNameEl || !supportingInput) {
+    function showSelectedSupportingFiles() {
+        if (!supportingInput || !supportingList) {
             return;
         }
-        const file = supportingInput.files?.[0];
-        if (file) {
-            supportingNameEl.textContent = file.name;
-            supportingNameWrap.classList.remove('hidden');
-        } else {
-            supportingNameEl.textContent = '';
-            supportingNameWrap.classList.add('hidden');
+        const files = supportingInput.files;
+        supportingList.innerHTML = '';
+        if (!files || files.length === 0) {
+            supportingList.classList.add('hidden');
+            return;
         }
+        Array.from(files).forEach(function (file) {
+            const li = document.createElement('li');
+            li.textContent = file.name;
+            supportingList.appendChild(li);
+        });
+        supportingList.classList.remove('hidden');
     }
 
-    supportingInput?.addEventListener('change', showSelectedSupportingFile);
-
-    const supportingDropZone = supportingInput?.closest('label');
-    if (supportingDropZone) {
-        ['dragenter', 'dragover'].forEach(function (eventName) {
-            supportingDropZone.addEventListener(eventName, function (e) {
-                e.preventDefault();
-                supportingDropZone.classList.add('border-slate-500', 'bg-slate-50');
-            });
+    function assignFilesToInput(fileList) {
+        if (!supportingInput || !fileList || fileList.length === 0) {
+            return;
+        }
+        const transfer = new DataTransfer();
+        Array.from(fileList).forEach(function (file) {
+            transfer.items.add(file);
         });
+        supportingInput.files = transfer.files;
+        showSelectedSupportingFiles();
+    }
+
+    supportingInput?.addEventListener('change', showSelectedSupportingFiles);
+
+    if (supportingDropZone && supportingInput) {
+        let dragDepth = 0;
+
+        supportingDropZone.addEventListener('dragenter', function (e) {
+            e.preventDefault();
+            dragDepth += 1;
+            supportingDropZone.classList.add('border-slate-500', 'bg-slate-50');
+        });
+
+        supportingDropZone.addEventListener('dragover', function (e) {
+            e.preventDefault();
+        });
+
         supportingDropZone.addEventListener('dragleave', function (e) {
             e.preventDefault();
-            supportingDropZone.classList.remove('border-slate-500', 'bg-slate-50');
+            dragDepth = Math.max(0, dragDepth - 1);
+            if (dragDepth === 0) {
+                supportingDropZone.classList.remove('border-slate-500', 'bg-slate-50');
+            }
         });
+
         supportingDropZone.addEventListener('drop', function (e) {
             e.preventDefault();
+            dragDepth = 0;
             supportingDropZone.classList.remove('border-slate-500', 'bg-slate-50');
-            const file = e.dataTransfer?.files?.[0];
-            if (!file || !supportingInput) {
-                return;
+            if (e.dataTransfer?.files?.length) {
+                assignFilesToInput(e.dataTransfer.files);
             }
-            const transfer = new DataTransfer();
-            transfer.items.add(file);
-            supportingInput.files = transfer.files;
-            showSelectedSupportingFile();
         });
     }
 
@@ -56,16 +77,20 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
-    function prSeqPart() {
-        const raw = requestNumberInput?.value?.trim() || previewDocNumber?.dataset.preview || '';
-        const match = raw.match(/-(\d+)$/);
-        const seq = match ? Math.max(1, parseInt(match[1], 10)) : 1;
-
-        return String(seq).padStart(2, '0');
+    function docNumber() {
+        return requestNumberInput?.value?.trim() || previewDocNumber?.dataset.preview || '';
     }
 
     function lineNumberFor(index) {
-        return prSeqPart() + '.' + (index + 1);
+        const code = docNumber();
+        if (!code) {
+            return '—';
+        }
+        const match = code.match(/-(\d+)$/);
+        const seq = match ? Math.max(1, parseInt(match[1], 10)) : 1;
+        const suffix = String(seq).padStart(2, '0') + '.' + (index + 1);
+
+        return code + '-' + suffix;
     }
 
     function reindexRows() {
