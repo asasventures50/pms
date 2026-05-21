@@ -1,69 +1,46 @@
+@php
+    $prQuickStoreUrls = [
+        'project' => auth()->user()->hasPermission('projects.create') ? route('projects.quick-store') : null,
+        'zone' => auth()->user()->hasPermission('projects.update') ? route('zones.quick-store') : null,
+    ];
+@endphp
+<script type="application/json" id="pr-quick-store-urls">@json($prQuickStoreUrls)</script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const supportingInput = document.getElementById('supporting_documents');
-    const supportingList = document.getElementById('pr-supporting-document-list');
-    const supportingDropZone = document.getElementById('pr-supporting-dropzone');
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+    const quickStoreUrls = JSON.parse(
+        document.getElementById('pr-quick-store-urls')?.textContent || '{}'
+    );
+    const projectQuickStoreUrl = quickStoreUrls.project ?? null;
+    const zoneQuickStoreUrl = quickStoreUrls.zone ?? null;
 
-    function showSelectedSupportingFiles() {
-        if (!supportingInput || !supportingList) {
-            return;
-        }
-        const files = supportingInput.files;
-        supportingList.innerHTML = '';
-        if (!files || files.length === 0) {
-            supportingList.classList.add('hidden');
-            return;
-        }
-        Array.from(files).forEach(function (file) {
-            const li = document.createElement('li');
-            li.textContent = file.name;
-            supportingList.appendChild(li);
-        });
-        supportingList.classList.remove('hidden');
-    }
+    const supportingBody = document.getElementById('pr-supporting-files-body');
+    const supportingTpl = document.getElementById('pr-supporting-file-template');
+    const addSupportingBtn = document.getElementById('pr-add-supporting-file');
 
-    function assignFilesToInput(fileList) {
-        if (!supportingInput || !fileList || fileList.length === 0) {
-            return;
-        }
-        const transfer = new DataTransfer();
-        Array.from(fileList).forEach(function (file) {
-            transfer.items.add(file);
-        });
-        supportingInput.files = transfer.files;
-        showSelectedSupportingFiles();
-    }
+    function bindSupportingFileRow(row) {
+        const input = row.querySelector('input[type="file"]');
+        const nameEl = row.querySelector('.pr-supporting-file-name');
 
-    supportingInput?.addEventListener('change', showSelectedSupportingFiles);
-
-    if (supportingDropZone && supportingInput) {
-        let dragDepth = 0;
-
-        supportingDropZone.addEventListener('dragenter', function (e) {
-            e.preventDefault();
-            dragDepth += 1;
-            supportingDropZone.classList.add('border-slate-500', 'bg-slate-50');
-        });
-
-        supportingDropZone.addEventListener('dragover', function (e) {
-            e.preventDefault();
-        });
-
-        supportingDropZone.addEventListener('dragleave', function (e) {
-            e.preventDefault();
-            dragDepth = Math.max(0, dragDepth - 1);
-            if (dragDepth === 0) {
-                supportingDropZone.classList.remove('border-slate-500', 'bg-slate-50');
+        input?.addEventListener('change', function () {
+            const file = input.files?.[0];
+            if (nameEl) {
+                nameEl.textContent = file ? file.name : '';
             }
         });
 
-        supportingDropZone.addEventListener('drop', function (e) {
-            e.preventDefault();
-            dragDepth = 0;
-            supportingDropZone.classList.remove('border-slate-500', 'bg-slate-50');
-            if (e.dataTransfer?.files?.length) {
-                assignFilesToInput(e.dataTransfer.files);
-            }
+        row.querySelector('.pr-remove-supporting-file')?.addEventListener('click', function () {
+            row.remove();
+        });
+    }
+
+    if (supportingBody && supportingTpl) {
+        supportingBody.querySelectorAll('.pr-supporting-file-row').forEach(bindSupportingFileRow);
+
+        addSupportingBtn?.addEventListener('click', function () {
+            const row = supportingTpl.content.firstElementChild.cloneNode(true);
+            supportingBody.appendChild(row);
+            bindSupportingFileRow(row);
         });
     }
 
@@ -112,14 +89,61 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    function projectLabel(code, name) {
+        return code + ' — ' + name;
+    }
+
+    function zoneLabel(code, name) {
+        return code + ' — ' + name;
+    }
+
+    function appendProjectOption(project) {
+        const id = String(project.id);
+        document.querySelectorAll('[data-pr-project-select]').forEach(function (select) {
+            if (select.querySelector('option[value="' + id + '"]')) {
+                return;
+            }
+            const option = document.createElement('option');
+            option.value = id;
+            option.textContent = projectLabel(project.code, project.name);
+            select.appendChild(option);
+        });
+    }
+
+    function appendZoneOption(zone) {
+        const id = String(zone.id);
+        const projectId = String(zone.project_id);
+        document.querySelectorAll('[data-pr-zone-select]').forEach(function (select) {
+            if (select.querySelector('option[value="' + id + '"]')) {
+                return;
+            }
+            const option = document.createElement('option');
+            option.value = id;
+            option.dataset.projectId = projectId;
+            option.textContent = zoneLabel(zone.code, zone.name);
+            select.appendChild(option);
+        });
+    }
+
     function syncZonesForRow(row) {
         const projectSelect = row.querySelector('[data-pr-project-select]');
         const zoneSelect = row.querySelector('[data-pr-zone-select]');
+        const addZoneBtn = row.querySelector('[data-pr-add-zone]');
         if (!projectSelect || !zoneSelect) {
             return;
         }
 
         const projectId = projectSelect.value;
+        const hasProject = Boolean(projectId);
+
+        zoneSelect.disabled = !hasProject;
+        if (addZoneBtn) {
+            addZoneBtn.disabled = !hasProject;
+        }
+
+        if (!hasProject) {
+            zoneSelect.value = '';
+        }
 
         zoneSelect.querySelectorAll('option').forEach(function (option) {
             if (!option.value) {
@@ -128,7 +152,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            const matches = !projectId || option.dataset.projectId === projectId;
+            const matches = hasProject && option.dataset.projectId === projectId;
             option.hidden = !matches;
             option.disabled = !matches;
         });
@@ -147,8 +171,249 @@ document.addEventListener('DOMContentLoaded', function () {
         syncZonesForRow(row);
     }
 
+    let quickAddTargetRow = null;
+
+    const projectModal = document.getElementById('pr-add-project-modal');
+    const projectNameInput = document.getElementById('pr-add-project-name');
+    const projectErrName = document.getElementById('pr-add-project-error-name');
+    const projectErrGeneral = document.getElementById('pr-add-project-error-general');
+    const projectCancelBtn = document.getElementById('pr-add-project-cancel');
+    const projectSaveBtn = document.getElementById('pr-add-project-save');
+
+    const zoneModal = document.getElementById('pr-add-zone-modal');
+    const zoneProjectIdInput = document.getElementById('pr-add-zone-project-id');
+    const zoneNameInput = document.getElementById('pr-add-zone-name');
+    const zoneErrName = document.getElementById('pr-add-zone-error-name');
+    const zoneErrGeneral = document.getElementById('pr-add-zone-error-general');
+    const zoneCancelBtn = document.getElementById('pr-add-zone-cancel');
+    const zoneSaveBtn = document.getElementById('pr-add-zone-save');
+
+    function clearFieldErrors(errEl, inputEl) {
+        if (errEl) {
+            errEl.classList.add('hidden');
+            errEl.textContent = '';
+        }
+        if (inputEl) {
+            inputEl.classList.remove('border-red-500');
+        }
+    }
+
+    function setFieldError(inputEl, errEl, message) {
+        if (!inputEl || !errEl) {
+            return;
+        }
+        errEl.textContent = message;
+        errEl.classList.remove('hidden');
+        inputEl.classList.add('border-red-500');
+    }
+
+    function closeModal(modal) {
+        if (!modal) {
+            return;
+        }
+        modal.classList.add('hidden');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('overflow-hidden');
+    }
+
+    function openModal(modal) {
+        if (!modal) {
+            return;
+        }
+        modal.classList.remove('hidden');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('overflow-hidden');
+    }
+
+    function bindModalBackdrop(modal) {
+        if (!modal) {
+            return;
+        }
+        const panel = modal.querySelector('.relative');
+        modal.addEventListener('click', function (e) {
+            if (panel && !panel.contains(e.target)) {
+                quickAddTargetRow = null;
+                closeModal(modal);
+            }
+        });
+    }
+
+    bindModalBackdrop(projectModal);
+    bindModalBackdrop(zoneModal);
+
+    function openProjectModal(row) {
+        if (!projectModal || !projectNameInput) {
+            return;
+        }
+        quickAddTargetRow = row;
+        projectNameInput.value = '';
+        clearFieldErrors(projectErrName, projectNameInput);
+        clearFieldErrors(projectErrGeneral, null);
+        openModal(projectModal);
+        setTimeout(function () {
+            projectNameInput.focus();
+        }, 0);
+    }
+
+    function openZoneModal(row) {
+        if (!zoneModal || !zoneNameInput || !zoneProjectIdInput) {
+            return;
+        }
+        const projectSelect = row.querySelector('[data-pr-project-select]');
+        const projectId = projectSelect?.value || '';
+        if (!projectId) {
+            return;
+        }
+        quickAddTargetRow = row;
+        zoneProjectIdInput.value = projectId;
+        zoneNameInput.value = '';
+        clearFieldErrors(zoneErrName, zoneNameInput);
+        clearFieldErrors(zoneErrGeneral, null);
+        openModal(zoneModal);
+        setTimeout(function () {
+            zoneNameInput.focus();
+        }, 0);
+    }
+
+    projectCancelBtn?.addEventListener('click', function () {
+        quickAddTargetRow = null;
+        closeModal(projectModal);
+    });
+
+    zoneCancelBtn?.addEventListener('click', function () {
+        quickAddTargetRow = null;
+        closeModal(zoneModal);
+    });
+
+    projectSaveBtn?.addEventListener('click', async function () {
+        if (!quickAddTargetRow || !projectQuickStoreUrl) {
+            return;
+        }
+
+        const name = (projectNameInput?.value || '').trim();
+        clearFieldErrors(projectErrName, projectNameInput);
+        clearFieldErrors(projectErrGeneral, null);
+
+        if (!name) {
+            setFieldError(projectNameInput, projectErrName, 'Name is required.');
+            return;
+        }
+
+        projectSaveBtn.disabled = true;
+
+        try {
+            const formData = new FormData();
+            formData.append('name', name);
+
+            const res = await fetch(projectQuickStoreUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                },
+                body: formData,
+            });
+
+            const payload = await res.json().catch(function () {
+                return null;
+            });
+
+            if (!res.ok) {
+                const message = payload?.errors?.name?.[0] || 'Failed to create project.';
+                setFieldError(projectNameInput, projectErrName, message);
+                return;
+            }
+
+            appendProjectOption(payload);
+
+            const projectSelect = quickAddTargetRow.querySelector('[data-pr-project-select]');
+            if (projectSelect) {
+                projectSelect.value = String(payload.id);
+            }
+
+            document.querySelectorAll('.pr-line-row').forEach(syncZonesForRow);
+
+            quickAddTargetRow = null;
+            closeModal(projectModal);
+        } finally {
+            projectSaveBtn.disabled = false;
+        }
+    });
+
+    zoneSaveBtn?.addEventListener('click', async function () {
+        if (!quickAddTargetRow || !zoneQuickStoreUrl) {
+            return;
+        }
+
+        const projectId = (zoneProjectIdInput?.value || '').trim();
+        const name = (zoneNameInput?.value || '').trim();
+        clearFieldErrors(zoneErrName, zoneNameInput);
+        clearFieldErrors(zoneErrGeneral, null);
+
+        if (!projectId) {
+            if (zoneErrGeneral) {
+                zoneErrGeneral.textContent = 'Select a project first.';
+                zoneErrGeneral.classList.remove('hidden');
+            }
+            return;
+        }
+        if (!name) {
+            setFieldError(zoneNameInput, zoneErrName, 'Name is required.');
+            return;
+        }
+
+        zoneSaveBtn.disabled = true;
+
+        try {
+            const formData = new FormData();
+            formData.append('project_id', projectId);
+            formData.append('name', name);
+
+            const res = await fetch(zoneQuickStoreUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                },
+                body: formData,
+            });
+
+            const payload = await res.json().catch(function () {
+                return null;
+            });
+
+            if (!res.ok) {
+                const message = payload?.errors?.name?.[0] || 'Failed to create zone.';
+                setFieldError(zoneNameInput, zoneErrName, message);
+                return;
+            }
+
+            appendZoneOption(payload);
+
+            const zoneSelect = quickAddTargetRow.querySelector('[data-pr-zone-select]');
+            if (zoneSelect) {
+                zoneSelect.value = String(payload.id);
+            }
+
+            document.querySelectorAll('.pr-line-row').forEach(syncZonesForRow);
+
+            quickAddTargetRow = null;
+            closeModal(zoneModal);
+        } finally {
+            zoneSaveBtn.disabled = false;
+        }
+    });
+
     function bindRow(row) {
         bindProjectZone(row);
+
+        row.querySelector('[data-pr-add-project]')?.addEventListener('click', function () {
+            openProjectModal(row);
+        });
+
+        row.querySelector('[data-pr-add-zone]')?.addEventListener('click', function () {
+            openZoneModal(row);
+        });
 
         row.querySelector('.pr-remove-line')?.addEventListener('click', function () {
             if (linesBody.querySelectorAll('.pr-line-row').length <= 1) {

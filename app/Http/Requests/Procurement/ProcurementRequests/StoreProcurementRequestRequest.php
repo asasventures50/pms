@@ -4,14 +4,24 @@ namespace App\Http\Requests\Procurement\ProcurementRequests;
 
 use App\Enums\Procurement\ProcurementRequests\ProcurementRequestStatus;
 use App\Http\Requests\Procurement\ProcurementRequests\Concerns\NormalizesProcurementDeliveryDate;
+use App\Http\Requests\Procurement\ProcurementRequests\Concerns\PreparesSupportingDocuments;
 use App\Http\Requests\Procurement\ProcurementRequests\Concerns\ValidatesProcurementRequestLineItems;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StoreProcurementRequestRequest extends FormRequest
 {
-    use NormalizesProcurementDeliveryDate;
+    use NormalizesProcurementDeliveryDate {
+        prepareForValidation as normalizeDeliveryDateFields;
+    }
+    use PreparesSupportingDocuments;
     use ValidatesProcurementRequestLineItems;
+
+    protected function prepareForValidation(): void
+    {
+        $this->normalizeDeliveryDateFields();
+        $this->prepareSupportingDocumentsForValidation();
+    }
     public function authorize(): bool
     {
         return $this->user()?->hasPermission('procurement-requests.create') ?? false;
@@ -27,7 +37,7 @@ class StoreProcurementRequestRequest extends FormRequest
             'required_delivery_date' => ['nullable', 'date', 'required_unless:flexible_delivery_date,1,true'],
             'flexible_delivery_date' => ['nullable', 'boolean'],
             'supporting_documents' => ['nullable', 'array'],
-            'supporting_documents.*' => ['file', 'max:10240', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp'],
+            'supporting_documents.*' => ['nullable', 'file', 'max:10240', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp'],
             'delivery_location' => ['nullable', 'string', 'max:500'],
             'classification' => ['nullable', 'string', 'max:500'],
             'status' => ['nullable', 'string', Rule::in(ProcurementRequestStatus::values())],

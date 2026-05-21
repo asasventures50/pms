@@ -26,31 +26,52 @@
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <div>
             <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Project</label>
-            <select name="items[{{ $index }}][project_id]" data-name="project_id" data-pr-project-select
-                    class="admin-filter-control mt-1 w-full">
-                <option value="">—</option>
-                @foreach ($projects as $project)
-                    <option value="{{ $project->id }}" @selected((string) $selectedProjectId === (string) $project->id)>
-                        {{ $project->code }} — {{ $project->name }}
-                    </option>
-                @endforeach
-            </select>
+            <div class="mt-1 flex gap-1">
+                <select name="items[{{ $index }}][project_id]" data-name="project_id" data-pr-project-select
+                        class="admin-filter-control min-w-0 flex-1">
+                    <option value="">—</option>
+                    @foreach ($projects as $project)
+                        <option value="{{ $project->id }}" @selected((string) $selectedProjectId === (string) $project->id)>
+                            {{ $project->code }} — {{ $project->name }}
+                        </option>
+                    @endforeach
+                </select>
+                @if (auth()->user()->hasPermission('projects.create'))
+                    <button type="button" data-pr-add-project
+                            class="inline-flex shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-white px-2.5 text-base font-medium leading-none text-slate-800 hover:bg-slate-50"
+                            title="Add project">
+                        +
+                    </button>
+                @endif
+            </div>
         </div>
         <div>
             <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Zone</label>
-            <select name="items[{{ $index }}][zone_id]" data-name="zone_id" data-pr-zone-select
-                    class="admin-filter-control mt-1 w-full">
-                <option value="">—</option>
-                @foreach ($projects as $project)
-                    @foreach ($project->zones as $zone)
-                        <option value="{{ $zone->id }}"
-                                data-project-id="{{ $project->id }}"
-                                @selected((string) $selectedZoneId === (string) $zone->id)>
-                            {{ $zone->code }} — {{ $zone->name }}
-                        </option>
+            <div class="mt-1 flex gap-1">
+                <select name="items[{{ $index }}][zone_id]" data-name="zone_id" data-pr-zone-select
+                        class="admin-filter-control min-w-0 flex-1"
+                        @disabled($selectedProjectId === '' || $selectedProjectId === null)>
+                    <option value="">—</option>
+                    @foreach ($projects as $project)
+                        @foreach ($project->zones as $zone)
+                            <option value="{{ $zone->id }}"
+                                    data-project-id="{{ $project->id }}"
+                                    @selected((string) $selectedZoneId === (string) $zone->id)
+                                    @disabled((string) $selectedProjectId !== '' && (string) $selectedProjectId !== (string) $project->id)>
+                                {{ $zone->code }} — {{ $zone->name }}
+                            </option>
+                        @endforeach
                     @endforeach
-                @endforeach
-            </select>
+                </select>
+                @if (auth()->user()->hasPermission('projects.update'))
+                    <button type="button" data-pr-add-zone
+                            class="inline-flex shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-white px-2.5 text-base font-medium leading-none text-slate-800 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                            title="Add zone"
+                            @disabled($selectedProjectId === '' || $selectedProjectId === null)>
+                        +
+                    </button>
+                @endif
+            </div>
         </div>
         <div>
             <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Category</label>

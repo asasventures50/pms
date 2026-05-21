@@ -45,3 +45,10 @@
         ])
     </template>
 </section>
+
+@if (auth()->user()->hasPermission('projects.create'))
+    @include('procurement.procurement-requests.partials._quick-add-project-modal')
+@endif
+@if (auth()->user()->hasPermission('projects.update'))
+    @include('procurement.procurement-requests.partials._quick-add-zone-modal')
+@endif

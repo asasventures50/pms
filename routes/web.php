@@ -15,6 +15,8 @@ use App\Http\Controllers\Procurement\Categories\CategoryController;
 use App\Http\Controllers\Procurement\Catalog\SubcategoryQuickStoreController;
 use App\Http\Controllers\Procurement\ProcurementRequests\ProcurementRequestController;
 use App\Http\Controllers\Procurement\Projects\ProjectController;
+use App\Http\Controllers\Procurement\Projects\ProjectQuickStoreController;
+use App\Http\Controllers\Procurement\Projects\ZoneQuickStoreController;
 use App\Http\Controllers\Procurement\PurchaseOrders\PurchaseOrderController;
 use App\Http\Controllers\Procurement\Rfqs\RfqController;
 use App\Http\Controllers\Procurement\Vendors\VendorWebController;
@@ -87,6 +89,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/subcategories/quick-store', [SubcategoryQuickStoreController::class, 'quickStore'])
         ->middleware('permission:categories.create')
         ->name('subcategories.quick-store');
+
+    Route::post('/projects/quick-store', [ProjectQuickStoreController::class, 'quickStore'])
+        ->middleware('permission:projects.create')
+        ->name('projects.quick-store');
+
+    Route::post('/zones/quick-store', [ZoneQuickStoreController::class, 'quickStore'])
+        ->middleware('permission:projects.update')
+        ->name('zones.quick-store');
 
     Route::resource('projects', ProjectController::class)
         ->middleware([

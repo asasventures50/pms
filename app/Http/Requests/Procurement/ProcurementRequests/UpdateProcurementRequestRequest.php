@@ -4,6 +4,7 @@ namespace App\Http\Requests\Procurement\ProcurementRequests;
 
 use App\Enums\Procurement\ProcurementRequests\ProcurementRequestStatus;
 use App\Http\Requests\Procurement\ProcurementRequests\Concerns\NormalizesProcurementDeliveryDate;
+use App\Http\Requests\Procurement\ProcurementRequests\Concerns\PreparesSupportingDocuments;
 use App\Http\Requests\Procurement\ProcurementRequests\Concerns\ValidatesProcurementRequestLineItems;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
 use Illuminate\Foundation\Http\FormRequest;
@@ -11,8 +12,17 @@ use Illuminate\Validation\Rule;
 
 class UpdateProcurementRequestRequest extends FormRequest
 {
-    use NormalizesProcurementDeliveryDate;
+    use NormalizesProcurementDeliveryDate {
+        prepareForValidation as normalizeDeliveryDateFields;
+    }
+    use PreparesSupportingDocuments;
     use ValidatesProcurementRequestLineItems;
+
+    protected function prepareForValidation(): void
+    {
+        $this->normalizeDeliveryDateFields();
+        $this->prepareSupportingDocumentsForValidation();
+    }
     public function authorize(): bool
     {
         return $this->user()?->hasPermission('procurement-requests.update') ?? false;
@@ -38,7 +48,7 @@ class UpdateProcurementRequestRequest extends FormRequest
             'delivery_location' => ['nullable', 'string', 'max:500'],
             'classification' => ['nullable', 'string', 'max:500'],
             'supporting_documents' => ['nullable', 'array'],
-            'supporting_documents.*' => ['file', 'max:10240', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp'],
+            'supporting_documents.*' => ['nullable', 'file', 'max:10240', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp'],
             'remove_supporting_document_ids' => ['nullable', 'array'],
             'remove_supporting_document_ids.*' => ['integer'],
             'status' => ['nullable', 'string', Rule::in(ProcurementRequestStatus::values())],

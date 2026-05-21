@@ -84,9 +84,16 @@
     </section>
 
     <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div class="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
-            <h3 class="text-sm font-semibold text-slate-900">Supporting documents</h3>
-            <p class="text-xs text-slate-500">Multiple files · max 10 MB each</p>
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h3 class="text-sm font-semibold text-slate-900">Supporting documents</h3>
+                <p class="mt-1 text-xs text-slate-500">Add one file at a time · max 10 MB each</p>
+            </div>
+            <button type="button" id="pr-add-supporting-file"
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-800 hover:bg-slate-50 print:hidden">
+                <span class="text-base leading-none" aria-hidden="true">+</span>
+                Add file
+            </button>
         </div>
 
         @if ($procurementRequest?->documents?->isNotEmpty())
@@ -107,28 +114,23 @@
             </ul>
         @endif
 
-        <div class="mt-4 print:hidden">
-            <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Add files</p>
-            <label for="supporting_documents"
-                   id="pr-supporting-dropzone"
-                   class="group mt-2 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50/50 px-6 py-8 text-center transition-colors hover:border-slate-400 hover:bg-slate-50 focus-within:border-slate-500 focus-within:ring-2 focus-within:ring-slate-500/20 @error('supporting_documents') border-red-400 bg-red-50/30 @enderror @error('supporting_documents.*') border-red-400 bg-red-50/30 @enderror">
-                <span class="flex h-12 w-12 items-center justify-center rounded-full bg-white text-slate-400 shadow-sm ring-1 ring-slate-200 transition-colors group-hover:text-slate-600"
-                      aria-hidden="true">
-                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                              d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-                    </svg>
-                </span>
-                <span class="mt-3 text-xs text-slate-500">or drag and drop files here</span>
-                <span class="mt-2 text-xs text-slate-400">PDF · Word · Excel · JPG · PNG · WebP</span>
-                <input type="file" name="supporting_documents[]" id="supporting_documents"
-                       accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp"
-                       multiple
-                       class="sr-only">
-            </label>
-            <ul id="pr-supporting-document-list" class="mt-2 hidden space-y-1 text-sm text-slate-700"></ul>
-            @error('supporting_documents')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
-            @error('supporting_documents.*')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
+        <div class="mt-4 space-y-2 print:hidden @error('supporting_documents') rounded-lg border border-red-300 bg-red-50/30 p-3 @enderror">
+            <p class="text-xs text-slate-500">PDF · Word · Excel · JPG · PNG · WebP</p>
+            <div id="pr-supporting-files-body" class="space-y-2"></div>
+            <template id="pr-supporting-file-template">
+                <div class="pr-supporting-file-row flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-2">
+                    <input type="file" name="supporting_documents[]"
+                           accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp"
+                           class="block max-w-full text-sm text-slate-700 file:mr-3 file:rounded-md file:border-0 file:bg-slate-900 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white hover:file:bg-slate-800">
+                    <span class="pr-supporting-file-name min-w-0 flex-1 truncate text-sm text-slate-600"></span>
+                    <button type="button"
+                            class="pr-remove-supporting-file shrink-0 text-sm font-medium text-red-700 hover:text-red-900">
+                        Remove
+                    </button>
+                </div>
+            </template>
+            @error('supporting_documents')<p class="text-sm text-red-600">{{ $message }}</p>@enderror
+            @error('supporting_documents.*')<p class="text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
     </section>
 
