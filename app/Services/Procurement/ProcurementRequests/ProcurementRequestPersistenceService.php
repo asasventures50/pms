@@ -2,6 +2,7 @@
 
 namespace App\Services\Procurement\ProcurementRequests;
 
+use App\Support\Procurement\ProcurementScopeType;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequestItem;
 use Illuminate\Support\Facades\DB;
@@ -88,7 +89,7 @@ class ProcurementRequestPersistenceService
                 'zone_id' => $zoneId !== null && $zoneId !== '' ? (int) $zoneId : null,
                 'category' => isset($row['category']) ? trim((string) $row['category']) : null,
                 'subcategory' => isset($row['subcategory']) ? trim((string) $row['subcategory']) : null,
-                'scope_type' => isset($row['scope_type']) ? trim((string) $row['scope_type']) : null,
+                'scope_type' => ProcurementScopeType::encode($row['scope_type'] ?? null),
                 'description' => $description,
                 'unit' => isset($row['unit']) ? trim((string) $row['unit']) : null,
                 'quantity' => max(0, (float) ($row['quantity'] ?? 0)),

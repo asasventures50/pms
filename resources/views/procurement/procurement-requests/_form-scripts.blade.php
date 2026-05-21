@@ -80,13 +80,90 @@ document.addEventListener('DOMContentLoaded', function () {
                 const field = input.getAttribute('data-name');
                 input.setAttribute('name', 'items[' + index + '][' + field + ']');
             });
+            row.querySelectorAll('[data-pr-scope-checkbox]').forEach(function (checkbox) {
+                checkbox.setAttribute('name', 'items[' + index + '][scope_type][]');
+            });
             row.querySelectorAll('[name^="items["]').forEach(function (input) {
+                if (input.hasAttribute('data-name') || input.hasAttribute('data-pr-scope-checkbox')) {
+                    return;
+                }
                 const match = input.getAttribute('name').match(/items\[\d+]\[(\w+)]/);
                 if (match) {
                     input.setAttribute('name', 'items[' + index + '][' + match[1] + ']');
                 }
             });
         });
+        document.querySelectorAll('[data-pr-scope-picker]').forEach(closeScopePickerPanel);
+    }
+
+    function closeScopePickerPanel(picker) {
+        const panel = picker.querySelector('.pr-scope-picker-panel');
+        const btn = picker.querySelector('.pr-scope-picker-btn');
+        if (panel) {
+            panel.classList.add('hidden');
+        }
+        if (btn) {
+            btn.setAttribute('aria-expanded', 'false');
+        }
+    }
+
+    function updateScopePickerLabel(picker) {
+        const labelEl = picker.querySelector('.pr-scope-picker-label');
+        const boxes = picker.querySelectorAll('[data-pr-scope-checkbox]');
+        if (!labelEl || !boxes.length) {
+            return;
+        }
+        const checked = Array.from(boxes).filter(function (cb) {
+            return cb.checked;
+        });
+        if (checked.length === 0) {
+            labelEl.textContent = 'Select scope types';
+        } else if (checked.length === 1) {
+            labelEl.textContent = checked[0].getAttribute('data-scope-label') || checked[0].value;
+        } else if (checked.length === 2) {
+            labelEl.textContent = checked.map(function (cb) {
+                return cb.value;
+            }).join(', ');
+        } else {
+            labelEl.textContent = checked.length + ' selected';
+        }
+    }
+
+    function bindScopePicker(picker) {
+        if (!picker || picker.dataset.prScopeBound === '1') {
+            return;
+        }
+        picker.dataset.prScopeBound = '1';
+
+        const btn = picker.querySelector('.pr-scope-picker-btn');
+        const panel = picker.querySelector('.pr-scope-picker-panel');
+
+        btn?.addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (!panel) {
+                return;
+            }
+            const willOpen = panel.classList.contains('hidden');
+            document.querySelectorAll('[data-pr-scope-picker]').forEach(function (other) {
+                if (other !== picker) {
+                    closeScopePickerPanel(other);
+                }
+            });
+            if (willOpen) {
+                panel.classList.remove('hidden');
+                btn.setAttribute('aria-expanded', 'true');
+            } else {
+                closeScopePickerPanel(picker);
+            }
+        });
+
+        picker.querySelectorAll('[data-pr-scope-checkbox]').forEach(function (checkbox) {
+            checkbox.addEventListener('change', function () {
+                updateScopePickerLabel(picker);
+            });
+        });
+
+        updateScopePickerLabel(picker);
     }
 
     function projectLabel(code, name) {
@@ -404,8 +481,21 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('[data-pr-scope-picker]')) {
+            document.querySelectorAll('[data-pr-scope-picker]').forEach(closeScopePickerPanel);
+        }
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('[data-pr-scope-picker]').forEach(closeScopePickerPanel);
+        }
+    });
+
     function bindRow(row) {
         bindProjectZone(row);
+        row.querySelectorAll('[data-pr-scope-picker]').forEach(bindScopePicker);
 
         row.querySelector('[data-pr-add-project]')?.addEventListener('click', function () {
             openProjectModal(row);
@@ -435,5 +525,6 @@ document.addEventListener('DOMContentLoaded', function () {
     linesBody.querySelectorAll('.pr-line-row').forEach(bindRow);
     addBtn?.addEventListener('click', addRow);
     reindexRows();
+    document.querySelectorAll('[data-pr-scope-picker]').forEach(bindScopePicker);
 });
 </script>

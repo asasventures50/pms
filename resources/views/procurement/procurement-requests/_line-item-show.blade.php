@@ -1,4 +1,6 @@
 @php
+    use App\Support\Procurement\ProcurementScopeType;
+
     $index = $index ?? 0;
     $line = $line ?? null;
     $lineNo = $line?->line_number;
@@ -45,7 +47,7 @@
         </div>
         <div>
             <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Scope type</dt>
-            <dd class="mt-0.5 text-slate-900">{{ $line->scope_type ?: '—' }}</dd>
+            <dd class="mt-0.5 text-slate-900">{{ ProcurementScopeType::display($line->scope_type) ?: '—' }}</dd>
         </div>
     </dl>
     <div class="mt-3">

@@ -68,10 +68,13 @@
                 <p class="mt-1 text-xs text-slate-500">When enabled, a fixed delivery date is optional.</p>
             </div>
             <div>
-                <label for="delivery_location" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Delivery location</label>
-                <input type="text" name="delivery_location" id="delivery_location"
+                <label for="delivery_location" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+                    Delivery location <span class="normal-case text-red-600">*</span>
+                </label>
+                <input type="text" name="delivery_location" id="delivery_location" required
                        value="{{ old('delivery_location', $procurementRequest?->delivery_location ?? '') }}"
-                       class="admin-filter-control mt-1 w-full">
+                       class="admin-filter-control mt-1 w-full @error('delivery_location') border-red-500 @enderror">
+                @error('delivery_location')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
         </div>
     </section>

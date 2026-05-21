@@ -36,7 +36,7 @@
                 'zone_id' => '',
                 'category' => '',
                 'subcategory' => '',
-                'scope_type' => '',
+                'scope_type' => [],
                 'description' => '',
                 'unit' => '',
                 'quantity' => 1,

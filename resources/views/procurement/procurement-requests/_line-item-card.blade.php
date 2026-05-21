@@ -1,7 +1,12 @@
 @php
+    use App\Support\Procurement\ProcurementScopeType;
+
     $index = $index ?? 0;
     $row = $row ?? [];
     $projects = $projects ?? collect();
+    $selectedScopeTypes = ProcurementScopeType::selectedValues(
+        old("items.$index.scope_type", $row['scope_type'] ?? null)
+    );
     $selectedProjectId = old("items.$index.project_id", $row['project_id'] ?? '');
     $selectedZoneId = old("items.$index.zone_id", $row['zone_id'] ?? '');
     $lineNo = $row['line_number'] ?? null;
@@ -87,9 +92,10 @@
         </div>
         <div>
             <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Scope type</label>
-            <input type="text" name="items[{{ $index }}][scope_type]" value="{{ $row['scope_type'] ?? '' }}"
-                   data-name="scope_type"
-                   class="admin-filter-control mt-1 w-full">
+            @include('procurement.procurement-requests._scope-type-picker', [
+                'pickerIndex' => $index,
+                'selectedScopeTypes' => $selectedScopeTypes,
+            ])
         </div>
     </div>
 
