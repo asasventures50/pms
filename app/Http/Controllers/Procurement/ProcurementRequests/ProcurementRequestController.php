@@ -10,6 +10,8 @@ use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
 use App\Services\Procurement\ProcurementRequests\ProcurementRequestCodeGenerator;
 use App\Services\Procurement\ProcurementRequests\ProcurementRequestPayloadResolver;
 use App\Services\Procurement\ProcurementRequests\ProcurementRequestPersistenceService;
+use App\Services\Procurement\ProcurementRequests\ProcurementRequestRequestorResolver;
+use App\Services\Procurement\ProcurementRequests\ProcurementRequestSupportingDocumentStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -18,6 +20,7 @@ class ProcurementRequestController extends Controller
 {
     public function __construct(
         private readonly ProcurementRequestPersistenceService $persistence,
+        private readonly ProcurementRequestSupportingDocumentStorage $documents,
     ) {}
 
     public function index(Request $request): View
@@ -66,13 +69,22 @@ class ProcurementRequestController extends Controller
             return back()->withInput()->withErrors(['items' => 'Add at least one line with an item description.']);
         }
 
+        ProcurementRequestRequestorResolver::applyForCreate($validated, $request->user());
         ProcurementRequestPayloadResolver::finalizeForStore($validated);
         $validated['created_by'] = $request->user()->id;
         $validated['status'] ??= ProcurementRequestStatus::Draft->value;
-        $validated['requestor_name'] ??= $request->user()->name;
-        $validated['requested_at'] ??= now()->toDateString();
+
+        $supportingDocument = $request->file('supporting_document');
+        unset(
+            $validated['supporting_document'],
+            $validated['remove_supporting_document'],
+        );
 
         $procurementRequest = $this->persistence->create($validated, $items);
+
+        if ($supportingDocument) {
+            $this->documents->store($procurementRequest, $supportingDocument);
+        }
 
         return redirect()
             ->route('procurement-requests.show', $procurementRequest)
@@ -93,6 +105,8 @@ class ProcurementRequestController extends Controller
         $procurementRequest->load(['items', 'creator']);
 
         $defaultItems = $procurementRequest->items->map(fn ($row) => [
+            'line_number' => $row->line_number,
+            'project' => $row->project,
             'zone' => $row->zone,
             'category' => $row->category,
             'subcategory' => $row->subcategory,
@@ -125,7 +139,20 @@ class ProcurementRequestController extends Controller
 
         ProcurementRequestPayloadResolver::finalizeForUpdate($validated);
 
+        $supportingDocument = $request->file('supporting_document');
+        $removeSupportingDocument = $request->boolean('remove_supporting_document');
+        unset(
+            $validated['supporting_document'],
+            $validated['remove_supporting_document'],
+        );
+
         $this->persistence->update($procurementRequest, $validated, $items);
+
+        if ($removeSupportingDocument) {
+            $this->documents->remove($procurementRequest);
+        } elseif ($supportingDocument) {
+            $this->documents->store($procurementRequest->fresh(), $supportingDocument);
+        }
 
         return redirect()
             ->route('procurement-requests.show', $procurementRequest)
@@ -147,6 +174,7 @@ class ProcurementRequestController extends Controller
     private function emptyLineItems(int $count): array
     {
         return array_fill(0, $count, [
+            'project' => '',
             'zone' => '',
             'category' => '',
             'subcategory' => '',

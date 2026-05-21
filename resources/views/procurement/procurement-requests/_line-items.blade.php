@@ -24,6 +24,7 @@
 
     <template id="pr-line-template">
         @include('procurement.procurement-requests._line-item-card', ['index' => 0, 'row' => [
+            'project' => '',
             'zone' => '',
             'category' => '',
             'subcategory' => '',

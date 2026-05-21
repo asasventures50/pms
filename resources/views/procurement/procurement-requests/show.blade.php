@@ -47,7 +47,11 @@
             @else
                 <div class="mt-4 space-y-4">
                     @foreach ($procurementRequest->items as $index => $line)
-                        @include('procurement.procurement-requests._line-item-show', ['index' => $index, 'line' => $line])
+                        @include('procurement.procurement-requests._line-item-show', [
+                            'index' => $index,
+                            'line' => $line,
+                            'procurementRequest' => $procurementRequest,
+                        ])
                     @endforeach
                 </div>
             @endif
@@ -58,37 +62,36 @@
             <dl class="mt-4 grid gap-4 sm:grid-cols-2">
                 <div>
                     <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Required delivery date</dt>
-                    <dd class="mt-0.5">{{ $procurementRequest->required_delivery_date?->format('Y-m-d') ?? '—' }}</dd>
+                    <dd class="mt-0.5">{{ $procurementRequest->required_delivery_date?->format('m/d/Y') ?? '—' }}</dd>
                 </div>
                 <div>
                     <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Delivery location</dt>
                     <dd class="mt-0.5">{{ $procurementRequest->delivery_location ?: '—' }}</dd>
+                </div>
+                <div class="sm:col-span-2">
+                    <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Is Delivered</dt>
+                    <dd class="mt-0.5">{{ $procurementRequest->delivery_completed ? 'Yes' : 'No' }}</dd>
                 </div>
             </dl>
         </section>
 
         <section class="rounded-xl border border-slate-200 bg-white p-6 text-sm shadow-sm">
             <h3 class="text-sm font-semibold text-slate-900">Classification</h3>
-            <p class="mt-4 whitespace-pre-wrap text-slate-900">{{ $procurementRequest->classification ?: '—' }}</p>
+            <p class="mt-4 text-slate-900">{{ $procurementRequest->classification ?: '—' }}</p>
         </section>
 
         <section class="rounded-xl border border-slate-200 bg-white p-6 text-sm shadow-sm">
             <h3 class="text-sm font-semibold text-slate-900">Supporting documents</h3>
-            <p class="mt-4 whitespace-pre-wrap text-slate-900">{{ $procurementRequest->supporting_documents ?: '—' }}</p>
-        </section>
-
-        <section class="rounded-xl border border-slate-200 bg-white p-6 text-sm shadow-sm">
-            <h3 class="text-sm font-semibold text-slate-900">Procurement department</h3>
-            <dl class="mt-4 space-y-4">
-                <div>
-                    <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Received by</dt>
-                    <dd class="mt-0.5">{{ $procurementRequest->received_by ?: '—' }}</dd>
-                </div>
-                <div>
-                    <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Note</dt>
-                    <dd class="mt-0.5 whitespace-pre-wrap">{{ $procurementRequest->procurement_note ?: '—' }}</dd>
-                </div>
-            </dl>
+            @if ($procurementRequest->supporting_document_path)
+                <p class="mt-4">
+                    <a href="{{ $procurementRequest->supportingDocumentUrl() }}" target="_blank" rel="noopener"
+                       class="font-medium text-slate-900 underline hover:text-slate-700">
+                        {{ $procurementRequest->supporting_document_name ?: 'Download file' }}
+                    </a>
+                </p>
+            @else
+                <p class="mt-4 text-slate-900">—</p>
+            @endif
         </section>
 
         <p class="text-xs text-slate-500 print:hidden">Status: {{ ucfirst($procurementRequest->status->value) }}</p>

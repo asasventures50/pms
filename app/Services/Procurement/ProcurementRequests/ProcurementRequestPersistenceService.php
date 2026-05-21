@@ -48,6 +48,8 @@ class ProcurementRequestPersistenceService
             ProcurementRequestItem::query()->create([
                 'procurement_request_id' => $request->id,
                 'sort_order' => $index,
+                'line_number' => ProcurementRequestLineNumberFormatter::format($request->request_number, $index),
+                'project' => $row['project'] ?? null,
                 'zone' => $row['zone'] ?? null,
                 'category' => $row['category'] ?? null,
                 'subcategory' => $row['subcategory'] ?? null,
@@ -79,6 +81,7 @@ class ProcurementRequestPersistenceService
             }
 
             $normalized[] = [
+                'project' => isset($row['project']) ? trim((string) $row['project']) : null,
                 'zone' => isset($row['zone']) ? trim((string) $row['zone']) : null,
                 'category' => isset($row['category']) ? trim((string) $row['category']) : null,
                 'subcategory' => isset($row['subcategory']) ? trim((string) $row['subcategory']) : null,

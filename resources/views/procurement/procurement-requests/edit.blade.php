@@ -14,7 +14,7 @@
         </div>
     </div>
 
-    <form action="{{ route('procurement-requests.update', $procurementRequest) }}" method="post" class="space-y-6">
+    <form action="{{ route('procurement-requests.update', $procurementRequest) }}" method="post" enctype="multipart/form-data" class="space-y-6">
         @csrf
         @method('PUT')
         @include('procurement.procurement-requests._form', [

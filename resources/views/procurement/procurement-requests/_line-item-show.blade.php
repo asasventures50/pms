@@ -1,11 +1,24 @@
 @php
     $index = $index ?? 0;
     $line = $line ?? null;
+    $lineNo = $line?->line_number
+        ?? ($line && $procurementRequest
+            ? \App\Services\Procurement\ProcurementRequests\ProcurementRequestLineNumberFormatter::format(
+                $procurementRequest->request_number,
+                $index
+            )
+            : null);
 @endphp
 
 <article class="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
-    <p class="mb-3 text-sm font-semibold text-slate-900">Line {{ $index + 1 }}</p>
-    <dl class="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+    <p class="mb-3 text-sm font-semibold text-slate-900">
+        No. <span class="font-mono">{{ $lineNo ?: '—' }}</span>
+    </p>
+    <dl class="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-5">
+        <div>
+            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Project</dt>
+            <dd class="mt-0.5 text-slate-900">{{ $line->project ?: '—' }}</dd>
+        </div>
         <div>
             <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Zone</dt>
             <dd class="mt-0.5 text-slate-900">{{ $line->zone ?: '—' }}</dd>

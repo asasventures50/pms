@@ -13,7 +13,10 @@ class ProcurementRequestPayloadResolver
         $trimmed = $raw !== null ? trim((string) $raw) : '';
 
         if ($trimmed === '') {
-            $validated['request_number'] = app(ProcurementRequestCodeGenerator::class)->next();
+            $date = isset($validated['requested_at'])
+                ? \Illuminate\Support\Carbon::parse($validated['requested_at'])
+                : now();
+            $validated['request_number'] = app(ProcurementRequestCodeGenerator::class)->next($date);
         } else {
             $validated['request_number'] = $trimmed;
         }

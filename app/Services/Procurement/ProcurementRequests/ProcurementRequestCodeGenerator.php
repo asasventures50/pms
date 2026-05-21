@@ -3,28 +3,35 @@
 namespace App\Services\Procurement\ProcurementRequests;
 
 use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
+use Carbon\CarbonInterface;
+use Illuminate\Support\Carbon;
 
 class ProcurementRequestCodeGenerator
 {
     private const PREFIX = 'PR-';
 
-    public function next(): string
+    public function next(?CarbonInterface $date = null): string
     {
+        $date = $date ? Carbon::parse($date) : now();
+        $dateKey = $date->format('dmY');
+        $prefix = self::PREFIX.$dateKey.'-';
+
         $max = 0;
         $codes = ProcurementRequest::query()
             ->withTrashed()
-            ->where('request_number', 'like', self::PREFIX.'%')
+            ->where('request_number', 'like', $prefix.'%')
             ->pluck('request_number');
 
         foreach ($codes as $code) {
-            if (preg_match('/^'.preg_quote(self::PREFIX, '/').'(\d+)$/', (string) $code, $m)) {
-                $max = max($max, (int) $m[1]);
+            $pattern = '/^'.preg_quote($prefix, '/').'(\d+)$/';
+            if (preg_match($pattern, (string) $code, $matches)) {
+                $max = max($max, (int) $matches[1]);
             }
         }
 
         $candidate = $max + 1;
         do {
-            $next = self::PREFIX.str_pad((string) $candidate, 4, '0', STR_PAD_LEFT);
+            $next = $prefix.$candidate;
             $exists = ProcurementRequest::query()->withTrashed()->where('request_number', $next)->exists();
             if (! $exists) {
                 return $next;

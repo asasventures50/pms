@@ -11,14 +11,14 @@
         <a href="{{ route('procurement-requests.index') }}" class="text-sm font-medium text-slate-600 hover:text-slate-900">Back to list</a>
     </div>
 
-    <form action="{{ route('procurement-requests.store') }}" method="post" class="space-y-6">
+    <form action="{{ route('procurement-requests.store') }}" method="post" enctype="multipart/form-data" class="space-y-6">
         @csrf
         @include('procurement.procurement-requests._form', [
             'nextCode' => $nextCode,
             'defaultItems' => $defaultItems,
         ])
         <div class="flex flex-wrap gap-3">
-            <button type="submit" class="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-800">Save request</button>
+            <button type="submit" class="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-800">Send request</button>
             <a href="{{ route('procurement-requests.index') }}" class="rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-800 hover:bg-slate-50">Cancel</a>
         </div>
     </form>

@@ -3,12 +3,14 @@
 namespace App\Http\Requests\Procurement\ProcurementRequests;
 
 use App\Enums\Procurement\ProcurementRequests\ProcurementRequestStatus;
+use App\Http\Requests\Procurement\ProcurementRequests\Concerns\NormalizesProcurementDeliveryDate;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateProcurementRequestRequest extends FormRequest
 {
+    use NormalizesProcurementDeliveryDate;
     public function authorize(): bool
     {
         return $this->user()?->hasPermission('procurement-requests.update') ?? false;
@@ -29,17 +31,15 @@ class UpdateProcurementRequestRequest extends FormRequest
                 'max:100',
                 Rule::unique('procurement_requests', 'request_number')->ignore($procurementRequest?->id),
             ],
-            'requestor_name' => ['nullable', 'string', 'max:255'],
-            'requested_at' => ['nullable', 'date'],
-            'requestor_department' => ['nullable', 'string', 'max:255'],
             'required_delivery_date' => ['nullable', 'date'],
+            'delivery_completed' => ['nullable', 'boolean'],
             'delivery_location' => ['nullable', 'string', 'max:500'],
-            'classification' => ['nullable', 'string', 'max:5000'],
-            'supporting_documents' => ['nullable', 'string', 'max:5000'],
-            'received_by' => ['nullable', 'string', 'max:255'],
-            'procurement_note' => ['nullable', 'string', 'max:5000'],
+            'classification' => ['nullable', 'string', 'max:500'],
+            'supporting_document' => ['nullable', 'file', 'max:10240', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp'],
+            'remove_supporting_document' => ['nullable', 'boolean'],
             'status' => ['nullable', 'string', Rule::in(ProcurementRequestStatus::values())],
             'items' => ['required', 'array', 'min:1'],
+            'items.*.project' => ['nullable', 'string', 'max:255'],
             'items.*.zone' => ['nullable', 'string', 'max:100'],
             'items.*.category' => ['nullable', 'string', 'max:255'],
             'items.*.subcategory' => ['nullable', 'string', 'max:255'],

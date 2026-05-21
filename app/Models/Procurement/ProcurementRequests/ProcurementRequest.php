@@ -5,6 +5,7 @@ namespace App\Models\Procurement\ProcurementRequests;
 use App\Enums\Procurement\ProcurementRequests\ProcurementRequestStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -26,8 +27,10 @@ class ProcurementRequest extends Model
         'requestor_department',
         'required_delivery_date',
         'delivery_location',
+        'delivery_completed',
         'classification',
-        'supporting_documents',
+        'supporting_document_path',
+        'supporting_document_name',
         'received_by',
         'procurement_note',
         'status',
@@ -39,6 +42,7 @@ class ProcurementRequest extends Model
             'status' => ProcurementRequestStatus::class,
             'requested_at' => 'date',
             'required_delivery_date' => 'date',
+            'delivery_completed' => 'boolean',
         ];
     }
 
@@ -50,5 +54,16 @@ class ProcurementRequest extends Model
     public function items(): HasMany
     {
         return $this->hasMany(ProcurementRequestItem::class)->orderBy('sort_order');
+    }
+
+    public function supportingDocumentUrl(): ?string
+    {
+        $path = $this->supporting_document_path;
+
+        if ($path === null || $path === '') {
+            return null;
+        }
+
+        return Storage::disk('public')->url($path);
     }
 }

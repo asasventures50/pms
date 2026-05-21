@@ -15,6 +15,8 @@ class ProcurementRequestItem extends Model
     protected $fillable = [
         'procurement_request_id',
         'sort_order',
+        'line_number',
+        'project',
         'zone',
         'category',
         'subcategory',

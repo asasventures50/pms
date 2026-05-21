@@ -1,12 +1,19 @@
 @php
     $index = $index ?? 0;
     $row = $row ?? [];
+    $lineNo = $row['line_number'] ?? null;
+    if ($lineNo === null || $lineNo === '') {
+        $requestNumber = old('request_number', $procurementRequest?->request_number ?? ($nextCode ?? ''));
+        if ($requestNumber !== '') {
+            $lineNo = \App\Services\Procurement\ProcurementRequests\ProcurementRequestLineNumberFormatter::format($requestNumber, $index);
+        }
+    }
 @endphp
 
 <article class="pr-line-row rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
     <div class="mb-4 flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
         <p class="text-sm font-semibold text-slate-900">
-            Line <span class="pr-line-no">{{ $index + 1 }}</span>
+            No. <span class="pr-line-no font-mono">{{ $lineNo ?: '—' }}</span>
         </p>
         <button type="button"
                 class="pr-remove-line rounded-lg px-2 py-1 text-sm font-medium text-red-700 hover:bg-red-50 print:hidden"
@@ -15,7 +22,13 @@
         </button>
     </div>
 
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div>
+            <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Project</label>
+            <input type="text" name="items[{{ $index }}][project]" value="{{ $row['project'] ?? '' }}"
+                   data-name="project"
+                   class="admin-filter-control mt-1 w-full">
+        </div>
         <div>
             <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Zone</label>
             <input type="text" name="items[{{ $index }}][zone]" value="{{ $row['zone'] ?? '' }}"
