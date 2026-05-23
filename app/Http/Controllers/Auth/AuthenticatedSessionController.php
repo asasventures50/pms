@@ -7,8 +7,8 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Services\Activity\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -17,10 +17,16 @@ class AuthenticatedSessionController extends Controller
     ) {}
     /**
      * Display the login view.
+     *
+     * Disable caching so the browser Back button cannot resubmit a stale CSRF
+     * token after session()->regenerate() on a successful login.
      */
-    public function create(): View
+    public function create(): Response
     {
-        return view('auth.login');
+        return response(view('auth.login'))
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Sat, 01 Jan 2000 00:00:00 GMT');
     }
 
     /**
