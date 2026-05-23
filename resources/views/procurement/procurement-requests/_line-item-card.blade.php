@@ -43,10 +43,12 @@
 
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <div>
-            <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Project</label>
+            <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+                Project <span class="normal-case text-red-600">*</span>
+            </label>
             <div class="mt-1 flex gap-1">
-                <select name="items[{{ $index }}][project_id]" data-name="project_id" data-pr-project-select
-                        class="admin-filter-control min-w-0 flex-1">
+                <select name="items[{{ $index }}][project_id]" data-name="project_id" data-pr-project-select required
+                        class="admin-filter-control min-w-0 flex-1 @error("items.$index.project_id") border-red-500 @enderror">
                     <option value="">—</option>
                     @foreach ($projects as $project)
                         <option value="{{ $project->id }}" @selected((string) $selectedProjectId === (string) $project->id)>
@@ -62,6 +64,7 @@
                     </button>
                 @endif
             </div>
+            @error("items.$index.project_id")<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
         <div>
             <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Zone</label>
@@ -92,10 +95,13 @@
             </div>
         </div>
         <div>
-            <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Category</label>
-            <input type="text" name="items[{{ $index }}][category]" value="{{ $row['category'] ?? '' }}"
-                   data-name="category"
-                   class="admin-filter-control mt-1 w-full">
+            <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+                Category <span class="normal-case text-red-600">*</span>
+            </label>
+            <input type="text" name="items[{{ $index }}][category]" value="{{ old("items.$index.category", $row['category'] ?? '') }}"
+                   data-name="category" required
+                   class="admin-filter-control mt-1 w-full @error("items.$index.category") border-red-500 @enderror">
+            @error("items.$index.category")<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
         <div>
             <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Sub category</label>
@@ -104,11 +110,17 @@
                    class="admin-filter-control mt-1 w-full">
         </div>
         <div>
-            <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Scope type</label>
-            @include('procurement.procurement-requests._scope-type-picker', [
-                'pickerIndex' => $index,
-                'selectedScopeTypes' => $selectedScopeTypes,
-            ])
+            <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+                Scope type <span class="normal-case text-red-600">*</span>
+            </label>
+            <div class="@error("items.$index.scope_type") rounded-lg ring-1 ring-red-500 @enderror">
+                @include('procurement.procurement-requests._scope-type-picker', [
+                    'pickerIndex' => $index,
+                    'selectedScopeTypes' => $selectedScopeTypes,
+                ])
+            </div>
+            @error("items.$index.scope_type")<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            @error("items.$index.scope_type.*")<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
     </div>
 

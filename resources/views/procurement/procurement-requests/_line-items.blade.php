@@ -7,7 +7,7 @@
     <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h3 class="text-sm font-bold text-slate-900">Procurement details</h3>
-            <p class="mt-1 text-xs text-slate-500">Add one card per item. Required: item description.</p>
+            <p class="mt-1 text-xs text-slate-500">Add one card per item. Required: project, category, scope type, item description, delivery location.</p>
         </div>
         <button type="button" id="pr-add-line"
                 class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 print:hidden">
