@@ -35,6 +35,9 @@ final class PermissionCatalog
             'rfqs.create' => ['label' => 'Create RFQs', 'group' => 'RFQs'],
             'rfqs.update' => ['label' => 'Update RFQs', 'group' => 'RFQs'],
 
+            'rfq-terms.view' => ['label' => 'View RFQ general terms', 'group' => 'RFQs'],
+            'rfq-terms.manage' => ['label' => 'Manage RFQ general terms', 'group' => 'RFQs'],
+
             'procurement-requests.view' => ['label' => 'View procurement requests', 'group' => 'Procurement requests'],
             'procurement-requests.create' => ['label' => 'Create procurement requests', 'group' => 'Procurement requests'],
             'procurement-requests.update' => ['label' => 'Update procurement requests', 'group' => 'Procurement requests'],

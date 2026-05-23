@@ -2,12 +2,26 @@
 
 namespace App\Support\Procurement;
 
+use App\Services\Procurement\Rfqs\RfqGeneralTermsService;
+
 final class RfqTerms
 {
     /**
+     * Active general terms from the library, or legacy defaults when the table is empty.
+     *
      * @return list<string>
      */
     public static function defaults(): array
+    {
+        return app(RfqGeneralTermsService::class)->activeTexts();
+    }
+
+    /**
+     * Built-in defaults used for seeding and RFQs created before terms were stored.
+     *
+     * @return list<string>
+     */
+    public static function legacyDefaults(): array
     {
         return [
             'Prices must include all applicable charges.',

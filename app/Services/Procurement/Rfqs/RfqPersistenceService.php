@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\DB;
 
 class RfqPersistenceService
 {
+    public function __construct(
+        private readonly RfqGeneralTermsService $termsService,
+    ) {}
+
     /**
      * @param  array<string, mixed>  $header
      * @param  list<array<string, mixed>>  $items
@@ -55,6 +59,13 @@ class RfqPersistenceService
 
         $header['grand_total'] = round($grandTotal, 2);
 
+        $scopeTypes = $this->termsService->scopeTypesFromNormalizedItems($items);
+        $general = $this->termsService->activeTextsForScopeTypes($scopeTypes);
+        $custom = $this->termsService->normalizeTexts($header['terms_custom'] ?? []);
+        unset($header['terms_custom']);
+
+        $header['terms'] = $this->termsService->buildTermsPayload($general, $custom);
+
         return $header;
     }
 
@@ -80,6 +91,7 @@ class RfqPersistenceService
                 'line_total' => $row['line_total'],
                 'quote_lead_time' => $row['quote_lead_time'] ?? null,
                 'warranty' => $row['warranty'] ?? null,
+                'line_terms' => [],
             ]);
         }
     }

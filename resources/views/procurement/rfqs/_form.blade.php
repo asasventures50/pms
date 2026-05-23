@@ -35,7 +35,13 @@
         'prItemOptions' => $prItemOptions ?? [],
     ])
 
-    @include('procurement.rfqs._terms')
+    @include('procurement.rfqs._terms', [
+        'rfqTerms' => $rfqTerms ?? ['general' => [], 'custom' => []],
+        'scopeTermsMap' => $scopeTermsMap ?? [],
+        'editable' => true,
+    ])
+
+    <script type="application/json" id="rfq-scope-terms-map">@json($scopeTermsMap ?? [])</script>
 
     @if (config('procurement.rfq.show_extended_form_fields'))
         @include('procurement.rfqs._form-extended', [

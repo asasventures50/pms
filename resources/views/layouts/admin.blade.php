@@ -40,8 +40,8 @@
                             </a>
                         @endif
                     @endif
-                    @if (auth()->user()->hasPermission('rfqs.view'))
-                        @if (request()->routeIs('rfqs.*'))
+                    @if (auth()->user()->hasPermission('rfqs.view') || auth()->user()->hasPermission('rfq-terms.view'))
+                        @if (request()->routeIs('rfqs.*', 'rfq-terms.*'))
                             <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">RFQs</span>
                         @else
                             <a href="{{ route('rfqs.index') }}"

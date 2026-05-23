@@ -8,13 +8,13 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('rfq-pr-item-options')?.textContent || '[]'
     );
 
-    if (linesBody && template) {
-        function optionById(id) {
-            return prOptions.find(function (opt) {
-                return String(opt.id) === String(id);
-            });
-        }
+    function optionById(id) {
+        return prOptions.find(function (opt) {
+            return String(opt.id) === String(id);
+        });
+    }
 
+    if (linesBody && template) {
         function selectedPrItemIds(exceptRow) {
             const ids = [];
             linesBody.querySelectorAll('.rfq-line-row').forEach(function (row) {
@@ -131,6 +131,12 @@ document.addEventListener('DOMContentLoaded', function () {
             setHidden(row, 'request_lead_time', opt.request_lead_time);
         }
 
+        function syncGeneralTermsFromLines() {
+            if (typeof window.rfqSyncGeneralTerms === 'function') {
+                window.rfqSyncGeneralTerms();
+            }
+        }
+
         function reindexRows() {
             linesBody.querySelectorAll('.rfq-line-row').forEach(function (row, index) {
                 const label = row.querySelector('.rfq-line-label');
@@ -153,6 +159,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 const rows = linesBody.querySelectorAll('.rfq-line-row');
                 btn.style.display = rows.length > 1 ? '' : 'none';
             });
+
+            syncGeneralTermsFromLines();
         }
 
         function bindRow(row) {
@@ -186,6 +194,117 @@ document.addEventListener('DOMContentLoaded', function () {
         reindexRows();
 
         addBtn?.addEventListener('click', addRow);
+    }
+
+    const generalTermsList = document.getElementById('rfq-general-terms-list');
+    const customTermsList = document.getElementById('rfq-custom-terms-list');
+    const customTermTemplate = document.getElementById('rfq-custom-term-template');
+    const addCustomTermBtn = document.getElementById('rfq-add-custom-term');
+    const scopeTermsMap = JSON.parse(
+        document.getElementById('rfq-scope-terms-map')?.textContent || '{}'
+    );
+    const scopeTypeOrder = ['Supply', 'Service', 'Installation', 'Maintenance', 'Dismantling', 'Studies'];
+
+    if (generalTermsList) {
+        function collectScopeTypesFromLines() {
+            const found = {};
+            if (! linesBody) {
+                return [];
+            }
+            linesBody.querySelectorAll('.rfq-pr-item-select').forEach(function (select) {
+                const opt = optionById(select.value);
+                if (! opt || ! Array.isArray(opt.scope_types)) {
+                    return;
+                }
+                opt.scope_types.forEach(function (scopeType) {
+                    if (scopeType) {
+                        found[scopeType] = true;
+                    }
+                });
+            });
+
+            return scopeTypeOrder.filter(function (scopeType) {
+                return found[scopeType];
+            });
+        }
+
+        function mergeGeneralTerms(scopeTypes) {
+            const merged = [];
+            const seen = {};
+
+            function addTexts(texts) {
+                (texts || []).forEach(function (text) {
+                    if (! text || seen[text]) {
+                        return;
+                    }
+                    seen[text] = true;
+                    merged.push(text);
+                });
+            }
+
+            addTexts(scopeTermsMap.global);
+            scopeTypes.forEach(function (scopeType) {
+                addTexts(scopeTermsMap[scopeType]);
+            });
+
+            return merged;
+        }
+
+        function renderGeneralTerms(terms) {
+            generalTermsList.innerHTML = '';
+
+            if (terms.length === 0) {
+                const empty = document.createElement('li');
+                empty.id = 'rfq-general-terms-empty';
+                empty.className = 'text-slate-500';
+                empty.textContent = 'Company-wide terms load automatically. Select line items to include scope-specific terms.';
+                generalTermsList.appendChild(empty);
+                return;
+            }
+
+            terms.forEach(function (text) {
+                const row = document.createElement('li');
+                row.className = 'rfq-general-term-row flex gap-2';
+                row.innerHTML = '<span class="shrink-0">-</span><span class="min-w-0 flex-1"></span>';
+                row.querySelector('span:last-child').textContent = text;
+                generalTermsList.appendChild(row);
+            });
+        }
+
+        window.rfqSyncGeneralTerms = function () {
+            renderGeneralTerms(mergeGeneralTerms(collectScopeTypesFromLines()));
+        };
+
+        window.rfqSyncGeneralTerms();
+    }
+
+    if (customTermsList && customTermTemplate) {
+        function reindexCustomTerms() {
+            customTermsList.querySelectorAll('.rfq-custom-term-row').forEach(function (row, index) {
+                const input = row.querySelector('input[type="text"]');
+                if (input) {
+                    input.setAttribute('name', 'terms_custom[' + index + ']');
+                }
+            });
+        }
+
+        function bindCustomTermRow(row) {
+            row.querySelector('.rfq-remove-custom-term')?.addEventListener('click', function () {
+                row.remove();
+                reindexCustomTerms();
+            });
+        }
+
+        customTermsList.querySelectorAll('.rfq-custom-term-row').forEach(bindCustomTermRow);
+        reindexCustomTerms();
+
+        addCustomTermBtn?.addEventListener('click', function () {
+            const row = customTermTemplate.content.firstElementChild.cloneNode(true);
+            customTermsList.appendChild(row);
+            bindCustomTermRow(row);
+            reindexCustomTerms();
+            row.querySelector('input[type="text"]')?.focus();
+        });
     }
 
     if (! vendorSelect) {

@@ -27,6 +27,7 @@ class RfqItem extends Model
         'line_total',
         'quote_lead_time',
         'warranty',
+        'line_terms',
     ];
 
     protected function casts(): array
@@ -35,6 +36,7 @@ class RfqItem extends Model
             'quantity' => 'decimal:3',
             'unit_price' => 'decimal:2',
             'line_total' => 'decimal:2',
+            'line_terms' => 'array',
         ];
     }
 

@@ -69,6 +69,7 @@ class AvailableProcurementRequestItemsForRfqQuery
             'category' => $item->category ?? '',
             'subcategory' => $item->subcategory ?? '',
             'scope_type' => ProcurementScopeType::display($item->scope_type),
+            'scope_types' => ProcurementScopeType::selectedValues($item->scope_type),
             'description' => $item->description ?? '',
             'unit' => $item->unit ?? '',
             'quantity' => (float) $item->quantity,

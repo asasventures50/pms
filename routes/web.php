@@ -19,6 +19,7 @@ use App\Http\Controllers\Procurement\Projects\ProjectQuickStoreController;
 use App\Http\Controllers\Procurement\Projects\ZoneQuickStoreController;
 use App\Http\Controllers\Procurement\PurchaseOrders\PurchaseOrderController;
 use App\Http\Controllers\Procurement\Rfqs\RfqController;
+use App\Http\Controllers\Procurement\Rfqs\RfqGeneralTermController;
 use App\Http\Controllers\Procurement\Vendors\VendorWebController;
 use Illuminate\Support\Facades\Route;
 
@@ -171,6 +172,18 @@ Route::middleware(['auth'])->group(function () {
             'edit' => 'permission:purchase-orders.update',
             'update' => 'permission:purchase-orders.update',
             'destroy' => 'permission:purchase-orders.update',
+        ]);
+
+    Route::resource('rfq-terms', RfqGeneralTermController::class)
+        ->except(['show'])
+        ->parameters(['rfq-terms' => 'rfq_term'])
+        ->middleware([
+            'index' => 'permission:rfq-terms.view',
+            'create' => 'permission:rfq-terms.manage',
+            'store' => 'permission:rfq-terms.manage',
+            'edit' => 'permission:rfq-terms.manage',
+            'update' => 'permission:rfq-terms.manage',
+            'destroy' => 'permission:rfq-terms.manage',
         ]);
 
     Route::resource('rfqs', RfqController::class)

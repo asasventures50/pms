@@ -38,6 +38,8 @@ class StoreRfqRequest extends FormRequest
             'vendor_rep_signature' => ['nullable', 'string', 'max:255'],
             'vendor_rep_signed_at' => ['nullable', 'date'],
             'vendor_company_stamp' => ['nullable', 'string', 'max:255'],
+            'terms_custom' => ['nullable', 'array'],
+            'terms_custom.*' => ['nullable', 'string', 'max:5000'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.procurement_request_item_id' => ['required', 'integer', Rule::exists('procurement_request_items', 'id')],
             'items.*.item' => ['nullable', 'string', 'max:100'],

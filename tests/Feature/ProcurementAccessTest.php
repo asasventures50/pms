@@ -26,4 +26,11 @@ class ProcurementAccessTest extends TestCase
 
         $response->assertRedirect(route('login', absolute: false));
     }
+
+    public function test_guest_is_redirected_from_rfq_terms_to_login(): void
+    {
+        $response = $this->get('/rfq-terms');
+
+        $response->assertRedirect(route('login', absolute: false));
+    }
 }

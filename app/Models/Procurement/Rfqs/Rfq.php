@@ -36,6 +36,7 @@ class Rfq extends Model
         'payment_method',
         'grand_total',
         'status',
+        'terms',
         'vendor_rep_name',
         'vendor_rep_signature',
         'vendor_rep_signed_at',
@@ -50,6 +51,7 @@ class Rfq extends Model
             'submission_deadline' => 'date',
             'vendor_rep_signed_at' => 'date',
             'grand_total' => 'decimal:2',
+            'terms' => 'array',
         ];
     }
 

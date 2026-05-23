@@ -12,6 +12,7 @@ use App\Services\Procurement\PurchaseOrders\VendorPurchaseOrderSnapshot;
 use App\Services\Procurement\Rfqs\AvailableProcurementRequestItemsForRfqQuery;
 use App\Services\Procurement\Rfqs\RfqCodeGenerator;
 use App\Services\Procurement\Rfqs\RfqPayloadResolver;
+use App\Services\Procurement\Rfqs\RfqGeneralTermsService;
 use App\Services\Procurement\Rfqs\RfqPersistenceService;
 use App\Support\Procurement\RfqTerms;
 use Illuminate\Http\JsonResponse;
@@ -23,6 +24,7 @@ class RfqController extends Controller
 {
     public function __construct(
         private readonly RfqPersistenceService $persistence,
+        private readonly RfqGeneralTermsService $termsService,
     ) {}
 
     public function index(Request $request): View
@@ -59,6 +61,8 @@ class RfqController extends Controller
             'vendors' => Vendor::query()->orderBy('name')->get(['id', 'vendor_code', 'name']),
             'prItemOptions' => $prItemsQuery->optionsForForm(),
             'defaultItems' => [$this->emptyRfqLineRow()],
+            'rfqTerms' => $this->termsForForm(),
+            'scopeTermsMap' => $this->termsService->termsMapForRfqForm(),
         ]);
     }
 
@@ -90,7 +94,7 @@ class RfqController extends Controller
 
         return view('procurement.rfqs.show', [
             'rfq' => $rfq,
-            'terms' => RfqTerms::defaults(),
+            'terms' => $this->resolvedTermsForRfq($rfq),
         ]);
     }
 
@@ -132,6 +136,8 @@ class RfqController extends Controller
             'vendors' => Vendor::query()->orderBy('name')->get(['id', 'vendor_code', 'name']),
             'prItemOptions' => $prItemOptions,
             'defaultItems' => $defaultItems,
+            'rfqTerms' => $this->termsForForm($rfq),
+            'scopeTermsMap' => $this->termsService->termsMapForRfqForm(),
         ]);
     }
 
@@ -188,5 +194,44 @@ class RfqController extends Controller
             'quote_lead_time' => '',
             'warranty' => '',
         ];
+    }
+
+    /**
+     * @return array{general: list<string>, custom: list<string>}
+     */
+    private function termsForForm(?Rfq $rfq = null): array
+    {
+        $customFromOld = old('terms_custom');
+        if (is_array($customFromOld)) {
+            return [
+                'general' => [],
+                'custom' => $this->termsService->normalizeTexts($customFromOld),
+            ];
+        }
+
+        if ($rfq !== null) {
+            $parsed = $this->termsService->parseStoredTerms($rfq->terms);
+
+            return [
+                'general' => [],
+                'custom' => $parsed['custom'],
+            ];
+        }
+
+        return ['general' => [], 'custom' => []];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function resolvedTermsForRfq(Rfq $rfq): array
+    {
+        $parsed = $this->termsService->parseStoredTerms($rfq->terms);
+
+        if ($parsed['all'] !== []) {
+            return $parsed['all'];
+        }
+
+        return RfqTerms::legacyDefaults();
     }
 }
