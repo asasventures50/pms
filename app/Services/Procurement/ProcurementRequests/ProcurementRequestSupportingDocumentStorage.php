@@ -4,6 +4,7 @@ namespace App\Services\Procurement\ProcurementRequests;
 
 use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequestDocument;
+use App\Models\Procurement\ProcurementRequests\ProcurementRequestItem;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
@@ -14,14 +15,14 @@ class ProcurementRequestSupportingDocumentStorage
     /**
      * @param  list<UploadedFile>  $files
      */
-    public function append(ProcurementRequest $request, array $files): int
+    public function append(ProcurementRequestItem $item, array $files): int
     {
         if ($files !== []) {
             set_time_limit(max(120, (int) ini_get('max_execution_time')));
         }
 
         $stored = 0;
-        $directory = 'procurement-requests/'.$request->id;
+        $directory = 'procurement-requests/'.$item->procurement_request_id.'/items/'.$item->id;
 
         foreach ($files as $file) {
             if (! $file instanceof UploadedFile || ! $file->isValid()) {
@@ -41,7 +42,7 @@ class ProcurementRequestSupportingDocumentStorage
                 );
             }
 
-            $request->documents()->create([
+            $item->documents()->create([
                 'file_name' => $file->getClientOriginalName(),
                 'file_path' => $path,
             ]);
@@ -67,8 +68,8 @@ class ProcurementRequestSupportingDocumentStorage
         }
 
         $documents = ProcurementRequestDocument::query()
-            ->where('procurement_request_id', $request->id)
             ->whereIn('id', $ids)
+            ->whereHas('item', fn ($query) => $query->where('procurement_request_id', $request->id))
             ->get();
 
         foreach ($documents as $document) {

@@ -68,4 +68,40 @@
             <dd class="mt-0.5 text-slate-900">{{ $line->justification ?: '—' }}</dd>
         </div>
     </dl>
+
+    <div class="mt-4 border-t border-slate-200 pt-4">
+        <h4 class="text-sm font-semibold text-slate-900">Delivery requirements</h4>
+        <dl class="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Required delivery date</dt>
+                <dd class="mt-0.5 text-slate-900">{{ $line->required_delivery_date?->format('m/d/Y') ?? '—' }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Delivery location</dt>
+                <dd class="mt-0.5 text-slate-900">{{ $line->delivery_location ?: '—' }}</dd>
+            </div>
+            <div class="sm:col-span-2">
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Flexible delivery date</dt>
+                <dd class="mt-0.5 text-slate-900">{{ $line->flexible_delivery_date ? 'Yes' : 'No' }}</dd>
+            </div>
+        </dl>
+    </div>
+
+    <div class="mt-4 border-t border-slate-200 pt-4">
+        <h4 class="text-sm font-semibold text-slate-900">Supporting documents</h4>
+        @if ($line->documents->isEmpty())
+            <p class="mt-2 text-sm text-slate-900">—</p>
+        @else
+            <ul class="mt-2 space-y-2">
+                @foreach ($line->documents as $document)
+                    <li>
+                        <a href="{{ $document->url }}" target="_blank" rel="noopener"
+                           class="text-sm font-medium text-slate-900 underline hover:text-slate-700">
+                            {{ $document->file_name }}
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+        @endif
+    </div>
 </article>

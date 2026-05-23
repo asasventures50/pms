@@ -6,13 +6,21 @@ trait NormalizesProcurementDeliveryDate
 {
     protected function prepareForValidation(): void
     {
-        $flexible = $this->boolean('flexible_delivery_date');
+        $items = (array) $this->input('items', []);
 
-        $raw = trim((string) $this->input('required_delivery_date', ''));
+        foreach ($items as $index => $row) {
+            if (! is_array($row)) {
+                continue;
+            }
 
-        $this->merge([
-            'flexible_delivery_date' => $flexible,
-            'required_delivery_date' => $raw !== '' ? $raw : null,
-        ]);
+            $flexible = filter_var($row['flexible_delivery_date'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+            $raw = trim((string) ($row['required_delivery_date'] ?? ''));
+
+            $items[$index]['flexible_delivery_date'] = $flexible;
+            $items[$index]['required_delivery_date'] = $raw !== '' ? $raw : null;
+        }
+
+        $this->merge(['items' => $items]);
     }
 }

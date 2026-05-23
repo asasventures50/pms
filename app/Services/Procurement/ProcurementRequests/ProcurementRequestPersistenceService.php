@@ -43,11 +43,10 @@ class ProcurementRequestPersistenceService
      */
     private function syncItems(ProcurementRequest $request, array $items): void
     {
-        $request->items()->delete();
+        $keptIds = [];
 
         foreach (array_values($items) as $index => $row) {
-            ProcurementRequestItem::query()->create([
-                'procurement_request_id' => $request->id,
+            $attributes = [
                 'sort_order' => $index,
                 'line_number' => ProcurementRequestLineNumberFormatter::format($request->request_number, $index),
                 'project_id' => $row['project_id'] ?? null,
@@ -59,7 +58,40 @@ class ProcurementRequestPersistenceService
                 'unit' => $row['unit'] ?? null,
                 'quantity' => $row['quantity'],
                 'justification' => $row['justification'] ?? null,
+                'required_delivery_date' => $row['required_delivery_date'] ?? null,
+                'flexible_delivery_date' => $row['flexible_delivery_date'] ?? true,
+                'delivery_location' => $row['delivery_location'] ?? null,
+            ];
+
+            $itemId = $row['id'] ?? null;
+            $item = null;
+
+            if ($itemId !== null && $itemId !== '') {
+                $item = ProcurementRequestItem::query()
+                    ->where('procurement_request_id', $request->id)
+                    ->whereKey((int) $itemId)
+                    ->first();
+            }
+
+            if ($item) {
+                $item->update($attributes);
+                $keptIds[] = $item->id;
+
+                continue;
+            }
+
+            $item = ProcurementRequestItem::query()->create([
+                'procurement_request_id' => $request->id,
+                ...$attributes,
             ]);
+
+            $keptIds[] = $item->id;
+        }
+
+        if ($keptIds !== []) {
+            $request->items()->whereNotIn('id', $keptIds)->delete();
+        } else {
+            $request->items()->delete();
         }
     }
 
@@ -84,7 +116,10 @@ class ProcurementRequestPersistenceService
             $projectId = $row['project_id'] ?? null;
             $zoneId = $row['zone_id'] ?? null;
 
-            $normalized[] = [
+            $flexible = filter_var($row['flexible_delivery_date'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            $deliveryDate = trim((string) ($row['required_delivery_date'] ?? ''));
+
+            $entry = [
                 'project_id' => $projectId !== null && $projectId !== '' ? (int) $projectId : null,
                 'zone_id' => $zoneId !== null && $zoneId !== '' ? (int) $zoneId : null,
                 'category' => isset($row['category']) ? trim((string) $row['category']) : null,
@@ -94,7 +129,17 @@ class ProcurementRequestPersistenceService
                 'unit' => isset($row['unit']) ? trim((string) $row['unit']) : null,
                 'quantity' => max(0, (float) ($row['quantity'] ?? 0)),
                 'justification' => isset($row['justification']) ? trim((string) $row['justification']) : null,
+                'required_delivery_date' => $deliveryDate !== '' ? $deliveryDate : null,
+                'flexible_delivery_date' => $flexible,
+                'delivery_location' => trim((string) ($row['delivery_location'] ?? '')),
             ];
+
+            $itemId = $row['id'] ?? null;
+            if ($itemId !== null && $itemId !== '') {
+                $entry['id'] = (int) $itemId;
+            }
+
+            $normalized[] = $entry;
         }
 
         return $normalized;

@@ -9,6 +9,15 @@
     );
     $selectedProjectId = old("items.$index.project_id", $row['project_id'] ?? '');
     $selectedZoneId = old("items.$index.zone_id", $row['zone_id'] ?? '');
+    $flexibleDeliveryDate = (bool) old(
+        "items.$index.flexible_delivery_date",
+        $row['flexible_delivery_date'] ?? true
+    );
+    $requiredDeliveryDateValue = old("items.$index.required_delivery_date");
+    if ($requiredDeliveryDateValue === null && ! empty($row['required_delivery_date'])) {
+        $requiredDeliveryDateValue = $row['required_delivery_date'];
+    }
+    $itemDocuments = $row['documents'] ?? collect();
     $lineNo = $row['line_number'] ?? null;
     if ($lineNo === null || $lineNo === '') {
         $requestNumber = trim((string) (old('request_number') ?? $procurementRequest?->request_number ?? ($nextCode ?? '')));
@@ -17,6 +26,10 @@
 @endphp
 
 <article class="pr-line-row rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    @php $itemId = old("items.$index.id", $row['id'] ?? ''); @endphp
+    @if ($itemId !== '' && $itemId !== null)
+        <input type="hidden" name="items[{{ $index }}][id]" value="{{ $itemId }}" data-name="id">
+    @endif
     <div class="mb-4 flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
         <p class="text-sm font-semibold text-slate-900">
             Line <span class="pr-line-no font-mono text-xs">{{ $lineNo ?: '—' }}</span>
@@ -128,4 +141,41 @@
                    class="admin-filter-control mt-1 w-full">
         </div>
     </div>
+
+    <div class="mt-6 border-t border-slate-100 pt-4">
+        <h4 class="text-sm font-semibold text-slate-900">Delivery requirements</h4>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+                <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Required delivery date</label>
+                <input type="date" name="items[{{ $index }}][required_delivery_date]"
+                       value="{{ $requiredDeliveryDateValue ?? '' }}"
+                       data-name="required_delivery_date"
+                       class="admin-filter-control mt-1 w-full max-w-xs @error("items.$index.required_delivery_date") border-red-500 @enderror">
+                @error("items.$index.required_delivery_date")<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                <label class="mt-3 flex cursor-pointer items-center gap-2 text-sm text-slate-700">
+                    <input type="checkbox" name="items[{{ $index }}][flexible_delivery_date]" value="1"
+                           data-name="flexible_delivery_date"
+                           @checked($flexibleDeliveryDate)
+                           class="rounded border-slate-300 text-slate-900 focus:ring-slate-500">
+                    <span>Flexible delivery date</span>
+                </label>
+                <p class="mt-1 text-xs text-slate-500">When enabled, a fixed delivery date is optional.</p>
+            </div>
+            <div>
+                <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+                    Delivery location <span class="normal-case text-red-600">*</span>
+                </label>
+                <input type="text" name="items[{{ $index }}][delivery_location]"
+                       value="{{ old("items.$index.delivery_location", $row['delivery_location'] ?? '') }}"
+                       data-name="delivery_location" required
+                       class="admin-filter-control mt-1 w-full @error("items.$index.delivery_location") border-red-500 @enderror">
+                @error("items.$index.delivery_location")<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
+        </div>
+    </div>
+
+    @include('procurement.procurement-requests._line-item-supporting-documents', [
+        'index' => $index,
+        'documents' => $itemDocuments,
+    ])
 </article>

@@ -15,6 +15,7 @@ use App\Services\Procurement\ProcurementRequests\ProcurementRequestRequestorReso
 use App\Services\Procurement\ProcurementRequests\ProcurementRequestSupportingDocumentStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\View\View;
 
 class ProcurementRequestController extends Controller
@@ -29,7 +30,7 @@ class ProcurementRequestController extends Controller
         $perPage = max(1, min(100, (int) $request->query('per_page', 15)));
 
         $query = ProcurementRequest::query()
-            ->with('creator')
+            ->with(['creator', 'items:id,procurement_request_id,required_delivery_date'])
             ->latest();
 
         if ($request->filled('q')) {
@@ -76,14 +77,8 @@ class ProcurementRequestController extends Controller
         $validated['created_by'] = $request->user()->id;
         $validated['status'] ??= ProcurementRequestStatus::Draft->value;
 
-        $supportingDocuments = array_values($request->file('supporting_documents', []) ?? []);
-        unset($validated['supporting_documents'], $validated['remove_supporting_document_ids']);
-
         $procurementRequest = $this->persistence->create($validated, $items);
-
-        if ($supportingDocuments !== []) {
-            $this->documents->append($procurementRequest, $supportingDocuments);
-        }
+        $this->syncItemSupportingDocuments($request, $procurementRequest->fresh(['items']));
 
         return redirect()
             ->route('procurement-requests.show', $procurementRequest)
@@ -92,7 +87,7 @@ class ProcurementRequestController extends Controller
 
     public function show(ProcurementRequest $procurementRequest): View
     {
-        $procurementRequest->load(['creator', 'items.project', 'items.zone', 'documents']);
+        $procurementRequest->load(['creator', 'items.project', 'items.zone', 'items.documents']);
 
         return view('procurement.procurement-requests.show', [
             'procurementRequest' => $procurementRequest,
@@ -101,9 +96,10 @@ class ProcurementRequestController extends Controller
 
     public function edit(ProcurementRequest $procurementRequest): View
     {
-        $procurementRequest->load(['items.project', 'items.zone', 'creator', 'documents']);
+        $procurementRequest->load(['items.project', 'items.zone', 'items.documents', 'creator']);
 
         $defaultItems = $procurementRequest->items->map(fn ($row) => [
+            'id' => $row->id,
             'line_number' => $row->line_number,
             'project_id' => $row->project_id,
             'zone_id' => $row->zone_id,
@@ -114,6 +110,10 @@ class ProcurementRequestController extends Controller
             'unit' => $row->unit,
             'quantity' => $row->quantity,
             'justification' => $row->justification,
+            'required_delivery_date' => $row->required_delivery_date?->format('Y-m-d'),
+            'flexible_delivery_date' => $row->flexible_delivery_date,
+            'delivery_location' => $row->delivery_location,
+            'documents' => $row->documents,
         ])->all();
 
         if ($defaultItems === []) {
@@ -139,16 +139,13 @@ class ProcurementRequestController extends Controller
 
         ProcurementRequestPayloadResolver::finalizeForUpdate($validated);
 
-        $supportingDocuments = array_values($request->file('supporting_documents', []) ?? []);
-        $removeDocumentIds = $request->input('remove_supporting_document_ids', []);
-        unset($validated['supporting_documents'], $validated['remove_supporting_document_ids']);
+        $this->documents->removeByIds(
+            $procurementRequest,
+            $this->collectRemoveSupportingDocumentIds($request)
+        );
 
         $this->persistence->update($procurementRequest, $validated, $items);
-
-        $this->documents->removeByIds($procurementRequest, is_array($removeDocumentIds) ? $removeDocumentIds : []);
-        if ($supportingDocuments !== []) {
-            $this->documents->append($procurementRequest->fresh(), $supportingDocuments);
-        }
+        $this->syncItemSupportingDocuments($request, $procurementRequest->fresh(['items']));
 
         return redirect()
             ->route('procurement-requests.show', $procurementRequest)
@@ -162,6 +159,55 @@ class ProcurementRequestController extends Controller
         return redirect()
             ->route('procurement-requests.index')
             ->with('success', 'Procurement request deleted successfully.');
+    }
+
+    private function syncItemSupportingDocuments(Request $request, ProcurementRequest $procurementRequest): void
+    {
+        foreach ($procurementRequest->items as $index => $item) {
+            $files = $request->file("items.$index.supporting_documents");
+
+            if (! is_array($files)) {
+                continue;
+            }
+
+            $uploads = array_values(array_filter(
+                $files,
+                static fn ($file) => $file instanceof UploadedFile && $file->isValid()
+            ));
+
+            if ($uploads !== []) {
+                $this->documents->append($item, $uploads);
+            }
+        }
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function collectRemoveSupportingDocumentIds(Request $request): array
+    {
+        $ids = [];
+        $items = $request->input('items', []);
+
+        if (! is_array($items)) {
+            return [];
+        }
+
+        foreach ($items as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            $rowIds = $row['remove_supporting_document_ids'] ?? [];
+
+            if (is_array($rowIds)) {
+                foreach ($rowIds as $id) {
+                    $ids[] = (int) $id;
+                }
+            }
+        }
+
+        return $ids;
     }
 
     /**
@@ -179,6 +225,9 @@ class ProcurementRequestController extends Controller
             'unit' => '',
             'quantity' => 1,
             'justification' => '',
+            'required_delivery_date' => '',
+            'flexible_delivery_date' => true,
+            'delivery_location' => '',
         ]);
     }
 

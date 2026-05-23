@@ -42,6 +42,16 @@ trait ValidatesProcurementRequestLineItems
                         );
                     }
                 }
+
+                $flexible = filter_var($row['flexible_delivery_date'] ?? false, FILTER_VALIDATE_BOOLEAN);
+                $deliveryDate = $row['required_delivery_date'] ?? null;
+
+                if (! $flexible && ($deliveryDate === null || $deliveryDate === '')) {
+                    $validator->errors()->add(
+                        "items.$index.required_delivery_date",
+                        'A required delivery date is needed when flexible delivery date is disabled.'
+                    );
+                }
             }
         });
     }

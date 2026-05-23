@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProcurementRequest extends Model
@@ -24,9 +25,6 @@ class ProcurementRequest extends Model
         'requestor_name',
         'requested_at',
         'requestor_department',
-        'required_delivery_date',
-        'delivery_location',
-        'flexible_delivery_date',
         'classification',
         'received_by',
         'procurement_note',
@@ -38,8 +36,6 @@ class ProcurementRequest extends Model
         return [
             'status' => ProcurementRequestStatus::class,
             'requested_at' => 'date',
-            'required_delivery_date' => 'date',
-            'flexible_delivery_date' => 'boolean',
         ];
     }
 
@@ -53,8 +49,15 @@ class ProcurementRequest extends Model
         return $this->hasMany(ProcurementRequestItem::class)->orderBy('sort_order');
     }
 
-    public function documents(): HasMany
+    public function documents(): HasManyThrough
     {
-        return $this->hasMany(ProcurementRequestDocument::class)->latest();
+        return $this->hasManyThrough(
+            ProcurementRequestDocument::class,
+            ProcurementRequestItem::class,
+            'procurement_request_id',
+            'procurement_request_item_id',
+            'id',
+            'id',
+        )->latest('procurement_request_documents.created_at');
     }
 }

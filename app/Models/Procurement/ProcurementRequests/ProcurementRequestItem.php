@@ -6,6 +6,7 @@ use App\Models\Procurement\Projects\Project;
 use App\Models\Procurement\Projects\Zone;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ProcurementRequestItem extends Model
 {
@@ -27,12 +28,17 @@ class ProcurementRequestItem extends Model
         'unit',
         'quantity',
         'justification',
+        'required_delivery_date',
+        'flexible_delivery_date',
+        'delivery_location',
     ];
 
     protected function casts(): array
     {
         return [
             'quantity' => 'decimal:3',
+            'required_delivery_date' => 'date',
+            'flexible_delivery_date' => 'boolean',
         ];
     }
 
@@ -49,5 +55,10 @@ class ProcurementRequestItem extends Model
     public function zone(): BelongsTo
     {
         return $this->belongsTo(Zone::class);
+    }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(ProcurementRequestDocument::class)->latest();
     }
 }

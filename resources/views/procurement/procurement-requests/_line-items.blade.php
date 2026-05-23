@@ -41,6 +41,9 @@
                 'unit' => '',
                 'quantity' => 1,
                 'justification' => '',
+                'required_delivery_date' => '',
+                'flexible_delivery_date' => true,
+                'delivery_location' => '',
             ],
         ])
     </template>

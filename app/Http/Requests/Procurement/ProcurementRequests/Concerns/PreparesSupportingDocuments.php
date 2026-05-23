@@ -8,17 +8,29 @@ trait PreparesSupportingDocuments
 {
     protected function prepareSupportingDocumentsForValidation(): void
     {
-        $files = $this->file('supporting_documents');
+        $items = $this->input('items', []);
 
-        if (! is_array($files)) {
+        if (! is_array($items)) {
             return;
         }
 
-        $filtered = array_values(array_filter(
-            $files,
-            static fn ($file) => $file instanceof UploadedFile && $file->isValid()
-        ));
+        foreach ($items as $index => $row) {
+            if (! is_array($row)) {
+                continue;
+            }
 
-        $this->files->set('supporting_documents', $filtered);
+            $files = $this->file("items.$index.supporting_documents");
+
+            if (! is_array($files)) {
+                continue;
+            }
+
+            $filtered = array_values(array_filter(
+                $files,
+                static fn ($file) => $file instanceof UploadedFile && $file->isValid()
+            ));
+
+            $this->files->set("items.$index.supporting_documents", $filtered);
+        }
     }
 }

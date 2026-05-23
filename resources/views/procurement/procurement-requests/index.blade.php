@@ -64,7 +64,18 @@
                         <td class="px-3 py-2">{{ $request->requestor_name ?? $request->creator?->name ?? '—' }}</td>
                         <td class="px-3 py-2">{{ $request->requestor_department ?: '—' }}</td>
                         <td class="whitespace-nowrap px-3 py-2 text-xs">{{ $request->requested_at?->format('Y-m-d') ?? '—' }}</td>
-                        <td class="whitespace-nowrap px-3 py-2 text-xs">{{ $request->required_delivery_date?->format('Y-m-d') ?? '—' }}</td>
+                        <td class="whitespace-nowrap px-3 py-2 text-xs">
+                            @php
+                                $deliveryDates = $request->items->pluck('required_delivery_date')->filter()->unique();
+                            @endphp
+                            @if ($deliveryDates->isEmpty())
+                                —
+                            @elseif ($deliveryDates->count() === 1)
+                                {{ $deliveryDates->first()->format('Y-m-d') }}
+                            @else
+                                Multiple
+                            @endif
+                        </td>
                         <td class="px-3 py-2"><span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium">{{ ucfirst($request->status->value) }}</span></td>
                         <td class="whitespace-nowrap px-3 py-2 text-right text-xs">
                             <a href="{{ route('procurement-requests.show', $request) }}" class="font-medium text-slate-700 hover:text-slate-900">View</a>

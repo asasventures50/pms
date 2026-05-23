@@ -14,36 +14,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const projectQuickStoreUrl = quickStoreUrls.project ?? null;
     const zoneQuickStoreUrl = quickStoreUrls.zone ?? null;
 
-    const supportingBody = document.getElementById('pr-supporting-files-body');
-    const supportingTpl = document.getElementById('pr-supporting-file-template');
-    const addSupportingBtn = document.getElementById('pr-add-supporting-file');
-
-    function bindSupportingFileRow(row) {
-        const input = row.querySelector('input[type="file"]');
-        const nameEl = row.querySelector('.pr-supporting-file-name');
-
-        input?.addEventListener('change', function () {
-            const file = input.files?.[0];
-            if (nameEl) {
-                nameEl.textContent = file ? file.name : '';
-            }
-        });
-
-        row.querySelector('.pr-remove-supporting-file')?.addEventListener('click', function () {
-            row.remove();
-        });
-    }
-
-    if (supportingBody && supportingTpl) {
-        supportingBody.querySelectorAll('.pr-supporting-file-row').forEach(bindSupportingFileRow);
-
-        addSupportingBtn?.addEventListener('click', function () {
-            const row = supportingTpl.content.firstElementChild.cloneNode(true);
-            supportingBody.appendChild(row);
-            bindSupportingFileRow(row);
-        });
-    }
-
     const linesBody = document.getElementById('pr-lines-body');
     const template = document.getElementById('pr-line-template');
     const addBtn = document.getElementById('pr-add-line');
@@ -92,8 +62,65 @@ document.addEventListener('DOMContentLoaded', function () {
                     input.setAttribute('name', 'items[' + index + '][' + match[1] + ']');
                 }
             });
+            row.querySelectorAll('[data-pr-supporting-file]').forEach(function (input) {
+                input.setAttribute('name', 'items[' + index + '][supporting_documents][]');
+            });
+            row.querySelectorAll('[data-pr-remove-document-id]').forEach(function (input) {
+                input.setAttribute('name', 'items[' + index + '][remove_supporting_document_ids][]');
+            });
         });
         document.querySelectorAll('[data-pr-scope-picker]').forEach(closeScopePickerPanel);
+    }
+
+    function bindSupportingFileRow(fileRow) {
+        const input = fileRow.querySelector('input[type="file"]');
+        const nameEl = fileRow.querySelector('.pr-supporting-file-name');
+
+        input?.addEventListener('change', function () {
+            const file = input.files?.[0];
+            if (nameEl) {
+                nameEl.textContent = file ? file.name : '';
+            }
+        });
+
+        fileRow.querySelector('.pr-remove-supporting-file')?.addEventListener('click', function () {
+            fileRow.remove();
+        });
+    }
+
+    function lineIndexForRow(lineRow) {
+        return Array.from(linesBody.querySelectorAll('.pr-line-row')).indexOf(lineRow);
+    }
+
+    function bindLineSupportingDocuments(lineRow) {
+        const section = lineRow.querySelector('.pr-item-supporting-docs');
+        if (!section) {
+            return;
+        }
+
+        const filesBody = section.querySelector('.pr-item-supporting-files-body');
+        const fileTpl = section.querySelector('.pr-item-supporting-file-template');
+        const addBtn = section.querySelector('[data-pr-item-add-supporting-file]');
+
+        if (!filesBody || !fileTpl) {
+            return;
+        }
+
+        filesBody.querySelectorAll('.pr-supporting-file-row').forEach(bindSupportingFileRow);
+
+        if (addBtn && addBtn.dataset.prSupportingBound !== '1') {
+            addBtn.dataset.prSupportingBound = '1';
+            addBtn.addEventListener('click', function () {
+                const lineIndex = lineIndexForRow(lineRow);
+                const fileRow = fileTpl.content.firstElementChild.cloneNode(true);
+                const fileInput = fileRow.querySelector('[data-pr-supporting-file]');
+                if (fileInput) {
+                    fileInput.setAttribute('name', 'items[' + lineIndex + '][supporting_documents][]');
+                }
+                filesBody.appendChild(fileRow);
+                bindSupportingFileRow(fileRow);
+            });
+        }
     }
 
     function closeScopePickerPanel(picker) {
@@ -514,17 +541,25 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    function bindAllLineSupportingDocuments() {
+        linesBody.querySelectorAll('.pr-line-row').forEach(function (row) {
+            bindLineSupportingDocuments(row);
+        });
+    }
+
     function addRow() {
         const row = template.content.firstElementChild.cloneNode(true);
         linesBody.appendChild(row);
         reindexRows();
         bindRow(row);
         syncZonesForRow(row);
+        bindAllLineSupportingDocuments();
     }
 
     linesBody.querySelectorAll('.pr-line-row').forEach(bindRow);
     addBtn?.addEventListener('click', addRow);
     reindexRows();
+    bindAllLineSupportingDocuments();
     document.querySelectorAll('[data-pr-scope-picker]').forEach(bindScopePicker);
 });
 </script>

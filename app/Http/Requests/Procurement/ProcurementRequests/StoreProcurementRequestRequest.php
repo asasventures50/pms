@@ -35,11 +35,6 @@ class StoreProcurementRequestRequest extends FormRequest
     {
         return [
             'request_number' => ['nullable', 'string', 'max:100', Rule::unique('procurement_requests', 'request_number')],
-            'required_delivery_date' => ['nullable', 'date', 'required_unless:flexible_delivery_date,1,true'],
-            'flexible_delivery_date' => ['nullable', 'boolean'],
-            'supporting_documents' => ['nullable', 'array'],
-            'supporting_documents.*' => ['nullable', 'file', 'max:10240', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp,zip,rar'],
-            'delivery_location' => ['required', 'string', 'max:500'],
             'classification' => ['nullable', 'string', 'max:500'],
             'status' => ['nullable', 'string', Rule::in(ProcurementRequestStatus::values())],
             'items' => ['required', 'array', 'min:1'],
@@ -53,6 +48,11 @@ class StoreProcurementRequestRequest extends FormRequest
             'items.*.unit' => ['nullable', 'string', 'max:50'],
             'items.*.quantity' => ['required', 'numeric', 'min:0'],
             'items.*.justification' => ['nullable', 'string', 'max:5000'],
+            'items.*.required_delivery_date' => ['nullable', 'date'],
+            'items.*.flexible_delivery_date' => ['nullable', 'boolean'],
+            'items.*.delivery_location' => ['required', 'string', 'max:500'],
+            'items.*.supporting_documents' => ['nullable', 'array'],
+            'items.*.supporting_documents.*' => ['nullable', 'file', 'max:10240', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp,zip,rar'],
         ];
     }
 }
