@@ -42,12 +42,7 @@
         ])
     </section>
 
-    <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h3 class="text-sm font-semibold text-slate-900">Note</h3>
-        <input type="text" name="classification" id="classification"
-               value="{{ old('classification', $procurementRequest?->classification ?? '') }}"
-               class="admin-filter-control mt-4 w-full">
-    </section>
+
 
     @if ($procurementRequest?->exists)
         <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm print:hidden">
