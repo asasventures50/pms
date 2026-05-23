@@ -3,11 +3,15 @@
 namespace App\Http\Requests\Procurement\Rfqs;
 
 use App\Enums\Procurement\Rfqs\RfqStatus;
+use App\Http\Requests\Procurement\Rfqs\Concerns\ValidatesRfqProcurementRequestItems;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StoreRfqRequest extends FormRequest
 {
+    use ValidatesRfqProcurementRequestItems;
+
     public function authorize(): bool
     {
         return $this->user()?->hasPermission('rfqs.create') ?? false;
@@ -35,6 +39,7 @@ class StoreRfqRequest extends FormRequest
             'vendor_rep_signed_at' => ['nullable', 'date'],
             'vendor_company_stamp' => ['nullable', 'string', 'max:255'],
             'items' => ['required', 'array', 'min:1'],
+            'items.*.procurement_request_item_id' => ['required', 'integer', Rule::exists('procurement_request_items', 'id')],
             'items.*.item' => ['nullable', 'string', 'max:100'],
             'items.*.description' => ['required', 'string', 'max:5000'],
             'items.*.quantity' => ['required', 'numeric', 'min:0'],
@@ -45,5 +50,10 @@ class StoreRfqRequest extends FormRequest
             'items.*.quote_lead_time' => ['nullable', 'string', 'max:255'],
             'items.*.warranty' => ['nullable', 'string', 'max:255'],
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(fn (Validator $validator) => $this->validateRfqProcurementRequestItems($validator));
     }
 }

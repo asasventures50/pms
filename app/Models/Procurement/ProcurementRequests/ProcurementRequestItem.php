@@ -5,6 +5,7 @@ namespace App\Models\Procurement\ProcurementRequests;
 use App\Models\Procurement\Projects\Project;
 use App\Models\Procurement\Projects\Zone;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Procurement\Rfqs\RfqItem;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -60,5 +61,10 @@ class ProcurementRequestItem extends Model
     public function documents(): HasMany
     {
         return $this->hasMany(ProcurementRequestDocument::class)->latest();
+    }
+
+    public function rfqItems(): HasMany
+    {
+        return $this->hasMany(RfqItem::class);
     }
 }

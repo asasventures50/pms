@@ -9,6 +9,7 @@ use App\Http\Requests\Procurement\Rfqs\UpdateRfqRequest;
 use App\Models\Procurement\Rfqs\Rfq;
 use App\Models\Procurement\Vendors\Vendor;
 use App\Services\Procurement\PurchaseOrders\VendorPurchaseOrderSnapshot;
+use App\Services\Procurement\Rfqs\AvailableProcurementRequestItemsForRfqQuery;
 use App\Services\Procurement\Rfqs\RfqCodeGenerator;
 use App\Services\Procurement\Rfqs\RfqPayloadResolver;
 use App\Services\Procurement\Rfqs\RfqPersistenceService;
@@ -51,22 +52,13 @@ class RfqController extends Controller
         ]);
     }
 
-    public function create(): View
+    public function create(AvailableProcurementRequestItemsForRfqQuery $prItemsQuery): View
     {
         return view('procurement.rfqs.create', [
             'nextCode' => app(RfqCodeGenerator::class)->next(),
             'vendors' => Vendor::query()->orderBy('name')->get(['id', 'vendor_code', 'name']),
-            'defaultItems' => array_fill(0, 2, [
-                'item' => '',
-                'description' => '',
-                'quantity' => 1,
-                'unit' => '',
-                'request_lead_time' => '',
-                'compliance' => '',
-                'unit_price' => '',
-                'quote_lead_time' => '',
-                'warranty' => '',
-            ]),
+            'prItemOptions' => $prItemsQuery->optionsForForm(),
+            'defaultItems' => [$this->emptyRfqLineRow()],
         ]);
     }
 
@@ -77,7 +69,7 @@ class RfqController extends Controller
         unset($validated['items']);
 
         if ($items === []) {
-            return back()->withInput()->withErrors(['items' => 'Add at least one line item with a description.']);
+            return back()->withInput()->withErrors(['items' => 'Select at least one procurement request item.']);
         }
 
         RfqPayloadResolver::finalizeForStore($validated);
@@ -102,11 +94,12 @@ class RfqController extends Controller
         ]);
     }
 
-    public function edit(Rfq $rfq): View
+    public function edit(Rfq $rfq, AvailableProcurementRequestItemsForRfqQuery $prItemsQuery): View
     {
-        $rfq->load(['items', 'creator']);
+        $rfq->load(['items.procurementRequestItem.procurementRequest', 'creator']);
 
         $defaultItems = $rfq->items->map(fn ($row) => [
+            'procurement_request_item_id' => $row->procurement_request_item_id ?? '',
             'item' => $row->item,
             'description' => $row->description,
             'quantity' => $row->quantity,
@@ -119,22 +112,25 @@ class RfqController extends Controller
         ])->all();
 
         if ($defaultItems === []) {
-            $defaultItems = array_fill(0, 2, [
-                'item' => '',
-                'description' => '',
-                'quantity' => 1,
-                'unit' => '',
-                'request_lead_time' => '',
-                'compliance' => '',
-                'unit_price' => '',
-                'quote_lead_time' => '',
-                'warranty' => '',
-            ]);
+            $defaultItems = [$this->emptyRfqLineRow()];
+        }
+
+        $prItemOptions = $prItemsQuery->optionsForForm($rfq->id);
+        $optionIds = collect($prItemOptions)->pluck('id')->all();
+
+        foreach ($rfq->items as $row) {
+            if ($row->procurement_request_item_id && ! in_array($row->procurement_request_item_id, $optionIds, true)) {
+                $prItem = $row->procurementRequestItem;
+                if ($prItem) {
+                    $prItemOptions[] = $prItemsQuery->toOption($prItem);
+                }
+            }
         }
 
         return view('procurement.rfqs.edit', [
             'rfq' => $rfq,
             'vendors' => Vendor::query()->orderBy('name')->get(['id', 'vendor_code', 'name']),
+            'prItemOptions' => $prItemOptions,
             'defaultItems' => $defaultItems,
         ]);
     }
@@ -146,7 +142,7 @@ class RfqController extends Controller
         unset($validated['items']);
 
         if ($items === []) {
-            return back()->withInput()->withErrors(['items' => 'Add at least one line item with a description.']);
+            return back()->withInput()->withErrors(['items' => 'Select at least one procurement request item.']);
         }
 
         RfqPayloadResolver::finalizeForUpdate($validated);
@@ -173,5 +169,24 @@ class RfqController extends Controller
         unset($data['payment_terms']);
 
         return response()->json($data);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function emptyRfqLineRow(): array
+    {
+        return [
+            'procurement_request_item_id' => '',
+            'item' => '',
+            'description' => '',
+            'quantity' => 1,
+            'unit' => '',
+            'request_lead_time' => '',
+            'compliance' => '',
+            'unit_price' => '',
+            'quote_lead_time' => '',
+            'warranty' => '',
+        ];
     }
 }

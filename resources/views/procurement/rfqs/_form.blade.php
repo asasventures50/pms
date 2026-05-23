@@ -1,6 +1,7 @@
 @php
     $rfq = $rfq ?? null;
     $lineItems = old('items', $defaultItems ?? []);
+    $rfqNumber = old('rfq_number', $rfq?->rfq_number ?? ($nextCode ?? ''));
 @endphp
 
 <article class="rfq-document mx-auto max-w-4xl border-2 border-slate-900 bg-white p-6 text-slate-900 shadow-sm sm:p-8">
@@ -8,10 +9,9 @@
 
     <div class="mt-6 space-y-4">
         <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:gap-3">
-            <label for="rfq_number" class="shrink-0 text-sm font-medium">RFQ No:</label>
-            <input type="text" name="rfq_number" id="rfq_number"
-                   value="{{ old('rfq_number', $rfq?->rfq_number ?? ($nextCode ?? '')) }}"
-                   class="rfq-doc-field min-w-0 flex-1 font-mono">
+            <span class="shrink-0 text-sm font-medium">RFQ No:</span>
+            <span id="rfq_number" class="min-w-0 flex-1 border-b border-slate-900 pb-1 font-mono text-sm">{{ $rfqNumber }}</span>
+            <input type="hidden" name="rfq_number" value="{{ $rfqNumber }}">
         </div>
 
         <div class="grid gap-4 sm:grid-cols-2">
@@ -30,7 +30,10 @@
         </div>
     </div>
 
-    @include('procurement.rfqs._line-items', ['lineItems' => $lineItems])
+    @include('procurement.rfqs._line-items', [
+        'lineItems' => $lineItems,
+        'prItemOptions' => $prItemOptions ?? [],
+    ])
 
     @include('procurement.rfqs._terms')
 

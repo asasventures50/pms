@@ -2,6 +2,7 @@
 
 namespace App\Services\Procurement\Rfqs;
 
+use App\Models\Procurement\ProcurementRequests\ProcurementRequestItem;
 use App\Models\Procurement\Rfqs\Rfq;
 use App\Models\Procurement\Rfqs\RfqItem;
 use Illuminate\Support\Facades\DB;
@@ -67,6 +68,7 @@ class RfqPersistenceService
         foreach (array_values($items) as $index => $row) {
             RfqItem::query()->create([
                 'rfq_id' => $rfq->id,
+                'procurement_request_item_id' => $row['procurement_request_item_id'] ?? null,
                 'sort_order' => $index,
                 'item' => $row['item'] ?? null,
                 'description' => $row['description'] ?? null,
@@ -89,26 +91,50 @@ class RfqPersistenceService
     public static function normalizeItems(array $rawItems): array
     {
         $normalized = [];
+        $prItems = ProcurementRequestItem::query()
+            ->whereIn('id', collect($rawItems)->pluck('procurement_request_item_id')->filter())
+            ->get()
+            ->keyBy('id');
 
         foreach ($rawItems as $row) {
             if (! is_array($row)) {
                 continue;
             }
 
-            $description = trim((string) ($row['description'] ?? ''));
-            if ($description === '') {
-                continue;
+            $prItemId = isset($row['procurement_request_item_id'])
+                ? (int) $row['procurement_request_item_id']
+                : null;
+
+            if ($prItemId) {
+                $prItem = $prItems->get($prItemId);
+                if (! $prItem) {
+                    continue;
+                }
+
+                $description = trim((string) $prItem->description);
+                $quantity = max(0, (float) $prItem->quantity);
+                $unit = trim((string) ($prItem->unit ?? '')) ?: null;
+                $itemCode = trim((string) ($prItem->line_number ?? '')) ?: null;
+            } else {
+                $description = trim((string) ($row['description'] ?? ''));
+                if ($description === '') {
+                    continue;
+                }
+
+                $quantity = max(0, (float) ($row['quantity'] ?? 0));
+                $unit = isset($row['unit']) ? trim((string) $row['unit']) : null;
+                $itemCode = isset($row['item']) ? trim((string) $row['item']) : null;
             }
 
-            $quantity = max(0, (float) ($row['quantity'] ?? 0));
             $unitPrice = max(0, (float) ($row['unit_price'] ?? 0));
             $lineTotal = round($quantity * $unitPrice, 2);
 
             $normalized[] = [
-                'item' => isset($row['item']) ? trim((string) $row['item']) : null,
+                'procurement_request_item_id' => $prItemId ?: null,
+                'item' => $itemCode,
                 'description' => $description,
                 'quantity' => $quantity,
-                'unit' => isset($row['unit']) ? trim((string) $row['unit']) : null,
+                'unit' => $unit,
                 'request_lead_time' => isset($row['request_lead_time']) ? trim((string) $row['request_lead_time']) : null,
                 'compliance' => isset($row['compliance']) ? trim((string) $row['compliance']) : null,
                 'unit_price' => $unitPrice > 0 ? $unitPrice : null,

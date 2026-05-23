@@ -2,6 +2,7 @@
 
 namespace App\Models\Procurement\Rfqs;
 
+use App\Models\Procurement\ProcurementRequests\ProcurementRequestItem;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -14,6 +15,7 @@ class RfqItem extends Model
      */
     protected $fillable = [
         'rfq_id',
+        'procurement_request_item_id',
         'sort_order',
         'item',
         'description',
@@ -39,5 +41,10 @@ class RfqItem extends Model
     public function rfq(): BelongsTo
     {
         return $this->belongsTo(Rfq::class);
+    }
+
+    public function procurementRequestItem(): BelongsTo
+    {
+        return $this->belongsTo(ProcurementRequestItem::class);
     }
 }
