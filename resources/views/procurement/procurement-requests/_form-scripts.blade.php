@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const linesBody = document.getElementById('pr-lines-body');
     const template = document.getElementById('pr-line-template');
-    const addBtn = document.getElementById('pr-add-line');
     const requestNumberInput = document.getElementById('request_number');
     const previewDocNumber = document.getElementById('pr-doc-number-preview');
 
@@ -547,6 +546,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    const addBtn = document.getElementById('pr-add-line');
+
     function addRow() {
         const row = template.content.firstElementChild.cloneNode(true);
         linesBody.appendChild(row);
@@ -554,6 +555,7 @@ document.addEventListener('DOMContentLoaded', function () {
         bindRow(row);
         syncZonesForRow(row);
         bindAllLineSupportingDocuments();
+        row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     linesBody.querySelectorAll('.pr-line-row').forEach(bindRow);

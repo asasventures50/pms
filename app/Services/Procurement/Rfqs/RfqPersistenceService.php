@@ -115,6 +115,7 @@ class RfqPersistenceService
                 $quantity = max(0, (float) $prItem->quantity);
                 $unit = trim((string) ($prItem->unit ?? '')) ?: null;
                 $itemCode = trim((string) ($prItem->line_number ?? '')) ?: null;
+                $requestLeadTime = $prItem->required_delivery_date?->format('Y-m-d');
             } else {
                 $description = trim((string) ($row['description'] ?? ''));
                 if ($description === '') {
@@ -124,6 +125,10 @@ class RfqPersistenceService
                 $quantity = max(0, (float) ($row['quantity'] ?? 0));
                 $unit = isset($row['unit']) ? trim((string) $row['unit']) : null;
                 $itemCode = isset($row['item']) ? trim((string) $row['item']) : null;
+                $requestLeadTime = isset($row['request_lead_time'])
+                    ? trim((string) $row['request_lead_time'])
+                    : null;
+                $requestLeadTime = $requestLeadTime !== '' ? $requestLeadTime : null;
             }
 
             $unitPrice = max(0, (float) ($row['unit_price'] ?? 0));
@@ -135,7 +140,7 @@ class RfqPersistenceService
                 'description' => $description,
                 'quantity' => $quantity,
                 'unit' => $unit,
-                'request_lead_time' => isset($row['request_lead_time']) ? trim((string) $row['request_lead_time']) : null,
+                'request_lead_time' => $requestLeadTime ?? null,
                 'compliance' => isset($row['compliance']) ? trim((string) $row['compliance']) : null,
                 'unit_price' => $unitPrice > 0 ? $unitPrice : null,
                 'line_total' => $lineTotal,

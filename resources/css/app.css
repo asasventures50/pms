@@ -55,4 +55,9 @@
         @apply mt-1 block w-full cursor-pointer rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm;
         @apply file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-slate-800;
     }
+
+    .procurement-add-line-bar button {
+        @apply inline-flex min-h-[2.75rem] cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-slate-500 bg-slate-600 px-8 py-2.5 text-base font-semibold text-white shadow-md;
+        @apply transition-colors hover:border-slate-600 hover:bg-slate-700 active:bg-slate-800;
+    }
 }

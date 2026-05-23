@@ -46,7 +46,7 @@
                     <th class="border border-slate-900 px-2 py-2 text-left text-xs font-bold uppercase">Item or service description</th>
                     <th class="border border-slate-900 px-2 py-2 text-left text-xs font-bold uppercase w-24">Quantity</th>
                     <th class="border border-slate-900 px-2 py-2 text-left text-xs font-bold uppercase w-24">Unit</th>
-                    <th class="border border-slate-900 px-2 py-2 text-left text-xs font-bold uppercase w-32">Lead time</th>
+                    <th class="border border-slate-900 px-2 py-2 text-left text-xs font-bold uppercase w-32">Required delivery date</th>
                 </tr>
                 </thead>
                 <tbody>

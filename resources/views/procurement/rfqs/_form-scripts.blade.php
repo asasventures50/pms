@@ -9,6 +9,12 @@ document.addEventListener('DOMContentLoaded', function () {
     );
 
     if (linesBody && template) {
+        function optionById(id) {
+            return prOptions.find(function (opt) {
+                return String(opt.id) === String(id);
+            });
+        }
+
         function selectedPrItemIds(exceptRow) {
             const ids = [];
             linesBody.querySelectorAll('.rfq-line-row').forEach(function (row) {
@@ -41,10 +47,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 const option = document.createElement('option');
                 option.value = id;
                 option.textContent = opt.label;
-                option.dataset.item = opt.item ?? '';
-                option.dataset.description = opt.description ?? '';
-                option.dataset.quantity = opt.quantity ?? '';
-                option.dataset.unit = opt.unit ?? '';
                 if (id === current) {
                     option.selected = true;
                 }
@@ -52,26 +54,81 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
 
+        function setDisplay(row, key, value) {
+            const el = row.querySelector('[data-display="' + key + '"]');
+            if (! el) {
+                return;
+            }
+            if (key === 'flexible_delivery_date') {
+                el.textContent = value === true || value === '1' || value === 1 ? 'Yes' : (value === false || value === '0' || value === 0 ? 'No' : '—');
+                return;
+            }
+            if (key === 'quantity' && value !== '' && value != null) {
+                el.textContent = Number(value).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 3 });
+                return;
+            }
+            el.textContent = (value !== null && value !== undefined && String(value).trim() !== '') ? String(value) : '—';
+        }
+
+        function setHidden(row, key, value) {
+            const input = row.querySelector('[data-name="' + key + '"]');
+            if (input) {
+                input.value = value ?? '';
+            }
+        }
+
+        function showPrDetails(details) {
+            if (! details) {
+                return;
+            }
+            details.classList.remove('hidden');
+            details.removeAttribute('hidden');
+        }
+
+        function hidePrDetails(details) {
+            if (! details) {
+                return;
+            }
+            details.classList.add('hidden');
+        }
+
         function applyPrItem(row) {
             const select = row.querySelector('.rfq-pr-item-select');
-            const option = select?.selectedOptions?.[0];
-            const itemInput = row.querySelector('[data-name="item"]');
-            const descriptionInput = row.querySelector('[data-name="description"]');
-            const quantityInput = row.querySelector('[data-name="quantity"]');
-            const unitInput = row.querySelector('[data-name="unit"]');
+            const details = row.querySelector('.rfq-pr-details');
+            const opt = optionById(select?.value);
 
-            if (! option || ! select?.value) {
-                if (itemInput) itemInput.value = '';
-                if (descriptionInput) descriptionInput.value = '';
-                if (quantityInput) quantityInput.value = '1';
-                if (unitInput) unitInput.value = '';
+            if (! opt) {
+                hidePrDetails(details);
+                ['item', 'description', 'quantity', 'unit', 'request_lead_time'].forEach(function (key) {
+                    setHidden(row, key, key === 'quantity' ? '1' : '');
+                });
+                ['pr_number', 'line_item', 'project', 'zone', 'category', 'subcategory', 'scope_type', 'description', 'unit', 'quantity', 'justification', 'required_delivery_date', 'flexible_delivery_date', 'delivery_location'].forEach(function (key) {
+                    setDisplay(row, key, '');
+                });
                 return;
             }
 
-            if (itemInput) itemInput.value = option.dataset.item || '';
-            if (descriptionInput) descriptionInput.value = option.dataset.description || '';
-            if (quantityInput) quantityInput.value = option.dataset.quantity || '1';
-            if (unitInput) unitInput.value = option.dataset.unit || '';
+            showPrDetails(details);
+            setDisplay(row, 'pr_number', opt.pr_number);
+            setDisplay(row, 'line_item', opt.item);
+            setDisplay(row, 'project', opt.project);
+            setDisplay(row, 'zone', opt.zone);
+            setDisplay(row, 'category', opt.category);
+            setDisplay(row, 'subcategory', opt.subcategory);
+            setDisplay(row, 'scope_type', opt.scope_type);
+            setDisplay(row, 'description', opt.description);
+            setDisplay(row, 'unit', opt.unit);
+            setDisplay(row, 'quantity', opt.quantity);
+            setDisplay(row, 'justification', opt.justification);
+            setDisplay(row, 'required_delivery_date', opt.required_delivery_date);
+            setDisplay(row, 'flexible_delivery_date', opt.flexible_delivery_date);
+            setDisplay(row, 'delivery_location', opt.delivery_location);
+
+            setHidden(row, 'item', opt.item);
+            setHidden(row, 'description', opt.description);
+            setHidden(row, 'quantity', opt.quantity);
+            setHidden(row, 'unit', opt.unit);
+            setHidden(row, 'request_lead_time', opt.request_lead_time);
         }
 
         function reindexRows() {
@@ -115,10 +172,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         function addRow() {
-            const row = template.content.cloneNode(true).querySelector('.rfq-line-row');
+            const row = template.content.firstElementChild.cloneNode(true);
             linesBody.appendChild(row);
             bindRow(row);
             reindexRows();
+            row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
         linesBody.querySelectorAll('.rfq-line-row').forEach(function (row) {

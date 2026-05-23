@@ -4,15 +4,9 @@
 @endphp
 
 <section>
-    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <h3 class="text-sm font-bold text-slate-900">Procurement details</h3>
-            <p class="mt-1 text-xs text-slate-500">Add one card per item. Required: project, category, scope type, item description, delivery location.</p>
-        </div>
-        <button type="button" id="pr-add-line"
-                class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 print:hidden">
-            Add line
-        </button>
+    <div>
+        <h3 class="text-sm font-bold text-slate-900">Procurement details</h3>
+        <p class="mt-1 text-xs text-slate-500">Add one card per item. Use <span class="font-medium">Add line</span> at the bottom to add another.</p>
     </div>
 
     @error('items')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
@@ -26,6 +20,8 @@
             ])
         @endforeach
     </div>
+
+    @include('procurement.partials._add-line-button', ['id' => 'pr-add-line'])
 
     <template id="pr-line-template">
         @include('procurement.procurement-requests._line-item-card', [
