@@ -40,7 +40,7 @@ class AuthenticatedSessionController extends Controller
 
         $this->activityLogger->logLogin((int) Auth::id(), $request);
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->route('dashboard');
     }
 
     /**
