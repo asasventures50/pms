@@ -36,6 +36,7 @@
     ])
 
     @include('procurement.rfqs._terms', [
+        'rfq' => $rfq,
         'rfqTerms' => $rfqTerms ?? ['general' => [], 'custom' => []],
         'scopeTermsMap' => $scopeTermsMap ?? [],
         'editable' => true,

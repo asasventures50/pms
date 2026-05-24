@@ -20,7 +20,8 @@ class UpdateRfqGeneralTermRequest extends FormRequest
     {
         return [
             'scope_type' => ['nullable', 'string', Rule::in(ProcurementScopeType::values())],
-            'body' => ['required', 'string', 'max:5000'],
+            'body_ar' => ['required_without:body_en', 'nullable', 'string', 'max:5000'],
+            'body_en' => ['required_without:body_ar', 'nullable', 'string', 'max:5000'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:65535'],
             'is_active' => ['required', 'boolean'],
         ];
@@ -32,6 +33,8 @@ class UpdateRfqGeneralTermRequest extends FormRequest
         $this->merge([
             'is_active' => $this->boolean('is_active'),
             'scope_type' => $scopeType === '' || $scopeType === null ? null : $scopeType,
+            'body_ar' => $this->filled('body_ar') ? trim((string) $this->input('body_ar')) : null,
+            'body_en' => $this->filled('body_en') ? trim((string) $this->input('body_en')) : null,
         ]);
     }
 }

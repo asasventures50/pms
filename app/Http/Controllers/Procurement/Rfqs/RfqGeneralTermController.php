@@ -30,7 +30,10 @@ class RfqGeneralTermController extends Controller
 
         if ($request->filled('q')) {
             $term = '%'.$request->string('q').'%';
-            $query->where('body', 'like', $term);
+            $query->where(function ($q) use ($term) {
+                $q->where('body_ar', 'like', $term)
+                    ->orWhere('body_en', 'like', $term);
+            });
         }
 
         if ($request->filled('is_active')) {

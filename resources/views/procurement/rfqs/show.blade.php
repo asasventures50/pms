@@ -67,7 +67,7 @@
             </table>
         </section>
 
-        @include('procurement.rfqs._terms', ['terms' => $terms])
+        @include('procurement.rfqs._terms', ['terms' => $terms, 'rfq' => $rfq])
 
         @if (config('procurement.rfq.show_extended_form_fields') && ($rfq->vendor_company_name || $rfq->vendor_contact || $rfq->vendor_email))
             <section class="mt-8 text-sm print:hidden">

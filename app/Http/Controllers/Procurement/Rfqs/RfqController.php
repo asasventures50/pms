@@ -11,8 +11,8 @@ use App\Models\Procurement\Vendors\Vendor;
 use App\Services\Procurement\PurchaseOrders\VendorPurchaseOrderSnapshot;
 use App\Services\Procurement\Rfqs\AvailableProcurementRequestItemsForRfqQuery;
 use App\Services\Procurement\Rfqs\RfqCodeGenerator;
-use App\Services\Procurement\Rfqs\RfqPayloadResolver;
 use App\Services\Procurement\Rfqs\RfqGeneralTermsService;
+use App\Services\Procurement\Rfqs\RfqPayloadResolver;
 use App\Services\Procurement\Rfqs\RfqPersistenceService;
 use App\Support\Procurement\RfqTerms;
 use Illuminate\Http\JsonResponse;
@@ -232,6 +232,6 @@ class RfqController extends Controller
             return $parsed['all'];
         }
 
-        return RfqTerms::legacyDefaults();
+        return RfqTerms::legacyDefaults($rfq->terms_locale);
     }
 }

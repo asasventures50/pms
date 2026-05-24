@@ -14,10 +14,14 @@ class RfqGeneralTermSeeder extends Seeder
             return;
         }
 
-        foreach (RfqTerms::legacyDefaults() as $index => $body) {
+        $english = RfqTerms::legacyDefaultsEn();
+        $arabic = RfqTerms::legacyDefaultsAr();
+
+        foreach ($english as $index => $bodyEn) {
             RfqGeneralTerm::query()->create([
                 'scope_type' => null,
-                'body' => $body,
+                'body_en' => $bodyEn,
+                'body_ar' => $arabic[$index] ?? null,
                 'sort_order' => $index,
                 'is_active' => true,
             ]);

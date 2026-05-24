@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Procurement\Rfqs;
 
 use App\Enums\Procurement\Rfqs\RfqStatus;
+use App\Enums\Procurement\Rfqs\RfqTermsLocale;
 use App\Http\Requests\Procurement\Rfqs\Concerns\ValidatesRfqProcurementRequestItems;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -38,6 +39,7 @@ class UpdateRfqRequest extends FormRequest
             'vendor_rep_signature' => ['sometimes', 'nullable', 'string', 'max:255'],
             'vendor_rep_signed_at' => ['sometimes', 'nullable', 'date'],
             'vendor_company_stamp' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'terms_locale' => ['sometimes', 'nullable', 'string', Rule::in(RfqTermsLocale::values())],
             'terms_custom' => ['nullable', 'array'],
             'terms_custom.*' => ['nullable', 'string', 'max:5000'],
             'items' => ['required', 'array', 'min:1'],

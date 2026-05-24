@@ -5,6 +5,7 @@ namespace App\Models\Procurement\ProcurementRequests;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
 
 class ProcurementRequestDocument extends Model
@@ -28,10 +29,16 @@ class ProcurementRequestDocument extends Model
     protected function url(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->file_path
-                // @phpstan-ignore-next-line
-                ? Storage::disk('s3')->url($this->file_path)
-                : null,
+            get: function () {
+                if (! $this->file_path) {
+                    return null;
+                }
+
+                /** @var FilesystemAdapter $disk */
+                $disk = Storage::disk('s3');
+
+                return $disk->url($this->file_path);
+            },
         );
     }
 

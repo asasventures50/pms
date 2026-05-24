@@ -27,7 +27,7 @@
             <div class="md:col-span-2">
                 <label for="q" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Search</label>
                 <input type="search" name="q" id="q" value="{{ request('q') }}"
-                       placeholder="Term text"
+                       placeholder="Arabic or English text"
                        class="admin-filter-control">
             </div>
             <div>
@@ -62,7 +62,7 @@
                 <tr>
                     <th class="px-3 py-2 w-16">Order</th>
                     <th class="px-3 py-2 w-32">Scope type</th>
-                    <th class="px-3 py-2">Term</th>
+                    <th class="px-3 py-2">Term (AR / EN)</th>
                     <th class="px-3 py-2 w-24">Active</th>
                     <th class="px-3 py-2 w-32"></th>
                 </tr>
@@ -72,7 +72,17 @@
                     <tr>
                         <td class="px-3 py-3 font-mono text-slate-600">{{ $term->sort_order }}</td>
                         <td class="px-3 py-3 text-slate-700">{{ \App\Services\Procurement\Rfqs\RfqGeneralTermsService::scopeTypeLabel($term->scope_type) }}</td>
-                        <td class="px-3 py-3 text-slate-900">{{ $term->body }}</td>
+                        <td class="px-3 py-3 text-slate-900">
+                            @if ($term->body_ar)
+                                <p class="text-sm" dir="rtl">{{ $term->body_ar }}</p>
+                            @endif
+                            @if ($term->body_en)
+                                <p class="mt-1 text-sm {{ $term->body_ar ? 'text-slate-600' : '' }}">{{ $term->body_en }}</p>
+                            @endif
+                            @if (! $term->body_ar && ! $term->body_en)
+                                <span class="text-slate-500">—</span>
+                            @endif
+                        </td>
                         <td class="px-3 py-3">
                             @if ($term->is_active)
                                 <span class="text-emerald-700">Yes</span>

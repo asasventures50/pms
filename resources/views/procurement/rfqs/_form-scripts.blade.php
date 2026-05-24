@@ -204,6 +204,33 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('rfq-scope-terms-map')?.textContent || '{}'
     );
     const scopeTypeOrder = ['Supply', 'Service', 'Installation', 'Maintenance', 'Dismantling', 'Studies'];
+    const termsLocaleInputs = document.querySelectorAll('.rfq-terms-locale');
+
+    function currentTermsLocale() {
+        const checked = document.querySelector('.rfq-terms-locale:checked');
+        return checked ? checked.value : 'en';
+    }
+
+    function scopeTextsForLocale(scopeKey, locale) {
+        const entry = scopeTermsMap[scopeKey];
+        if (! entry) {
+            return [];
+        }
+        if (Array.isArray(entry)) {
+            return entry;
+        }
+        return entry[locale] || entry.en || entry.ar || [];
+    }
+
+    function applyCustomTermDirection(locale) {
+        document.querySelectorAll('.rfq-custom-term-input').forEach(function (input) {
+            if (locale === 'ar') {
+                input.setAttribute('dir', 'rtl');
+            } else {
+                input.removeAttribute('dir');
+            }
+        });
+    }
 
     if (generalTermsList) {
         function collectScopeTypesFromLines() {
@@ -242,9 +269,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             }
 
-            addTexts(scopeTermsMap.global);
+            const locale = currentTermsLocale();
+            addTexts(scopeTextsForLocale('global', locale));
             scopeTypes.forEach(function (scopeType) {
-                addTexts(scopeTermsMap[scopeType]);
+                addTexts(scopeTextsForLocale(scopeType, locale));
             });
 
             return merged;
@@ -262,18 +290,30 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
+            const locale = currentTermsLocale();
             terms.forEach(function (text) {
                 const row = document.createElement('li');
                 row.className = 'rfq-general-term-row flex gap-2';
                 row.innerHTML = '<span class="shrink-0">-</span><span class="min-w-0 flex-1"></span>';
-                row.querySelector('span:last-child').textContent = text;
+                const textEl = row.querySelector('span:last-child');
+                textEl.textContent = text;
+                if (locale === 'ar') {
+                    textEl.setAttribute('dir', 'rtl');
+                }
                 generalTermsList.appendChild(row);
             });
         }
 
         window.rfqSyncGeneralTerms = function () {
             renderGeneralTerms(mergeGeneralTerms(collectScopeTypesFromLines()));
+            applyCustomTermDirection(currentTermsLocale());
         };
+
+        termsLocaleInputs.forEach(function (input) {
+            input.addEventListener('change', function () {
+                window.rfqSyncGeneralTerms();
+            });
+        });
 
         window.rfqSyncGeneralTerms();
     }
@@ -303,6 +343,7 @@ document.addEventListener('DOMContentLoaded', function () {
             customTermsList.appendChild(row);
             bindCustomTermRow(row);
             reindexCustomTerms();
+            applyCustomTermDirection(currentTermsLocale());
             row.querySelector('input[type="text"]')?.focus();
         });
     }

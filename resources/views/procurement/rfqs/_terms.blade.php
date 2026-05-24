@@ -1,9 +1,12 @@
 @php
+    use App\Enums\Procurement\Rfqs\RfqTermsLocale;
+
     $rfqTerms = $rfqTerms ?? ['general' => [], 'custom' => []];
     $generalTerms = $rfqTerms['general'] ?? [];
     $customTerms = $rfqTerms['custom'] ?? [];
     $terms = $terms ?? array_merge($generalTerms, $customTerms);
     $editable = $editable ?? false;
+    $termsLocale = old('terms_locale', $rfq?->terms_locale ?? RfqTermsLocale::default()->value);
 @endphp
 
 <section class="mt-8" @if ($editable) id="rfq-terms-section" @endif>
@@ -20,6 +23,21 @@
     </div>
 
     @if ($editable)
+        <div class="mt-4 print:hidden">
+            <span class="block text-xs font-semibold uppercase tracking-wide text-slate-600">Terms language</span>
+            <div class="mt-2 flex flex-wrap gap-4 text-sm text-slate-800">
+                @foreach (RfqTermsLocale::cases() as $locale)
+                    <label class="inline-flex items-center gap-2">
+                        <input type="radio" name="terms_locale" value="{{ $locale->value }}"
+                               class="border-slate-300 text-slate-900 focus:ring-slate-500 rfq-terms-locale"
+                               @checked($termsLocale === $locale->value)>
+                        <span>{{ $locale->label() }}</span>
+                    </label>
+                @endforeach
+            </div>
+            @error('terms_locale')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+        </div>
+
         @error('terms_custom')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
 
         <div class="mt-4">
@@ -28,7 +46,7 @@
                 @forelse ($generalTerms as $term)
                     <li class="rfq-general-term-row flex gap-2">
                         <span class="shrink-0">-</span>
-                        <span class="min-w-0 flex-1">{{ $term }}</span>
+                        <span class="min-w-0 flex-1" @if($termsLocale === 'ar') dir="rtl" @endif>{{ $term }}</span>
                     </li>
                 @empty
                     <li id="rfq-general-terms-empty" class="text-slate-500">Company-wide terms load automatically. Select line items to include scope-specific terms.</li>
@@ -43,7 +61,8 @@
                     <li class="rfq-custom-term-row flex gap-2">
                         <span class="shrink-0 pt-2 text-sm text-slate-800">-</span>
                         <input type="text" name="terms_custom[{{ $index }}]" value="{{ $term }}"
-                               class="rfq-doc-field min-w-0 flex-1 text-sm @error('terms_custom.'.$index) border-red-500 @enderror">
+                               class="rfq-doc-field rfq-custom-term-input min-w-0 flex-1 text-sm @error('terms_custom.'.$index) border-red-500 @enderror"
+                               @if($termsLocale === 'ar') dir="rtl" @endif>
                         <button type="button" class="rfq-remove-custom-term shrink-0 rounded-lg px-2 py-1 text-sm font-medium text-red-700 hover:bg-red-50 print:hidden">Remove</button>
                     </li>
                 @endforeach
@@ -56,7 +75,7 @@
                 <li class="rfq-custom-term-row flex gap-2">
                     <span class="shrink-0 pt-2 text-sm text-slate-800">-</span>
                     <input type="text" data-name="terms_custom[]" value=""
-                           class="rfq-doc-field min-w-0 flex-1 text-sm">
+                           class="rfq-doc-field rfq-custom-term-input min-w-0 flex-1 text-sm">
                     <button type="button" class="rfq-remove-custom-term shrink-0 rounded-lg px-2 py-1 text-sm font-medium text-red-700 hover:bg-red-50">Remove</button>
                 </li>
             </template>
@@ -66,7 +85,7 @@
             @forelse ($terms as $term)
                 <li class="flex gap-2">
                     <span class="shrink-0">-</span>
-                    <span>{{ $term }}</span>
+                    <span @if(($rfq->terms_locale ?? 'en') === 'ar') dir="rtl" @endif>{{ $term }}</span>
                 </li>
             @empty
                 <li class="text-slate-500">No terms specified.</li>

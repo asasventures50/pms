@@ -2,8 +2,11 @@
 
 namespace Tests\Unit;
 
+use App\Enums\Procurement\Rfqs\RfqTermsLocale;
+use App\Models\Procurement\Rfqs\RfqGeneralTerm;
 use App\Services\Procurement\Rfqs\RfqGeneralTermsService;
 use App\Support\Procurement\ProcurementScopeType;
+use App\Support\Procurement\RfqTerms;
 use PHPUnit\Framework\TestCase;
 
 class RfqGeneralTermsServiceTest extends TestCase
@@ -70,5 +73,29 @@ class RfqGeneralTermsServiceTest extends TestCase
             ProcurementScopeType::Supply,
             ProcurementScopeType::Studies,
         ], $ordered);
+    }
+
+    public function test_resolve_body_prefers_locale_with_fallback(): void
+    {
+        $service = new RfqGeneralTermsService;
+        $term = new RfqGeneralTerm([
+            'body_ar' => 'نص عربي',
+            'body_en' => 'English text',
+        ]);
+
+        $this->assertSame('نص عربي', $service->resolveBody($term, RfqTermsLocale::Ar->value));
+        $this->assertSame('English text', $service->resolveBody($term, RfqTermsLocale::En->value));
+
+        $term->body_ar = null;
+        $this->assertSame('English text', $service->resolveBody($term, RfqTermsLocale::Ar->value));
+    }
+
+    public function test_legacy_defaults_return_arabic_when_requested(): void
+    {
+        $arabic = RfqTerms::legacyDefaults(RfqTermsLocale::Ar->value);
+        $english = RfqTerms::legacyDefaults(RfqTermsLocale::En->value);
+
+        $this->assertNotSame($english[0], $arabic[0]);
+        $this->assertCount(count($english), $arabic);
     }
 }

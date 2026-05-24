@@ -2,6 +2,7 @@
 
 namespace App\Services\Procurement\Rfqs;
 
+use App\Enums\Procurement\Rfqs\RfqTermsLocale;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequestItem;
 use App\Models\Procurement\Rfqs\Rfq;
 use App\Models\Procurement\Rfqs\RfqItem;
@@ -59,8 +60,14 @@ class RfqPersistenceService
 
         $header['grand_total'] = round($grandTotal, 2);
 
+        $locale = $header['terms_locale'] ?? RfqTermsLocale::default()->value;
+        if (! in_array($locale, RfqTermsLocale::values(), true)) {
+            $locale = RfqTermsLocale::default()->value;
+        }
+        $header['terms_locale'] = $locale;
+
         $scopeTypes = $this->termsService->scopeTypesFromNormalizedItems($items);
-        $general = $this->termsService->activeTextsForScopeTypes($scopeTypes);
+        $general = $this->termsService->activeTextsForScopeTypes($scopeTypes, $locale);
         $custom = $this->termsService->normalizeTexts($header['terms_custom'] ?? []);
         unset($header['terms_custom']);
 

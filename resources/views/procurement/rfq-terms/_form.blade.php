@@ -20,10 +20,17 @@
             @error('scope_type')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
         <div>
-            <label for="body" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Term text <span class="text-red-600">*</span></label>
-            <textarea name="body" id="body" rows="4" required
-                      class="admin-form-textarea @error('body') border-red-500 @enderror">{{ old('body', $term?->body ?? '') }}</textarea>
-            @error('body')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            <label for="body_ar" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Arabic text</label>
+            <textarea name="body_ar" id="body_ar" rows="4" dir="rtl"
+                      class="admin-form-textarea @error('body_ar') border-red-500 @enderror">{{ old('body_ar', $term?->body_ar ?? '') }}</textarea>
+            @error('body_ar')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+        </div>
+        <div>
+            <label for="body_en" class="block text-xs font-medium uppercase tracking-wide text-slate-500">English text</label>
+            <textarea name="body_en" id="body_en" rows="4"
+                      class="admin-form-textarea @error('body_en') border-red-500 @enderror">{{ old('body_en', $term?->body_en ?? '') }}</textarea>
+            @error('body_en')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            <p class="mt-1 text-xs text-slate-500">Provide at least one language. On the RFQ, users pick Arabic or English to display terms.</p>
         </div>
         <div class="grid gap-4 sm:grid-cols-2">
             <div>

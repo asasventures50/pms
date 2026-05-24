@@ -2,6 +2,7 @@
 
 namespace App\Services\Procurement\Rfqs;
 
+use App\Enums\Procurement\Rfqs\RfqTermsLocale;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequestItem;
 use App\Models\Procurement\Rfqs\RfqGeneralTerm;
 use App\Support\Procurement\ProcurementScopeType;
@@ -13,16 +14,24 @@ class RfqGeneralTermsService
     public const GLOBAL_SCOPE_KEY = 'global';
 
     /**
-     * Map passed to the RFQ form: global terms + per-scope terms.
+     * Map passed to the RFQ form: global terms + per-scope terms, each in ar/en.
      *
-     * @return array<string, list<string>>
+     * @return array<string, array{ar: list<string>, en: list<string>}>
      */
     public function termsMapForRfqForm(): array
     {
-        $map = [self::GLOBAL_SCOPE_KEY => $this->activeGlobalTexts()];
+        $map = [
+            self::GLOBAL_SCOPE_KEY => [
+                'ar' => $this->activeGlobalTexts(RfqTermsLocale::Ar->value),
+                'en' => $this->activeGlobalTexts(RfqTermsLocale::En->value),
+            ],
+        ];
 
         foreach (ProcurementScopeType::options() as $scopeType) {
-            $map[$scopeType] = $this->activeTextsForScopeType($scopeType);
+            $map[$scopeType] = [
+                'ar' => $this->activeTextsForScopeType($scopeType, RfqTermsLocale::Ar->value),
+                'en' => $this->activeTextsForScopeType($scopeType, RfqTermsLocale::En->value),
+            ];
         }
 
         return $map;
@@ -33,14 +42,17 @@ class RfqGeneralTermsService
      *
      * @return list<string>
      */
-    public function activeGlobalTexts(): array
+    public function activeGlobalTexts(?string $locale = null): array
     {
+        $locale = $this->normalizeLocale($locale);
+
         $terms = RfqGeneralTerm::query()
             ->whereNull('scope_type')
             ->where('is_active', true)
             ->orderBy('sort_order')
             ->orderBy('id')
-            ->pluck('body')
+            ->get()
+            ->map(fn (RfqGeneralTerm $term) => $this->resolveBody($term, $locale))
             ->all();
 
         $normalized = $this->normalizeTexts($terms);
@@ -49,24 +61,27 @@ class RfqGeneralTermsService
             return $normalized;
         }
 
-        return RfqTerms::legacyDefaults();
+        return RfqTerms::legacyDefaults($locale);
     }
 
     /**
      * @return list<string>
      */
-    public function activeTextsForScopeType(string $scopeType): array
+    public function activeTextsForScopeType(string $scopeType, ?string $locale = null): array
     {
         if (! in_array($scopeType, ProcurementScopeType::values(), true)) {
             return [];
         }
+
+        $locale = $this->normalizeLocale($locale);
 
         $terms = RfqGeneralTerm::query()
             ->where('scope_type', $scopeType)
             ->where('is_active', true)
             ->orderBy('sort_order')
             ->orderBy('id')
-            ->pluck('body')
+            ->get()
+            ->map(fn (RfqGeneralTerm $term) => $this->resolveBody($term, $locale))
             ->all();
 
         return $this->normalizeTexts($terms);
@@ -78,18 +93,19 @@ class RfqGeneralTermsService
      * @param  list<string>  $scopeTypes
      * @return list<string>
      */
-    public function activeTextsForScopeTypes(array $scopeTypes): array
+    public function activeTextsForScopeTypes(array $scopeTypes, ?string $locale = null): array
     {
+        $locale = $this->normalizeLocale($locale);
         $merged = [];
         $seen = [];
 
-        foreach ($this->activeGlobalTexts() as $text) {
+        foreach ($this->activeGlobalTexts($locale) as $text) {
             $seen[$text] = true;
             $merged[] = $text;
         }
 
         foreach ($this->orderScopeTypes($scopeTypes) as $scopeType) {
-            foreach ($this->activeTextsForScopeType($scopeType) as $text) {
+            foreach ($this->activeTextsForScopeType($scopeType, $locale) as $text) {
                 if (isset($seen[$text])) {
                     continue;
                 }
@@ -99,6 +115,15 @@ class RfqGeneralTermsService
         }
 
         return $merged;
+    }
+
+    public function resolveBody(RfqGeneralTerm $term, ?string $locale = null): string
+    {
+        $locale = $this->normalizeLocale($locale);
+        $primary = trim((string) ($locale === RfqTermsLocale::Ar->value ? $term->body_ar : $term->body_en));
+        $fallback = trim((string) ($locale === RfqTermsLocale::Ar->value ? $term->body_en : $term->body_ar));
+
+        return $primary !== '' ? $primary : $fallback;
     }
 
     /**
@@ -178,13 +203,12 @@ class RfqGeneralTermsService
     /**
      * @return list<string>
      */
-    public function activeTexts(): array
+    public function activeTexts(?string $locale = null): array
     {
-        return $this->activeGlobalTexts();
+        return $this->activeGlobalTexts($locale);
     }
 
     /**
-     * @param  mixed  $raw
      * @return list<string>
      */
     public function normalizeTexts(mixed $raw): array
@@ -211,7 +235,6 @@ class RfqGeneralTermsService
     }
 
     /**
-     * @param  mixed  $raw
      * @return list<string>
      */
     public function normalizeLineTerms(mixed $raw): array
@@ -271,5 +294,14 @@ class RfqGeneralTermsService
         }
 
         return $ordered;
+    }
+
+    private function normalizeLocale(?string $locale): string
+    {
+        $locale = $locale ?? RfqTermsLocale::default()->value;
+
+        return in_array($locale, RfqTermsLocale::values(), true)
+            ? $locale
+            : RfqTermsLocale::default()->value;
     }
 }

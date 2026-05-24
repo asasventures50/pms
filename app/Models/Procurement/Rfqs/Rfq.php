@@ -37,6 +37,7 @@ class Rfq extends Model
         'grand_total',
         'status',
         'terms',
+        'terms_locale',
         'vendor_rep_name',
         'vendor_rep_signature',
         'vendor_rep_signed_at',

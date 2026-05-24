@@ -13,7 +13,8 @@ class RfqGeneralTerm extends Model
      */
     protected $fillable = [
         'scope_type',
-        'body',
+        'body_ar',
+        'body_en',
         'sort_order',
         'is_active',
     ];
