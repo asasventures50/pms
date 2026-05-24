@@ -29,7 +29,7 @@ class StoreCategoryRequest extends FormRequest
             $slug = isset($row['slug']) ? trim((string) $row['slug']) : '';
             $status = isset($row['status']) ? trim((string) $row['status']) : '';
 
-            if ($nameEn === '' && $nameAr === '' && $slug === '' && $status === '') {
+            if ($nameEn === '' && $nameAr === '' && $slug === '') {
                 continue;
             }
 
@@ -56,14 +56,36 @@ class StoreCategoryRequest extends FormRequest
         return [
             'name_en' => ['required', 'string', 'max:255'],
             'name_ar' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255', Rule::unique('categories', 'slug')],
+            'slug' => ['required', 'string', 'max:255', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', Rule::unique('categories', 'slug')],
             'status' => ['required', 'string', Rule::in(['active', 'inactive'])],
 
             'subcategories' => ['nullable', 'array'],
             'subcategories.*.name_en' => ['required', 'string', 'max:255'],
             'subcategories.*.name_ar' => ['required', 'string', 'max:255'],
-            'subcategories.*.slug' => ['required', 'string', 'max:255'],
+            'subcategories.*.slug' => ['required', 'string', 'max:255', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/'],
             'subcategories.*.status' => ['required', 'string', Rule::in(['active', 'inactive'])],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'slug' => 'slug',
+            'subcategories.*.slug' => 'subcategory slug',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'slug.regex' => 'The slug may only contain lowercase letters, numbers, and hyphens.',
+            'subcategories.*.slug.regex' => 'Each subcategory slug may only contain lowercase letters, numbers, and hyphens.',
         ];
     }
 

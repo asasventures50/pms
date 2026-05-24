@@ -16,11 +16,35 @@ class UpdateRoleRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if ($this->filled('label') && ! $this->filled('name')) {
+        if ($this->filled('name')) {
+            $this->merge([
+                'name' => Str::slug($this->string('name')),
+            ]);
+        } elseif ($this->filled('label')) {
             $this->merge([
                 'name' => Str::slug($this->string('label')),
             ]);
         }
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'name' => 'slug',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'name.regex' => 'The slug may only contain lowercase letters, numbers, and hyphens.',
+        ];
     }
 
     /**
