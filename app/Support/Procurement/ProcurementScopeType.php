@@ -4,17 +4,12 @@ namespace App\Support\Procurement;
 
 final class ProcurementScopeType
 {
-    public const Supply = 'Supply';
+    public const Contractor = 'Contractor';
 
-    public const Service = 'Service';
-
-    public const Installation = 'Installation';
-
-    public const Maintenance = 'Maintenance';
-
-    public const Dismantling = 'Dismantling';
+    public const Supplier = 'Supplier';
 
     public const Studies = 'Studies';
+
 
     /**
      * @return list<string>
@@ -22,12 +17,10 @@ final class ProcurementScopeType
     public static function options(): array
     {
         return [
-            self::Supply,
-            self::Service,
-            self::Installation,
-            self::Maintenance,
-            self::Dismantling,
+            self::Contractor,
+            self::Supplier,
             self::Studies,
+
         ];
     }
 

@@ -11,11 +11,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('rfq_general_terms', function (Blueprint $table) {
-            $table->string('scope_type', 100)->default(ProcurementScopeType::Supply)->after('id');
+            $table->string('scope_type', 100)->default(ProcurementScopeType::Supplier)->after('id');
         });
 
         DB::table('rfq_general_terms')->update([
-            'scope_type' => ProcurementScopeType::Supply,
+            'scope_type' => ProcurementScopeType::Supplier,
         ]);
 
         Schema::table('rfq_general_terms', function (Blueprint $table) {

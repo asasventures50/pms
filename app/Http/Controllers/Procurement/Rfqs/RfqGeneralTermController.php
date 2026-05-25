@@ -23,8 +23,6 @@ class RfqGeneralTermController extends Controller
         $perPage = max(1, min(100, (int) $request->query('per_page', 25)));
 
         $query = RfqGeneralTerm::query()
-            ->orderByRaw('scope_type is null desc')
-            ->orderBy('scope_type')
             ->orderBy('sort_order')
             ->orderBy('id');
 
@@ -41,11 +39,7 @@ class RfqGeneralTermController extends Controller
         }
 
         if ($request->filled('scope_type')) {
-            if ($request->string('scope_type')->toString() === RfqGeneralTermsService::GLOBAL_SCOPE_KEY) {
-                $query->whereNull('scope_type');
-            } else {
-                $query->where('scope_type', $request->string('scope_type'));
-            }
+            $this->termsService->applyScopeTypeFilter($query, $request->string('scope_type')->toString());
         }
 
         return view('procurement.rfq-terms.index', [
@@ -58,7 +52,7 @@ class RfqGeneralTermController extends Controller
     {
         return view('procurement.rfq-terms.create', [
             'term' => new RfqGeneralTerm([
-                'scope_type' => null,
+                'scope_types' => null,
                 'is_active' => true,
                 'sort_order' => $this->termsService->nextSortOrder(null),
             ]),
@@ -69,7 +63,7 @@ class RfqGeneralTermController extends Controller
     public function store(StoreRfqGeneralTermRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $data['sort_order'] ??= $this->termsService->nextSortOrder($data['scope_type'] ?? null);
+        $data['sort_order'] ??= $this->termsService->nextSortOrder($data['scope_types'] ?? null);
 
         RfqGeneralTerm::query()->create($data);
 

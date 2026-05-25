@@ -14,7 +14,7 @@
         <div>
             <h3 class="text-sm font-bold uppercase tracking-wide text-slate-900">Terms &amp; conditions</h3>
             @if ($editable)
-                <p class="mt-1 text-xs text-slate-500">Company-wide and scope-specific terms (from your line items) cannot be removed. You may add RFQ-specific terms below.</p>
+                <p class="mt-1 text-xs text-slate-500">Company-wide and scope-specific terms (from your line items; a term may apply to several scope types) cannot be removed. You may add RFQ-specific terms below.</p>
             @endif
         </div>
         @if ($editable && auth()->user()->hasPermission('rfq-terms.view'))

@@ -10,7 +10,7 @@ class RfqGeneralTermSeeder extends Seeder
 {
     public function run(): void
     {
-        if (RfqGeneralTerm::query()->whereNull('scope_type')->exists()) {
+        if (RfqGeneralTerm::query()->global()->exists()) {
             return;
         }
 
@@ -19,7 +19,7 @@ class RfqGeneralTermSeeder extends Seeder
 
         foreach ($english as $index => $bodyEn) {
             RfqGeneralTerm::query()->create([
-                'scope_type' => null,
+                'scope_types' => null,
                 'body_en' => $bodyEn,
                 'body_ar' => $arabic[$index] ?? null,
                 'sort_order' => $index,

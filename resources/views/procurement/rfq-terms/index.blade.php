@@ -6,7 +6,7 @@
     <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h1 class="text-2xl font-semibold tracking-tight text-slate-900">RFQ general terms</h1>
-            <p class="mt-1 text-sm text-slate-600">General terms apply to every RFQ. Scope-specific terms are added when that scope appears on a line.</p>
+            <p class="mt-1 text-sm text-slate-600">General terms apply to every RFQ. Scope-specific terms can target one or more scope types and are added when any of those scopes appear on a line.</p>
         </div>
         <div class="flex flex-wrap gap-2">
             @if (auth()->user()->hasPermission('rfq-terms.manage'))
@@ -61,7 +61,7 @@
                 <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <tr>
                     <th class="px-3 py-2 w-16">Order</th>
-                    <th class="px-3 py-2 w-32">Scope type</th>
+                    <th class="px-3 py-2 w-40">Scope types</th>
                     <th class="px-3 py-2">Term (AR / EN)</th>
                     <th class="px-3 py-2 w-24">Active</th>
                     <th class="px-3 py-2 w-32"></th>
@@ -71,7 +71,7 @@
                 @forelse ($terms as $term)
                     <tr>
                         <td class="px-3 py-3 font-mono text-slate-600">{{ $term->sort_order }}</td>
-                        <td class="px-3 py-3 text-slate-700">{{ \App\Services\Procurement\Rfqs\RfqGeneralTermsService::scopeTypeLabel($term->scope_type) }}</td>
+                        <td class="px-3 py-3 text-slate-700">{{ \App\Services\Procurement\Rfqs\RfqGeneralTermsService::scopeTypesLabel($term->scope_types) }}</td>
                         <td class="px-3 py-3 text-slate-900">
                             @if ($term->body_ar)
                                 <p class="text-sm" dir="rtl">{{ $term->body_ar }}</p>

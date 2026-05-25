@@ -98,4 +98,34 @@ class RfqGeneralTermsServiceTest extends TestCase
         $this->assertNotSame($english[0], $arabic[0]);
         $this->assertCount(count($english), $arabic);
     }
+
+    public function test_scope_types_label_lists_multiple_types(): void
+    {
+        $label = RfqGeneralTermsService::scopeTypesLabel([
+            ProcurementScopeType::Installation,
+            ProcurementScopeType::Supply,
+        ]);
+
+        $this->assertSame('Supply, Installation', $label);
+    }
+
+    public function test_scope_types_label_for_global_terms(): void
+    {
+        $this->assertSame(
+            'General (all RFQs)',
+            RfqGeneralTermsService::scopeTypesLabel(null)
+        );
+    }
+
+    public function test_rfq_general_term_applies_to_each_selected_scope_type(): void
+    {
+        $term = new RfqGeneralTerm([
+            'scope_types' => [ProcurementScopeType::Supply, ProcurementScopeType::Service],
+        ]);
+
+        $this->assertTrue($term->appliesToScopeType(ProcurementScopeType::Supply));
+        $this->assertTrue($term->appliesToScopeType(ProcurementScopeType::Service));
+        $this->assertFalse($term->appliesToScopeType(ProcurementScopeType::Studies));
+        $this->assertFalse($term->isGlobal());
+    }
 }

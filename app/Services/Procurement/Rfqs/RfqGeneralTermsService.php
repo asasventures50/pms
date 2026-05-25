@@ -7,6 +7,7 @@ use App\Models\Procurement\ProcurementRequests\ProcurementRequestItem;
 use App\Models\Procurement\Rfqs\RfqGeneralTerm;
 use App\Support\Procurement\ProcurementScopeType;
 use App\Support\Procurement\RfqTerms;
+use Illuminate\Database\Eloquent\Builder;
 
 class RfqGeneralTermsService
 {
@@ -47,7 +48,7 @@ class RfqGeneralTermsService
         $locale = $this->normalizeLocale($locale);
 
         $terms = RfqGeneralTerm::query()
-            ->whereNull('scope_type')
+            ->global()
             ->where('is_active', true)
             ->orderBy('sort_order')
             ->orderBy('id')
@@ -76,7 +77,7 @@ class RfqGeneralTermsService
         $locale = $this->normalizeLocale($locale);
 
         $terms = RfqGeneralTerm::query()
-            ->where('scope_type', $scopeType)
+            ->matchingScopeType($scopeType)
             ->where('is_active', true)
             ->orderBy('sort_order')
             ->orderBy('id')
@@ -248,14 +249,19 @@ class RfqGeneralTermsService
         return $this->normalizeTexts($raw);
     }
 
-    public function nextSortOrder(?string $scopeType): int
+    /**
+     * @param  list<string>|null  $scopeTypes
+     */
+    public function nextSortOrder(?array $scopeTypes): int
     {
         $query = RfqGeneralTerm::query();
 
-        if ($scopeType === null || $scopeType === '') {
-            $query->whereNull('scope_type');
+        $normalized = ProcurementScopeType::selectedValues($scopeTypes);
+
+        if ($normalized === []) {
+            $query->global();
         } else {
-            $query->where('scope_type', $scopeType);
+            $query->matchingAnyScopeType($normalized);
         }
 
         $max = $query->max('sort_order');
@@ -263,11 +269,40 @@ class RfqGeneralTermsService
         return ((int) $max) + 1;
     }
 
+    /**
+     * @param  mixed  $scopeTypes
+     */
+    public static function scopeTypesLabel(mixed $scopeTypes): string
+    {
+        $values = ProcurementScopeType::selectedValues($scopeTypes);
+
+        return $values === []
+            ? 'General (all RFQs)'
+            : implode(', ', $values);
+    }
+
+    /**
+     * @deprecated Use scopeTypesLabel()
+     */
     public static function scopeTypeLabel(?string $scopeType): string
     {
-        return $scopeType === null || $scopeType === ''
-            ? 'General (all RFQs)'
-            : $scopeType;
+        return self::scopeTypesLabel($scopeType === null || $scopeType === '' ? null : [$scopeType]);
+    }
+
+    /**
+     * @param  Builder<RfqGeneralTerm>  $query
+     */
+    public function applyScopeTypeFilter(Builder $query, string $filter): void
+    {
+        if ($filter === self::GLOBAL_SCOPE_KEY) {
+            $query->global();
+
+            return;
+        }
+
+        if (in_array($filter, ProcurementScopeType::values(), true)) {
+            $query->matchingScopeType($filter);
+        }
     }
 
     /**

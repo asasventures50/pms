@@ -2,22 +2,29 @@
     use App\Support\Procurement\ProcurementScopeType;
 
     $term = $term ?? null;
-    $scopeTypes = $scopeTypes ?? ProcurementScopeType::options();
+    $scopeTypeOptions = $scopeTypes ?? ProcurementScopeType::options();
+    $selectedScopeTypes = ProcurementScopeType::selectedValues(old('scope_types', $term?->scope_types));
 @endphp
 
 <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
     <div class="space-y-4">
         <div>
-            <label for="scope_type" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Scope type <span class="text-red-600">*</span></label>
-            <select name="scope_type" id="scope_type"
-                    class="admin-filter-control @error('scope_type') border-red-500 @enderror">
-                <option value="" @selected(old('scope_type', $term?->scope_type) === null || old('scope_type', $term?->scope_type) === '')>General (all RFQs)</option>
-                @foreach ($scopeTypes as $scopeType)
-                    <option value="{{ $scopeType }}" @selected(old('scope_type', $term?->scope_type) === $scopeType)>{{ $scopeType }}</option>
+            <span class="block text-xs font-medium uppercase tracking-wide text-slate-500">Scope types</span>
+            <p class="mt-1 text-xs text-slate-500">Leave all unchecked for general terms on every RFQ. Select one or more scope types for extra terms when any of those scopes appear on RFQ lines.</p>
+            <div class="mt-3 grid gap-2 sm:grid-cols-2 @error('scope_types') rounded-lg ring-1 ring-red-500 p-2 @enderror @error('scope_types.*') rounded-lg ring-1 ring-red-500 p-2 @enderror">
+                @foreach ($scopeTypeOptions as $scopeType)
+                    <label class="inline-flex items-center gap-2 text-sm text-slate-800">
+                        <input type="checkbox"
+                               name="scope_types[]"
+                               value="{{ $scopeType }}"
+                               class="rounded border-slate-300 text-slate-900 focus:ring-slate-500"
+                               @checked(in_array($scopeType, $selectedScopeTypes, true))>
+                        <span>{{ $scopeType }}</span>
+                    </label>
                 @endforeach
-            </select>
-            <p class="mt-1 text-xs text-slate-500">General applies to every RFQ. Choose a scope type only for extra terms when that scope appears on a line.</p>
-            @error('scope_type')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
+            @error('scope_types')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            @error('scope_types.*')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
         <div>
             <label for="body_ar" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Arabic text</label>
