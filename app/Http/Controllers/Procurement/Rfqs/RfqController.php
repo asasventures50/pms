@@ -62,6 +62,7 @@ class RfqController extends Controller
             'prItemOptions' => $prItemsQuery->optionsForForm(),
             'defaultItems' => [$this->emptyRfqLineRow()],
             'rfqTerms' => $this->termsForForm(),
+            'rfqPaymentTerms' => $this->paymentTermsForForm(),
             'scopeTermsMap' => $this->termsService->termsMapForRfqForm(),
         ]);
     }
@@ -99,6 +100,7 @@ class RfqController extends Controller
         return view('procurement.rfqs.show', [
             'rfq' => $rfq,
             'terms' => $this->resolvedTermsForRfq($rfq),
+            'paymentTerms' => $this->termsService->normalizeTexts($rfq->payment_terms),
         ]);
     }
 
@@ -145,6 +147,7 @@ class RfqController extends Controller
             'prItemOptions' => $prItemOptions,
             'defaultItems' => $defaultItems,
             'rfqTerms' => $this->termsForForm($rfq),
+            'rfqPaymentTerms' => $this->paymentTermsForForm($rfq),
             'scopeTermsMap' => $this->termsService->termsMapForRfqForm(),
         ]);
     }
@@ -227,6 +230,23 @@ class RfqController extends Controller
         }
 
         return ['general' => [], 'custom' => []];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function paymentTermsForForm(?Rfq $rfq = null): array
+    {
+        $fromOld = old('payment_terms');
+        if (is_array($fromOld)) {
+            return $this->termsService->normalizeTexts($fromOld);
+        }
+
+        if ($rfq !== null) {
+            return $this->termsService->normalizeTexts($rfq->payment_terms);
+        }
+
+        return [];
     }
 
     /**

@@ -72,6 +72,7 @@ class RfqPersistenceService
         unset($header['terms_custom']);
 
         $header['terms'] = $this->termsService->buildTermsPayload($general, $custom);
+        $header['payment_terms'] = $this->termsService->normalizeTexts($header['payment_terms'] ?? []);
 
         return $header;
     }

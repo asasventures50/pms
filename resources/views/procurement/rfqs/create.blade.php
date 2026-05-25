@@ -19,6 +19,7 @@
             'defaultItems' => $defaultItems,
             'prItemOptions' => $prItemOptions,
             'rfqTerms' => $rfqTerms,
+            'rfqPaymentTerms' => $rfqPaymentTerms,
             'scopeTermsMap' => $scopeTermsMap,
         ])
         <div class="flex flex-wrap gap-3">

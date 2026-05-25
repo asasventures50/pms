@@ -92,6 +92,11 @@
 
         @include('procurement.rfqs._terms', ['terms' => $terms, 'rfq' => $rfq])
 
+        @include('procurement.rfqs._payment-terms', [
+            'rfq' => $rfq,
+            'paymentTerms' => $paymentTerms ?? [],
+        ])
+
         @if (config('procurement.rfq.show_extended_form_fields') && ($rfq->vendor_company_name || $rfq->vendor_contact || $rfq->vendor_email))
             <section class="mt-8 text-sm print:hidden">
                 <h3 class="text-sm font-bold uppercase tracking-wide text-slate-900">Vendor recipient</h3>

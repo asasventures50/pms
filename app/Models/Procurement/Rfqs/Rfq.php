@@ -38,6 +38,7 @@ class Rfq extends Model
         'status',
         'terms',
         'terms_locale',
+        'payment_terms',
         'vendor_rep_name',
         'vendor_rep_signature',
         'vendor_rep_signed_at',
@@ -53,6 +54,7 @@ class Rfq extends Model
             'vendor_rep_signed_at' => 'date',
             'grand_total' => 'decimal:2',
             'terms' => 'array',
+            'payment_terms' => 'array',
         ];
     }
 

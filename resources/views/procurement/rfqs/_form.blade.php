@@ -42,6 +42,12 @@
         'editable' => true,
     ])
 
+    @include('procurement.rfqs._payment-terms', [
+        'rfq' => $rfq,
+        'paymentTerms' => $rfqPaymentTerms ?? [],
+        'editable' => true,
+    ])
+
     <script type="application/json" id="rfq-scope-terms-map">@json($scopeTermsMap ?? [])</script>
 
     @if (config('procurement.rfq.show_extended_form_fields'))

@@ -272,7 +272,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function applyCustomTermDirection(locale) {
-        document.querySelectorAll('.rfq-custom-term-input').forEach(function (input) {
+        document.querySelectorAll('.rfq-custom-term-input, .rfq-payment-term-input').forEach(function (input) {
             if (locale === 'ar') {
                 input.setAttribute('dir', 'rtl');
             } else {
@@ -392,6 +392,40 @@ document.addEventListener('DOMContentLoaded', function () {
             customTermsList.appendChild(row);
             bindCustomTermRow(row);
             reindexCustomTerms();
+            applyCustomTermDirection(currentTermsLocale());
+            row.querySelector('input[type="text"]')?.focus();
+        });
+    }
+
+    const paymentTermsList = document.getElementById('rfq-payment-terms-list');
+    const paymentTermTemplate = document.getElementById('rfq-payment-term-template');
+    const addPaymentTermBtn = document.getElementById('rfq-add-payment-term');
+
+    if (paymentTermsList && paymentTermTemplate) {
+        function reindexPaymentTerms() {
+            paymentTermsList.querySelectorAll('.rfq-payment-term-row').forEach(function (row, index) {
+                const input = row.querySelector('input[type="text"]');
+                if (input) {
+                    input.setAttribute('name', 'payment_terms[' + index + ']');
+                }
+            });
+        }
+
+        function bindPaymentTermRow(row) {
+            row.querySelector('.rfq-remove-payment-term')?.addEventListener('click', function () {
+                row.remove();
+                reindexPaymentTerms();
+            });
+        }
+
+        paymentTermsList.querySelectorAll('.rfq-payment-term-row').forEach(bindPaymentTermRow);
+        reindexPaymentTerms();
+
+        addPaymentTermBtn?.addEventListener('click', function () {
+            const row = paymentTermTemplate.content.firstElementChild.cloneNode(true);
+            paymentTermsList.appendChild(row);
+            bindPaymentTermRow(row);
+            reindexPaymentTerms();
             applyCustomTermDirection(currentTermsLocale());
             row.querySelector('input[type="text"]')?.focus();
         });

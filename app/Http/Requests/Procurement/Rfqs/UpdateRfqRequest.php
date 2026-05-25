@@ -42,6 +42,8 @@ class UpdateRfqRequest extends FormRequest
             'terms_locale' => ['sometimes', 'nullable', 'string', Rule::in(RfqTermsLocale::values())],
             'terms_custom' => ['nullable', 'array'],
             'terms_custom.*' => ['nullable', 'string', 'max:5000'],
+            'payment_terms' => ['nullable', 'array'],
+            'payment_terms.*' => ['nullable', 'string', 'max:5000'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.procurement_request_item_id' => ['required', 'integer', Rule::exists('procurement_request_items', 'id')],
             'items.*.item' => ['nullable', 'string', 'max:100'],
