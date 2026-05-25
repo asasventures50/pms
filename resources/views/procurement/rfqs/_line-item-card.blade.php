@@ -24,72 +24,79 @@
         </select>
     </div>
 
-    <div class="rfq-pr-details mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3{{ $selectedOpt ? '' : ' hidden' }}">
-        <div>
-            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">PR number</dt>
-            <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="pr_number">{{ $selectedOpt['pr_number'] ?? '—' }}</dd>
+    <div class="rfq-pr-details mt-4 space-y-4{{ $selectedOpt ? '' : ' hidden' }}">
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">PR number</dt>
+                <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="pr_number">{{ $selectedOpt['pr_number'] ?? '—' }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Line number</dt>
+                <dd class="rfq-display-field mt-1 font-mono text-sm text-slate-900" data-display="line_item">{{ $selectedOpt['item'] ?? '—' }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Project</dt>
+                <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="project">{{ $selectedOpt['project'] ?? '—' }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Zone</dt>
+                <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="zone">{{ $selectedOpt['zone'] ?? '—' }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Category</dt>
+                <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="category">{{ $selectedOpt['category'] ?? '—' }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Sub category</dt>
+                <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="subcategory">{{ $selectedOpt['subcategory'] ?? '—' }}</dd>
+            </div>
+            <div class="sm:col-span-2 lg:col-span-3">
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Scope type</dt>
+                <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="scope_type">{{ $selectedOpt['scope_type'] ?? '—' }}</dd>
+            </div>
+            <div class="sm:col-span-2 lg:col-span-3">
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Item description</dt>
+                <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="description">{{ $selectedOpt['description'] ?? '—' }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Unit</dt>
+                <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="unit">{{ $selectedOpt['unit'] ?? '—' }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Quantity</dt>
+                <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="quantity">{{ isset($selectedOpt['quantity']) ? number_format($selectedOpt['quantity'], 3) : '—' }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Justification</dt>
+                <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="justification">{{ $selectedOpt['justification'] ?? '—' }}</dd>
+            </div>
         </div>
-        <div>
-            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Line number</dt>
-            <dd class="rfq-display-field mt-1 font-mono text-sm text-slate-900" data-display="line_item">{{ $selectedOpt['item'] ?? '—' }}</dd>
-        </div>
-        <div>
-            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Project</dt>
-            <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="project">{{ $selectedOpt['project'] ?? '—' }}</dd>
-        </div>
-        <div>
-            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Zone</dt>
-            <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="zone">{{ $selectedOpt['zone'] ?? '—' }}</dd>
-        </div>
-        <div>
-            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Category</dt>
-            <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="category">{{ $selectedOpt['category'] ?? '—' }}</dd>
-        </div>
-        <div>
-            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Sub category</dt>
-            <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="subcategory">{{ $selectedOpt['subcategory'] ?? '—' }}</dd>
-        </div>
-        <div class="sm:col-span-2 lg:col-span-3">
-            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Scope type</dt>
-            <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="scope_type">{{ $selectedOpt['scope_type'] ?? '—' }}</dd>
-        </div>
-        <div class="sm:col-span-2 lg:col-span-3">
-            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Item description</dt>
-            <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="description">{{ $selectedOpt['description'] ?? '—' }}</dd>
-        </div>
-        <div>
-            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Unit</dt>
-            <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="unit">{{ $selectedOpt['unit'] ?? '—' }}</dd>
-        </div>
-        <div>
-            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Quantity</dt>
-            <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="quantity">{{ isset($selectedOpt['quantity']) ? number_format($selectedOpt['quantity'], 3) : '—' }}</dd>
-        </div>
-        <div>
-            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Justification</dt>
-            <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="justification">{{ $selectedOpt['justification'] ?? '—' }}</dd>
-        </div>
-        <div class="sm:col-span-2 lg:col-span-3">
+
+        <div class="border-t border-slate-100 pt-4">
             <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Scope of work</dt>
-            <dd class="rfq-display-field mt-1 whitespace-pre-wrap text-sm text-slate-900" data-display="scope_of_work">{{ $selectedOpt['scope_of_work'] ?? '—' }}</dd>
+            <dd class="rfq-display-field mt-1 max-w-full break-words whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-sm text-slate-900"
+                data-display="scope_of_work">{{ $selectedOpt['scope_of_work'] ?? '—' }}</dd>
         </div>
-        <div>
-            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Required delivery date</dt>
-            <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="required_delivery_date">{{ $selectedOpt['required_delivery_date'] ?? '—' }}</dd>
-        </div>
-        <div>
-            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Flexible delivery date</dt>
-            <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="flexible_delivery_date">
-                @if ($selectedOpt)
-                    {{ ($selectedOpt['flexible_delivery_date'] ?? false) ? 'Yes' : 'No' }}
-                @else
-                    —
-                @endif
-            </dd>
-        </div>
-        <div class="sm:col-span-2">
-            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Delivery location</dt>
-            <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="delivery_location">{{ $selectedOpt['delivery_location'] ?? '—' }}</dd>
+
+        <div class="grid gap-4 border-t border-slate-100 pt-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Required delivery date</dt>
+                <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="required_delivery_date">{{ $selectedOpt['required_delivery_date'] ?? '—' }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Flexible delivery date</dt>
+                <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="flexible_delivery_date">
+                    @if ($selectedOpt)
+                        {{ ($selectedOpt['flexible_delivery_date'] ?? false) ? 'Yes' : 'No' }}
+                    @else
+                        —
+                    @endif
+                </dd>
+            </div>
+            <div class="sm:col-span-2 lg:col-span-1">
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Delivery location</dt>
+                <dd class="rfq-display-field mt-1 break-words text-sm text-slate-900" data-display="delivery_location">{{ $selectedOpt['delivery_location'] ?? '—' }}</dd>
+            </div>
         </div>
     </div>
 
