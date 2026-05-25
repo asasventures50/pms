@@ -48,6 +48,7 @@ class StoreProcurementRequestRequest extends FormRequest
             'items.*.unit' => ['nullable', 'string', 'max:50'],
             'items.*.quantity' => ['required', 'numeric', 'min:0'],
             'items.*.justification' => ['nullable', 'string', 'max:5000'],
+            'items.*.scope_of_work' => ['nullable', 'string'],
             'items.*.required_delivery_date' => ['nullable', 'date'],
             'items.*.flexible_delivery_date' => ['nullable', 'boolean'],
             'items.*.delivery_location' => ['required', 'string', 'max:500'],

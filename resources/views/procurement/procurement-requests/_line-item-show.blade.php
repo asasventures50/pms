@@ -68,6 +68,10 @@
             <dd class="mt-0.5 text-slate-900">{{ $line->justification ?: '—' }}</dd>
         </div>
     </dl>
+    <div class="mt-3">
+        <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Scope of work</dt>
+        <dd class="mt-0.5 whitespace-pre-wrap text-slate-900">{{ $line->scope_of_work ?: '—' }}</dd>
+    </div>
 
     <div class="mt-4 border-t border-slate-200 pt-4">
         <h4 class="text-sm font-semibold text-slate-900">Delivery requirements</h4>

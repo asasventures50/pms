@@ -57,7 +57,7 @@ class ProcurementRequestController extends Controller
     {
         return view('procurement.procurement-requests.create', [
             'nextCode' => app(ProcurementRequestCodeGenerator::class)->next(),
-            'defaultItems' => $this->emptyLineItems(2),
+            'defaultItems' => $this->emptyLineItems(1),
             'projects' => $this->activeProjects(),
         ]);
     }
@@ -110,6 +110,7 @@ class ProcurementRequestController extends Controller
             'unit' => $row->unit,
             'quantity' => $row->quantity,
             'justification' => $row->justification,
+            'scope_of_work' => $row->scope_of_work,
             'required_delivery_date' => $row->required_delivery_date?->format('Y-m-d'),
             'flexible_delivery_date' => $row->flexible_delivery_date,
             'delivery_location' => $row->delivery_location,
@@ -117,7 +118,7 @@ class ProcurementRequestController extends Controller
         ])->all();
 
         if ($defaultItems === []) {
-            $defaultItems = $this->emptyLineItems(2);
+            $defaultItems = $this->emptyLineItems(1);
         }
 
         return view('procurement.procurement-requests.edit', [
@@ -225,6 +226,7 @@ class ProcurementRequestController extends Controller
             'unit' => '',
             'quantity' => 1,
             'justification' => '',
+            'scope_of_work' => '',
             'required_delivery_date' => '',
             'flexible_delivery_date' => true,
             'delivery_location' => '',

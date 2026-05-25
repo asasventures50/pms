@@ -37,6 +37,7 @@
                 'unit' => '',
                 'quantity' => 1,
                 'justification' => '',
+                'scope_of_work' => '',
                 'required_delivery_date' => '',
                 'flexible_delivery_date' => true,
                 'delivery_location' => '',

@@ -58,6 +58,7 @@ class ProcurementRequestPersistenceService
                 'unit' => $row['unit'] ?? null,
                 'quantity' => $row['quantity'],
                 'justification' => $row['justification'] ?? null,
+                'scope_of_work' => $row['scope_of_work'] ?? null,
                 'required_delivery_date' => $row['required_delivery_date'] ?? null,
                 'flexible_delivery_date' => $row['flexible_delivery_date'] ?? true,
                 'delivery_location' => $row['delivery_location'] ?? null,
@@ -118,6 +119,7 @@ class ProcurementRequestPersistenceService
 
             $flexible = filter_var($row['flexible_delivery_date'] ?? false, FILTER_VALIDATE_BOOLEAN);
             $deliveryDate = trim((string) ($row['required_delivery_date'] ?? ''));
+            $scopeOfWork = trim((string) ($row['scope_of_work'] ?? ''));
 
             $entry = [
                 'project_id' => $projectId !== null && $projectId !== '' ? (int) $projectId : null,
@@ -129,6 +131,7 @@ class ProcurementRequestPersistenceService
                 'unit' => isset($row['unit']) ? trim((string) $row['unit']) : null,
                 'quantity' => max(0, (float) ($row['quantity'] ?? 0)),
                 'justification' => isset($row['justification']) ? trim((string) $row['justification']) : null,
+                'scope_of_work' => $scopeOfWork !== '' ? $scopeOfWork : null,
                 'required_delivery_date' => $deliveryDate !== '' ? $deliveryDate : null,
                 'flexible_delivery_date' => $flexible,
                 'delivery_location' => trim((string) ($row['delivery_location'] ?? '')),

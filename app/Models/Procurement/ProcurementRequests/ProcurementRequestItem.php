@@ -29,6 +29,7 @@ class ProcurementRequestItem extends Model
         'unit',
         'quantity',
         'justification',
+        'scope_of_work',
         'required_delivery_date',
         'flexible_delivery_date',
         'delivery_location',

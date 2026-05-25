@@ -154,6 +154,13 @@
         </div>
     </div>
 
+    <div class="mt-4">
+        <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Scope of work</label>
+        <textarea name="items[{{ $index }}][scope_of_work]" rows="5" data-name="scope_of_work"
+                  class="admin-filter-control mt-1 w-full resize-y">{{ old("items.$index.scope_of_work", $row['scope_of_work'] ?? '') }}</textarea>
+        @error("items.$index.scope_of_work")<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+    </div>
+
     <div class="mt-6 border-t border-slate-100 pt-4">
         <h4 class="text-sm font-semibold text-slate-900">Delivery requirements</h4>
         <div class="mt-4 grid gap-4 sm:grid-cols-2">
