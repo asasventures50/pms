@@ -2,6 +2,7 @@
 
 namespace App\Services\Procurement\Rfqs;
 
+use App\Models\Procurement\ProcurementRequests\ProcurementRequestDocument;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequestItem;
 use App\Models\Procurement\Rfqs\RfqItem;
 use App\Support\Procurement\ProcurementScopeType;
@@ -27,6 +28,7 @@ class AvailableProcurementRequestItemsForRfqQuery
                 'procurementRequest:id,request_number',
                 'project:id,code,name',
                 'zone:id,code,name',
+                'documents:id,procurement_request_item_id,file_name,file_path',
             ])
             ->whereHas('procurementRequest', fn ($q) => $q->whereNull('deleted_at'))
             ->whereNotIn('id', $assignedIds)
@@ -79,6 +81,23 @@ class AvailableProcurementRequestItemsForRfqQuery
             'flexible_delivery_date' => (bool) $item->flexible_delivery_date,
             'delivery_location' => $item->delivery_location ?? '',
             'request_lead_time' => $requiredDeliveryDate,
+            'supporting_documents' => $this->formatSupportingDocuments($item),
         ];
+    }
+
+    /**
+     * @return list<array{id: int, file_name: string, url: string|null, is_link: bool}>
+     */
+    private function formatSupportingDocuments(ProcurementRequestItem $item): array
+    {
+        return $item->documents
+            ->map(fn ($document) => [
+                'id' => $document->id,
+                'file_name' => $document->file_name,
+                'url' => $document->url,
+                'is_link' => ProcurementRequestDocument::isExternalUrl($document->file_path),
+            ])
+            ->values()
+            ->all();
     }
 }

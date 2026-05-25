@@ -100,6 +100,16 @@
                 <dd class="rfq-display-field mt-1 break-words text-sm text-slate-900" data-display="delivery_location">{{ $selectedOpt['delivery_location'] ?? '—' }}</dd>
             </div>
         </div>
+
+        <div class="border-t border-slate-100 pt-4">
+            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Supporting documents</dt>
+            <p class="mt-0.5 text-xs text-slate-500">From procurement request</p>
+            <div class="mt-2">
+                @include('procurement.rfqs._pr-supporting-documents', [
+                    'documents' => $selectedOpt['supporting_documents'] ?? [],
+                ])
+            </div>
+        </div>
     </div>
 
     <input type="hidden" data-name="item" value="{{ $row['item'] ?? ($selectedOpt['item'] ?? '') }}">

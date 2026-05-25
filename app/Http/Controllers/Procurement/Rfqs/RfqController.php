@@ -90,7 +90,11 @@ class RfqController extends Controller
 
     public function show(Rfq $rfq): View
     {
-        $rfq->load(['vendor', 'creator', 'items']);
+        $rfq->load([
+            'vendor',
+            'creator',
+            'items.procurementRequestItem.documents',
+        ]);
 
         return view('procurement.rfqs.show', [
             'rfq' => $rfq,
@@ -100,7 +104,11 @@ class RfqController extends Controller
 
     public function edit(Rfq $rfq, AvailableProcurementRequestItemsForRfqQuery $prItemsQuery): View
     {
-        $rfq->load(['items.procurementRequestItem.procurementRequest', 'creator']);
+        $rfq->load([
+            'items.procurementRequestItem.procurementRequest',
+            'items.procurementRequestItem.documents',
+            'creator',
+        ]);
 
         $defaultItems = $rfq->items->map(fn ($row) => [
             'procurement_request_item_id' => $row->procurement_request_item_id ?? '',

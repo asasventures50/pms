@@ -51,6 +51,9 @@
                 </thead>
                 <tbody>
                 @forelse ($rfq->items as $line)
+                    @php
+                        $prDocuments = $line->procurementRequestItem?->documents ?? collect();
+                    @endphp
                     <tr>
                         <td class="border border-slate-900 px-2 py-3 font-mono align-top">{{ $line->item ?: '—' }}</td>
                         <td class="border border-slate-900 px-2 py-3 align-top">{{ $line->description }}</td>
@@ -58,6 +61,26 @@
                         <td class="border border-slate-900 px-2 py-3 align-top">{{ $line->unit ?: '—' }}</td>
                         <td class="border border-slate-900 px-2 py-3 align-top">{{ $line->request_lead_time ?: '—' }}</td>
                     </tr>
+                    @if ($prDocuments->isNotEmpty())
+                        <tr>
+                            <td colspan="5" class="border border-slate-900 bg-slate-50/50 px-2 py-2 align-top text-xs">
+                                <span class="font-semibold uppercase tracking-wide text-slate-600">Supporting documents (PR)</span>
+                                <ul class="mt-1 space-y-1">
+                                    @foreach ($prDocuments as $document)
+                                        <li>
+                                            <a href="{{ $document->url }}" target="_blank" rel="noopener"
+                                               class="font-medium text-slate-900 underline hover:text-slate-700">
+                                                {{ $document->file_name }}
+                                            </a>
+                                            @if (\App\Models\Procurement\ProcurementRequests\ProcurementRequestDocument::isExternalUrl($document->file_path))
+                                                <span class="text-slate-500">(link)</span>
+                                            @endif
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </td>
+                        </tr>
+                    @endif
                 @empty
                     <tr>
                         <td colspan="5" class="border border-slate-900 px-2 py-8 text-center text-slate-500">No line items.</td>

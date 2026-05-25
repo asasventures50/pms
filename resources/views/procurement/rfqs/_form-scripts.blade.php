@@ -77,6 +77,52 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
+        function renderSupportingDocuments(row, documents) {
+            const list = row.querySelector('[data-rfq-pr-documents-list]');
+            const empty = row.querySelector('[data-rfq-pr-documents-empty]');
+            if (! list || ! empty) {
+                return;
+            }
+
+            const items = Array.isArray(documents) ? documents : [];
+            list.innerHTML = '';
+
+            if (items.length === 0) {
+                list.classList.add('hidden');
+                empty.classList.remove('hidden');
+                return;
+            }
+
+            list.classList.remove('hidden');
+            empty.classList.add('hidden');
+
+            items.forEach(function (doc) {
+                if (! doc || ! doc.url) {
+                    return;
+                }
+
+                const li = document.createElement('li');
+                li.className = 'flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2 text-sm';
+
+                const link = document.createElement('a');
+                link.href = doc.url;
+                link.target = '_blank';
+                link.rel = 'noopener';
+                link.className = 'min-w-0 truncate font-medium text-slate-900 hover:underline';
+                link.textContent = doc.file_name || doc.url;
+                li.appendChild(link);
+
+                if (doc.is_link) {
+                    const badge = document.createElement('span');
+                    badge.className = 'shrink-0 rounded bg-slate-200 px-1.5 py-0.5 text-xs font-medium text-slate-600';
+                    badge.textContent = 'Link';
+                    li.appendChild(badge);
+                }
+
+                list.appendChild(li);
+            });
+        }
+
         function showPrDetails(details) {
             if (! details) {
                 return;
@@ -105,6 +151,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 ['pr_number', 'line_item', 'project', 'zone', 'category', 'subcategory', 'scope_type', 'description', 'unit', 'quantity', 'justification', 'scope_of_work', 'required_delivery_date', 'flexible_delivery_date', 'delivery_location'].forEach(function (key) {
                     setDisplay(row, key, '');
                 });
+                renderSupportingDocuments(row, []);
                 return;
             }
 
@@ -124,6 +171,7 @@ document.addEventListener('DOMContentLoaded', function () {
             setDisplay(row, 'required_delivery_date', opt.required_delivery_date);
             setDisplay(row, 'flexible_delivery_date', opt.flexible_delivery_date);
             setDisplay(row, 'delivery_location', opt.delivery_location);
+            renderSupportingDocuments(row, opt.supporting_documents);
 
             setHidden(row, 'item', opt.item);
             setHidden(row, 'description', opt.description);
