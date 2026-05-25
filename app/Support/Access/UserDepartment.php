@@ -18,6 +18,7 @@ final class UserDepartment
             'operations' => 'Operations',
             'it' => 'IT',
             'hr' => 'HR',
+            'architecture'=>'Architecture',
         ];
     }
 
