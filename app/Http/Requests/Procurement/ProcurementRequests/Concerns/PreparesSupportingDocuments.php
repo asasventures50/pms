@@ -21,16 +21,33 @@ trait PreparesSupportingDocuments
 
             $files = $this->file("items.$index.supporting_documents");
 
-            if (! is_array($files)) {
+            if (is_array($files)) {
+                $filtered = array_values(array_filter(
+                    $files,
+                    static fn ($file) => $file instanceof UploadedFile && $file->isValid()
+                ));
+
+                $this->files->set("items.$index.supporting_documents", $filtered);
+            }
+
+            $links = $row['supporting_document_links'] ?? null;
+
+            if (! is_array($links)) {
                 continue;
             }
 
-            $filtered = array_values(array_filter(
-                $files,
-                static fn ($file) => $file instanceof UploadedFile && $file->isValid()
-            ));
+            $items[$index]['supporting_document_links'] = array_values(array_filter(
+                $links,
+                static function ($link): bool {
+                    if (! is_array($link)) {
+                        return false;
+                    }
 
-            $this->files->set("items.$index.supporting_documents", $filtered);
+                    return trim((string) ($link['url'] ?? '')) !== '';
+                }
+            ));
         }
+
+        $this->merge(['items' => $items]);
     }
 }

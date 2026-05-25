@@ -64,6 +64,16 @@ document.addEventListener('DOMContentLoaded', function () {
             row.querySelectorAll('[data-pr-supporting-file]').forEach(function (input) {
                 input.setAttribute('name', 'items[' + index + '][supporting_documents][]');
             });
+            row.querySelectorAll('.pr-supporting-link-row').forEach(function (linkRow, linkIndex) {
+                const urlInput = linkRow.querySelector('[data-pr-supporting-link-url]');
+                const nameInput = linkRow.querySelector('[data-pr-supporting-link-name]');
+                if (urlInput) {
+                    urlInput.setAttribute('name', 'items[' + index + '][supporting_document_links][' + linkIndex + '][url]');
+                }
+                if (nameInput) {
+                    nameInput.setAttribute('name', 'items[' + index + '][supporting_document_links][' + linkIndex + '][name]');
+                }
+            });
             row.querySelectorAll('[data-pr-remove-document-id]').forEach(function (input) {
                 input.setAttribute('name', 'items[' + index + '][remove_supporting_document_ids][]');
             });
@@ -82,8 +92,14 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        fileRow.querySelector('.pr-remove-supporting-file')?.addEventListener('click', function () {
+        fileRow.querySelector('.pr-remove-supporting-attachment')?.addEventListener('click', function () {
             fileRow.remove();
+        });
+    }
+
+    function bindSupportingLinkRow(linkRow) {
+        linkRow.querySelector('.pr-remove-supporting-attachment')?.addEventListener('click', function () {
+            linkRow.remove();
         });
     }
 
@@ -98,26 +114,36 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         const filesBody = section.querySelector('.pr-item-supporting-files-body');
+        const linksBody = section.querySelector('.pr-item-supporting-links-body');
         const fileTpl = section.querySelector('.pr-item-supporting-file-template');
-        const addBtn = section.querySelector('[data-pr-item-add-supporting-file]');
+        const linkTpl = section.querySelector('.pr-item-supporting-link-template');
+        const addFileBtn = section.querySelector('[data-pr-item-add-supporting-file]');
+        const addLinkBtn = section.querySelector('[data-pr-item-add-supporting-link]');
 
         if (!filesBody || !fileTpl) {
             return;
         }
 
         filesBody.querySelectorAll('.pr-supporting-file-row').forEach(bindSupportingFileRow);
+        linksBody?.querySelectorAll('.pr-supporting-link-row').forEach(bindSupportingLinkRow);
 
-        if (addBtn && addBtn.dataset.prSupportingBound !== '1') {
-            addBtn.dataset.prSupportingBound = '1';
-            addBtn.addEventListener('click', function () {
-                const lineIndex = lineIndexForRow(lineRow);
+        if (addFileBtn && addFileBtn.dataset.prSupportingBound !== '1') {
+            addFileBtn.dataset.prSupportingBound = '1';
+            addFileBtn.addEventListener('click', function () {
                 const fileRow = fileTpl.content.firstElementChild.cloneNode(true);
-                const fileInput = fileRow.querySelector('[data-pr-supporting-file]');
-                if (fileInput) {
-                    fileInput.setAttribute('name', 'items[' + lineIndex + '][supporting_documents][]');
-                }
                 filesBody.appendChild(fileRow);
                 bindSupportingFileRow(fileRow);
+                reindexRows();
+            });
+        }
+
+        if (addLinkBtn && linkTpl && linksBody && addLinkBtn.dataset.prSupportingBound !== '1') {
+            addLinkBtn.dataset.prSupportingBound = '1';
+            addLinkBtn.addEventListener('click', function () {
+                const linkRow = linkTpl.content.firstElementChild.cloneNode(true);
+                linksBody.appendChild(linkRow);
+                bindSupportingLinkRow(linkRow);
+                reindexRows();
             });
         }
     }

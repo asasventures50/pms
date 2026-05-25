@@ -66,10 +66,12 @@
                 <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Quantity</dt>
                 <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="quantity">{{ isset($selectedOpt['quantity']) ? number_format($selectedOpt['quantity'], 3) : '—' }}</dd>
             </div>
-            <div>
-                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Justification</dt>
-                <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="justification">{{ $selectedOpt['justification'] ?? '—' }}</dd>
-            </div>
+        </div>
+
+        <div class="border-t border-slate-100 pt-4">
+            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Justification</dt>
+            <dd class="rfq-display-field mt-1 max-w-full break-words whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-sm text-slate-900"
+                data-display="justification">{{ $selectedOpt['justification'] ?? '—' }}</dd>
         </div>
 
         <div class="border-t border-slate-100 pt-4">

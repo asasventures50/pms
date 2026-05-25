@@ -70,7 +70,10 @@ class UpdateProcurementRequestRequest extends FormRequest
             'items.*.flexible_delivery_date' => ['nullable', 'boolean'],
             'items.*.delivery_location' => ['required', 'string', 'max:500'],
             'items.*.supporting_documents' => ['nullable', 'array'],
-            'items.*.supporting_documents.*' => ['nullable', 'file', 'max:10240', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp,zip,rar'],
+            'items.*.supporting_documents.*' => ['nullable', 'file', 'max:204800', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp,zip,rar'],
+            'items.*.supporting_document_links' => ['nullable', 'array'],
+            'items.*.supporting_document_links.*.url' => ['required', 'string', 'url', 'max:2000'],
+            'items.*.supporting_document_links.*.name' => ['nullable', 'string', 'max:255'],
             'items.*.remove_supporting_document_ids' => ['nullable', 'array'],
             'items.*.remove_supporting_document_ids.*' => ['integer'],
         ];

@@ -179,6 +179,12 @@ class ProcurementRequestController extends Controller
             if ($uploads !== []) {
                 $this->documents->append($item, $uploads);
             }
+
+            $links = $request->input("items.$index.supporting_document_links", []);
+
+            if (is_array($links) && $links !== []) {
+                $this->documents->appendLinks($item, $links);
+            }
         }
     }
 

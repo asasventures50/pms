@@ -26,12 +26,23 @@ class ProcurementRequestDocument extends Model
      */
     protected $appends = ['url'];
 
+    public static function isExternalUrl(?string $path): bool
+    {
+        return is_string($path)
+            && $path !== ''
+            && filter_var($path, FILTER_VALIDATE_URL) !== false;
+    }
+
     protected function url(): Attribute
     {
         return Attribute::make(
             get: function () {
                 if (! $this->file_path) {
                     return null;
+                }
+
+                if (self::isExternalUrl($this->file_path)) {
+                    return $this->file_path;
                 }
 
                 /** @var FilesystemAdapter $disk */

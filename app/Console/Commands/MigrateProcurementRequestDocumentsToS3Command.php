@@ -59,7 +59,7 @@ class MigrateProcurementRequestDocumentsToS3Command extends Command
     private function migrateRecord(ProcurementRequestDocument $document): string
     {
         try {
-            if (empty($document->file_path)) {
+            if (empty($document->file_path) || ProcurementRequestDocument::isExternalUrl($document->file_path)) {
                 return 'skipped';
             }
 

@@ -7,13 +7,20 @@
     <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h4 class="text-sm font-semibold text-slate-900">Supporting documents</h4>
-            <p class="mt-1 text-xs text-slate-500">Add one file at a time · max 10 MB each</p>
+            <p class="mt-1 text-xs text-slate-500">Upload a file or add a link · max 200 MB per file</p>
         </div>
-        <button type="button" data-pr-item-add-supporting-file
-                class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-800 hover:bg-slate-50 print:hidden">
-            <span class="text-base leading-none" aria-hidden="true">+</span>
-            Add file
-        </button>
+        <div class="flex flex-wrap gap-2 print:hidden">
+            <button type="button" data-pr-item-add-supporting-file
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-800 hover:bg-slate-50">
+                <span class="text-base leading-none" aria-hidden="true">+</span>
+                Upload file
+            </button>
+            <button type="button" data-pr-item-add-supporting-link
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-800 hover:bg-slate-50">
+                <span class="text-base leading-none" aria-hidden="true">+</span>
+                Add link
+            </button>
+        </div>
     </div>
 
     @if ($documents->isNotEmpty())
@@ -36,9 +43,10 @@
         </ul>
     @endif
 
-    <div class="pr-item-supporting-files mt-4 space-y-2 print:hidden @error("items.$index.supporting_documents") rounded-lg border border-red-300 bg-red-50/30 p-3 @enderror">
-        <p class="text-xs text-slate-500">PDF · Word · Excel · JPG · PNG · WebP · ZIP · RAR</p>
+    <div class="pr-item-supporting-attachments mt-4 space-y-2 print:hidden @error("items.$index.supporting_documents") rounded-lg border border-red-300 bg-red-50/30 p-3 @enderror @error("items.$index.supporting_document_links") rounded-lg border border-red-300 bg-red-50/30 p-3 @enderror @error("items.$index.supporting_document_links.*") rounded-lg border border-red-300 bg-red-50/30 p-3 @enderror">
+        <p class="text-xs text-slate-500">Files: PDF · Word · Excel · JPG · PNG · WebP · ZIP · RAR</p>
         <div class="pr-item-supporting-files-body space-y-2"></div>
+        <div class="pr-item-supporting-links-body space-y-2"></div>
         <template class="pr-item-supporting-file-template">
             <div class="pr-supporting-file-row flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-2">
                 <input type="file" data-pr-supporting-file
@@ -46,12 +54,32 @@
                        class="block max-w-full text-sm text-slate-700 file:mr-3 file:rounded-md file:border-0 file:bg-slate-900 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white hover:file:bg-slate-800">
                 <span class="pr-supporting-file-name min-w-0 flex-1 truncate text-sm text-slate-600"></span>
                 <button type="button"
-                        class="pr-remove-supporting-file shrink-0 text-sm font-medium text-red-700 hover:text-red-900">
+                        class="pr-remove-supporting-attachment shrink-0 text-sm font-medium text-red-700 hover:text-red-900">
+                    Remove
+                </button>
+            </div>
+        </template>
+        <template class="pr-item-supporting-link-template">
+            <div class="pr-supporting-link-row flex flex-col gap-2 rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-2 sm:flex-row sm:items-center">
+                <div class="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center">
+                    <input type="url" data-pr-supporting-link-url
+                           placeholder="https://example.com/document"
+                           class="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-slate-500 focus:ring-slate-500">
+                    <input type="text" data-pr-supporting-link-name
+                           placeholder="Label (optional)"
+                           class="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-slate-500 focus:ring-slate-500 sm:max-w-xs">
+                </div>
+                <button type="button"
+                        class="pr-remove-supporting-attachment shrink-0 self-start text-sm font-medium text-red-700 hover:text-red-900 sm:self-center">
                     Remove
                 </button>
             </div>
         </template>
         @error("items.$index.supporting_documents")<p class="text-sm text-red-600">{{ $message }}</p>@enderror
         @error("items.$index.supporting_documents.*")<p class="text-sm text-red-600">{{ $message }}</p>@enderror
+        @error("items.$index.supporting_document_links")<p class="text-sm text-red-600">{{ $message }}</p>@enderror
+        @error("items.$index.supporting_document_links.*")<p class="text-sm text-red-600">{{ $message }}</p>@enderror
+        @error("items.$index.supporting_document_links.*.url")<p class="text-sm text-red-600">{{ $message }}</p>@enderror
+        @error("items.$index.supporting_document_links.*.name")<p class="text-sm text-red-600">{{ $message }}</p>@enderror
     </div>
 </div>
