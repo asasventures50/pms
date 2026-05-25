@@ -69,6 +69,10 @@
             <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Justification</dt>
             <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="justification">{{ $selectedOpt['justification'] ?? '—' }}</dd>
         </div>
+        <div class="sm:col-span-2 lg:col-span-3">
+            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Scope of work</dt>
+            <dd class="rfq-display-field mt-1 whitespace-pre-wrap text-sm text-slate-900" data-display="scope_of_work">{{ $selectedOpt['scope_of_work'] ?? '—' }}</dd>
+        </div>
         <div>
             <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Required delivery date</dt>
             <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="required_delivery_date">{{ $selectedOpt['required_delivery_date'] ?? '—' }}</dd>

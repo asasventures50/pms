@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 ['item', 'description', 'quantity', 'unit', 'request_lead_time'].forEach(function (key) {
                     setHidden(row, key, key === 'quantity' ? '1' : '');
                 });
-                ['pr_number', 'line_item', 'project', 'zone', 'category', 'subcategory', 'scope_type', 'description', 'unit', 'quantity', 'justification', 'required_delivery_date', 'flexible_delivery_date', 'delivery_location'].forEach(function (key) {
+                ['pr_number', 'line_item', 'project', 'zone', 'category', 'subcategory', 'scope_type', 'description', 'unit', 'quantity', 'justification', 'scope_of_work', 'required_delivery_date', 'flexible_delivery_date', 'delivery_location'].forEach(function (key) {
                     setDisplay(row, key, '');
                 });
                 return;
@@ -120,6 +120,7 @@ document.addEventListener('DOMContentLoaded', function () {
             setDisplay(row, 'unit', opt.unit);
             setDisplay(row, 'quantity', opt.quantity);
             setDisplay(row, 'justification', opt.justification);
+            setDisplay(row, 'scope_of_work', opt.scope_of_work);
             setDisplay(row, 'required_delivery_date', opt.required_delivery_date);
             setDisplay(row, 'flexible_delivery_date', opt.flexible_delivery_date);
             setDisplay(row, 'delivery_location', opt.delivery_location);

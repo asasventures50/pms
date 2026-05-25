@@ -74,6 +74,7 @@ class AvailableProcurementRequestItemsForRfqQuery
             'unit' => $item->unit ?? '',
             'quantity' => (float) $item->quantity,
             'justification' => $item->justification ?? '',
+            'scope_of_work' => $item->scope_of_work ?? '',
             'required_delivery_date' => $requiredDeliveryDate,
             'flexible_delivery_date' => (bool) $item->flexible_delivery_date,
             'delivery_location' => $item->delivery_location ?? '',
