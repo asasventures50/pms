@@ -4,6 +4,7 @@ namespace App\Models\Procurement\Rfqs;
 
 use App\Enums\Procurement\Rfqs\RfqStatus;
 use App\Models\Concerns\LogsActivity;
+use App\Models\Procurement\VendorQuotations\VendorQuotation;
 use App\Models\Procurement\Vendors\Vendor;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -38,6 +39,7 @@ class Rfq extends Model
         'vendor_address',
         'issue_date',
         'submission_deadline',
+        'quotation_validity',
         'payment_method',
         'grand_total',
         'status',
@@ -76,5 +78,10 @@ class Rfq extends Model
     public function items(): HasMany
     {
         return $this->hasMany(RfqItem::class)->orderBy('sort_order');
+    }
+
+    public function vendorQuotations(): HasMany
+    {
+        return $this->hasMany(VendorQuotation::class)->latest();
     }
 }

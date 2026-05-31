@@ -27,6 +27,7 @@ class UpdateRfqRequest extends FormRequest
             'rfq_number' => ['sometimes', 'nullable', 'string', 'max:100', Rule::unique('rfqs', 'rfq_number')->ignore($this->route('rfq'))],
             'issue_date' => ['sometimes', 'nullable', 'date'],
             'submission_deadline' => ['sometimes', 'nullable', 'date'],
+            'quotation_validity' => ['sometimes', 'nullable', 'string', 'max:100'],
             'vendor_id' => ['sometimes', 'nullable', 'integer', Rule::exists('vendors', 'id')->whereNull('deleted_at')],
             'vendor_company_name' => ['sometimes', 'nullable', 'string', 'max:255'],
             'vendor_contact' => ['sometimes', 'nullable', 'string', 'max:255'],

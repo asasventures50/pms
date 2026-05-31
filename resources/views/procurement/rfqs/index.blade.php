@@ -75,6 +75,10 @@
                         <td class="px-3 py-2"><span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium">{{ ucfirst($rfq->status->value) }}</span></td>
                         <td class="whitespace-nowrap px-3 py-2 text-right text-xs">
                             <a href="{{ route('rfqs.show', $rfq) }}" class="font-medium text-slate-700 hover:text-slate-900">View</a>
+                            @if ($rfq->items_count > 0 && (auth()->user()->hasPermission('vendor-quotations.create') || auth()->user()->hasPermission('rfqs.update')))
+                                <span class="mx-1 text-slate-300">|</span>
+                                <a href="{{ route('rfqs.quotations.create', $rfq) }}" class="font-medium text-emerald-800 hover:text-emerald-950">Quotation</a>
+                            @endif
                             @if (auth()->user()->hasPermission('rfqs.update'))
                                 <span class="mx-1 text-slate-300">|</span>
                                 <a href="{{ route('rfqs.edit', $rfq) }}" class="font-medium text-slate-700 hover:text-slate-900">Edit</a>

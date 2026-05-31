@@ -34,6 +34,7 @@ class RfqController extends Controller
 
         $query = Rfq::query()
             ->with(['vendor', 'creator'])
+            ->withCount(['items', 'vendorQuotations'])
             ->latest();
 
         if ($request->filled('q')) {
@@ -96,6 +97,7 @@ class RfqController extends Controller
             'vendor',
             'creator',
             'items.procurementRequestItem.documents',
+            'vendorQuotations.vendor',
         ]);
 
         return view('procurement.rfqs.show', [

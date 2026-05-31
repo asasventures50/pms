@@ -35,6 +35,10 @@ final class PermissionCatalog
             'rfqs.create' => ['label' => 'Create RFQs', 'group' => 'RFQs'],
             'rfqs.update' => ['label' => 'Update RFQs', 'group' => 'RFQs'],
 
+            'vendor-quotations.view' => ['label' => 'View vendor quotations', 'group' => 'RFQs'],
+            'vendor-quotations.create' => ['label' => 'Create vendor quotations', 'group' => 'RFQs'],
+            'vendor-quotations.update' => ['label' => 'Update vendor quotations', 'group' => 'RFQs'],
+
             'rfq-terms.view' => ['label' => 'View RFQ general terms', 'group' => 'RFQs'],
             'rfq-terms.manage' => ['label' => 'Manage RFQ general terms', 'group' => 'RFQs'],
 

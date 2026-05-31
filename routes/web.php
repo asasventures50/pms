@@ -20,6 +20,7 @@ use App\Http\Controllers\Procurement\Projects\ZoneQuickStoreController;
 use App\Http\Controllers\Procurement\PurchaseOrders\PurchaseOrderController;
 use App\Http\Controllers\Procurement\Rfqs\RfqController;
 use App\Http\Controllers\Procurement\Rfqs\RfqGeneralTermController;
+use App\Http\Controllers\Procurement\VendorQuotations\VendorQuotationController;
 use App\Http\Controllers\Procurement\Vendors\VendorWebController;
 use Illuminate\Support\Facades\Route;
 
@@ -195,6 +196,18 @@ Route::middleware(['auth'])->group(function () {
             'edit' => 'permission:rfqs.update',
             'update' => 'permission:rfqs.update',
             'destroy' => 'permission:rfqs.update',
+        ]);
+
+    Route::resource('rfqs.quotations', VendorQuotationController::class)
+        ->parameters(['quotations' => 'quotation'])
+        ->except(['index'])
+        ->middleware([
+            'create' => 'permission:vendor-quotations.create|rfqs.update',
+            'store' => 'permission:vendor-quotations.create|rfqs.update',
+            'show' => 'permission:vendor-quotations.view|rfqs.view',
+            'edit' => 'permission:vendor-quotations.update|rfqs.update',
+            'update' => 'permission:vendor-quotations.update|rfqs.update',
+            'destroy' => 'permission:vendor-quotations.update|rfqs.update',
         ]);
 
     Route::resource('procurement-requests', ProcurementRequestController::class)

@@ -15,7 +15,16 @@ class EnsurePermission
     {
         $user = $request->user();
 
-        if ($user === null || ! $user->hasPermission($permission)) {
+        if ($user === null) {
+            abort(403, 'You do not have permission to perform this action.');
+        }
+
+        $allowed = collect(explode('|', $permission))
+            ->map(fn (string $name) => trim($name))
+            ->filter()
+            ->contains(fn (string $name) => $user->hasPermission($name));
+
+        if (! $allowed) {
             abort(403, 'You do not have permission to perform this action.');
         }
 

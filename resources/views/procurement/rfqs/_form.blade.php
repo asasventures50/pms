@@ -27,6 +27,13 @@
                        value="{{ old('issue_date', $rfq?->issue_date?->format('Y-m-d') ?? now()->format('Y-m-d')) }}"
                        class="rfq-doc-field min-w-0 flex-1">
             </div>
+            <div class="flex flex-col gap-1 sm:col-span-2 sm:flex-row sm:items-end sm:gap-3">
+                <label for="quotation_validity" class="shrink-0 text-sm font-medium">Quotation Validity:</label>
+                <input type="text" name="quotation_validity" id="quotation_validity"
+                       value="{{ old('quotation_validity', $rfq?->quotation_validity ?? '') }}"
+                       placeholder="e.g. 30 days from submission"
+                       class="rfq-doc-field min-w-0 flex-1">
+            </div>
         </div>
     </div>
 

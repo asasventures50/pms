@@ -3,12 +3,20 @@
 @section('title', 'RFQ '.$rfq->rfq_number)
 
 @section('content')
+    @php
+        $canAddQuotation = auth()->user()->hasPermission('vendor-quotations.create')
+            || auth()->user()->hasPermission('rfqs.update');
+    @endphp
+
     <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between print:hidden">
         <div>
             <h1 class="text-2xl font-semibold tracking-tight text-slate-900 font-mono">{{ $rfq->rfq_number }}</h1>
             <p class="mt-1 text-sm text-slate-600">Prepared by {{ $rfq->creator?->name ?? '—' }}</p>
         </div>
         <div class="flex flex-wrap gap-3">
+            @if ($canAddQuotation && $rfq->items->isNotEmpty())
+                <a href="{{ route('rfqs.quotations.create', $rfq) }}" class="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800">Add vendor quotation</a>
+            @endif
             @if (auth()->user()->hasPermission('rfqs.update'))
                 <a href="{{ route('rfqs.edit', $rfq) }}" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">Edit</a>
             @endif
@@ -16,6 +24,28 @@
             <button type="button" onclick="window.print()" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">Print</button>
         </div>
     </div>
+
+    <section class="mx-auto mb-6 max-w-4xl rounded-xl border-2 border-emerald-300 bg-emerald-50 p-4 shadow-sm print:hidden">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 class="text-base font-bold text-slate-900">Vendor quotations</h2>
+                <p class="mt-1 text-sm text-slate-600">عروض أسعار الموردين المرتبطة بهذا الطلب — ليست قائمة منفصلة في القائمة العلوية.</p>
+            </div>
+            @if ($canAddQuotation)
+                @if ($rfq->items->isNotEmpty())
+                    <a href="{{ route('rfqs.quotations.create', $rfq) }}"
+                       class="inline-flex shrink-0 items-center justify-center rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800">
+                        + Add vendor quotation
+                    </a>
+                @else
+                    <p class="text-sm font-medium text-amber-800">أضف بنوداً للـ RFQ أولاً (Edit → Request details).</p>
+                @endif
+            @else
+                <p class="text-sm text-slate-600">لا توجد صلاحية لإنشاء عروض الموردين.</p>
+            @endif
+        </div>
+        @include('procurement.rfqs._vendor-quotations-list', ['rfq' => $rfq])
+    </section>
 
     <article class="rfq-document mx-auto max-w-4xl border-2 border-slate-900 bg-white p-6 text-slate-900 shadow-sm sm:p-8 print:border print:shadow-none">
         @include('procurement.rfqs._document-header')
@@ -34,6 +64,12 @@
                     <span class="shrink-0 font-medium">Issue Date:</span>
                     <span>{{ $rfq->issue_date?->format('Y-m-d') ?? '—' }}</span>
                 </div>
+                @if ($rfq->quotation_validity)
+                    <div class="flex flex-col gap-1 border-b border-slate-900 pb-1 sm:col-span-2 sm:flex-row sm:gap-3">
+                        <span class="shrink-0 font-medium">Quotation Validity:</span>
+                        <span>{{ $rfq->quotation_validity }}</span>
+                    </div>
+                @endif
             </div>
         </div>
 

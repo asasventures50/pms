@@ -3,8 +3,10 @@
 namespace App\Models\Procurement\Rfqs;
 
 use App\Models\Procurement\ProcurementRequests\ProcurementRequestItem;
+use App\Models\Procurement\VendorQuotations\VendorQuotationItem;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class RfqItem extends Model
 {
@@ -48,5 +50,10 @@ class RfqItem extends Model
     public function procurementRequestItem(): BelongsTo
     {
         return $this->belongsTo(ProcurementRequestItem::class);
+    }
+
+    public function vendorQuotationItems(): HasMany
+    {
+        return $this->hasMany(VendorQuotationItem::class);
     }
 }
