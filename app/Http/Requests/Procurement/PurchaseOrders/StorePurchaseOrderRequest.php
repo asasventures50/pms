@@ -4,6 +4,7 @@ namespace App\Http\Requests\Procurement\PurchaseOrders;
 
 use App\Enums\Procurement\PurchaseOrders\PaymentStatus;
 use App\Enums\Procurement\PurchaseOrders\PurchaseOrderStatus;
+use App\Enums\Procurement\Rfqs\RfqTermsLocale;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -43,19 +44,26 @@ class StorePurchaseOrderRequest extends FormRequest
             'vendor_email' => ['nullable', 'string', 'email', 'max:255'],
             'vendor_phone' => ['nullable', 'string', 'max:50'],
             'vendor_address' => ['nullable', 'string', 'max:2000'],
-            'currency_code' => ['nullable', 'string', 'size:3', 'alpha'],
-            'payment_terms' => ['nullable', 'string', 'max:5000'],
-            'delivery_time' => ['nullable', 'string', 'max:255'],
+            'delivery_contact_name' => ['nullable', 'string', 'max:255'],
+            'delivery_contact_phone' => ['nullable', 'string', 'max:50'],
+            'delivery_contact_email' => ['nullable', 'string', 'email', 'max:255'],
             'delivery_location' => ['nullable', 'string', 'max:2000'],
+            'currency_code' => ['nullable', 'string', 'size:3', 'alpha'],
+            'delivery_fee' => ['nullable', 'numeric', 'min:0'],
+            'discount' => ['nullable', 'numeric', 'min:0'],
+            'payment_terms' => ['nullable', 'string', 'max:5000'],
+            'handover_at' => ['nullable', 'date'],
+            'dismantling_at' => ['nullable', 'date', 'after_or_equal:handover_at'],
+            'terms_locale' => ['nullable', 'string', Rule::in(RfqTermsLocale::values())],
+            'terms_custom' => ['nullable', 'array'],
+            'terms_custom.*' => ['nullable', 'string', 'max:5000'],
             'notes' => ['nullable', 'string', 'max:10000'],
             'status' => ['nullable', 'string', Rule::in(PurchaseOrderStatus::values())],
             'payment_status' => ['nullable', 'string', Rule::in(PaymentStatus::values())],
+            'vendor_signature' => ['nullable', 'string', 'max:255'],
+            'vendor_signed_at' => ['nullable', 'date'],
             'procurement_signature' => ['nullable', 'string', 'max:255'],
             'procurement_signed_at' => ['nullable', 'date'],
-            'finance_signature' => ['nullable', 'string', 'max:255'],
-            'finance_signed_at' => ['nullable', 'date'],
-            'ceo_signature' => ['nullable', 'string', 'max:255'],
-            'ceo_signed_at' => ['nullable', 'date'],
         ];
     }
 }

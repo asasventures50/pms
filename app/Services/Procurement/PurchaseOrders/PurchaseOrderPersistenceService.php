@@ -2,12 +2,19 @@
 
 namespace App\Services\Procurement\PurchaseOrders;
 
+use App\Enums\Procurement\Rfqs\RfqTermsLocale;
 use App\Models\Procurement\PurchaseOrders\PurchaseOrder;
 use App\Models\Procurement\PurchaseOrders\PurchaseOrderItem;
+use App\Services\Procurement\Rfqs\RfqGeneralTermsService;
+use App\Enums\Procurement\PurchaseOrders\BuyerCompany;
 use Illuminate\Support\Facades\DB;
 
 class PurchaseOrderPersistenceService
 {
+    public function __construct(
+        private readonly RfqGeneralTermsService $termsService,
+    ) {}
+
     /**
      * @param  array<string, mixed>  $header
      * @param  list<array<string, mixed>>  $items
@@ -15,6 +22,7 @@ class PurchaseOrderPersistenceService
     public function create(array $header, array $items): PurchaseOrder
     {
         return DB::transaction(function () use ($header, $items) {
+            BuyerCompany::applyToHeader($header);
             $header = $this->applyTotals($header, $items);
             $purchaseOrder = PurchaseOrder::query()->create($header);
             $this->syncItems($purchaseOrder, $items);
@@ -30,6 +38,7 @@ class PurchaseOrderPersistenceService
     public function update(PurchaseOrder $purchaseOrder, array $header, array $items): PurchaseOrder
     {
         return DB::transaction(function () use ($purchaseOrder, $header, $items) {
+            BuyerCompany::applyToHeader($header);
             $header = $this->applyTotals($header, $items);
             $purchaseOrder->fill($header);
             $purchaseOrder->save();
@@ -46,20 +55,56 @@ class PurchaseOrderPersistenceService
      */
     private function applyTotals(array $header, array $items): array
     {
-        $grandTotal = 0.0;
+        $linesSubtotal = 0.0;
 
         foreach ($items as $row) {
-            $grandTotal += (float) ($row['line_total'] ?? 0);
+            $linesSubtotal += (float) ($row['line_total'] ?? 0);
         }
 
-        $header['total_price'] = round($grandTotal, 2);
+        $deliveryFee = max(0, (float) ($header['delivery_fee'] ?? 0));
+        $discount = max(0, (float) ($header['discount'] ?? 0));
+        $header['delivery_fee'] = round($deliveryFee, 2);
+        $header['discount'] = round($discount, 2);
+        $header['total_price'] = round(max(0, $linesSubtotal + $deliveryFee - $discount), 2);
 
         if (empty($header['title'])) {
             $poNumber = $header['po_number'] ?? '';
             $header['title'] = $poNumber !== '' ? 'Purchase Order '.$poNumber : 'Purchase Order';
         }
 
+        $locale = $header['terms_locale'] ?? RfqTermsLocale::default()->value;
+        if (! in_array($locale, RfqTermsLocale::values(), true)) {
+            $locale = RfqTermsLocale::default()->value;
+        }
+        $header['terms_locale'] = $locale;
+
+        $scopeTypes = $this->scopeTypesForTerms($header);
+        $general = $this->termsService->activeTextsForScopeTypes($scopeTypes, $locale);
+        $custom = $this->termsService->normalizeTexts($header['terms_custom'] ?? []);
+        unset($header['terms_custom']);
+
+        $header['terms'] = $this->termsService->buildTermsPayload($general, $custom);
+
         return $header;
+    }
+
+    /**
+     * @param  array<string, mixed>  $header
+     * @return list<string>
+     */
+    private function scopeTypesForTerms(array $header): array
+    {
+        $types = [];
+
+        if (! empty($header['handover_at'])) {
+            $types[] = 'Maintenance';
+        }
+
+        if (! empty($header['dismantling_at'])) {
+            $types[] = 'Dismantling';
+        }
+
+        return $types;
     }
 
     /**

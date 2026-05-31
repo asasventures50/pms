@@ -29,7 +29,7 @@
         <section class="mt-8">
             <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-700">Order information</h2>
             <dl class="mt-4 grid gap-4 sm:grid-cols-3 text-sm">
-<div>
+                <div>
                     <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Requested by</dt>
                     <dd class="mt-1 text-slate-900">{{ $purchaseOrder->creator?->name ?? '—' }}</dd>
                 </div>
@@ -44,19 +44,38 @@
             </dl>
         </section>
 
+        @include('procurement.purchase-orders._our-company', [
+            'purchaseOrder' => $purchaseOrder,
+            'buyerCompany' => $buyerCompany ?? null,
+            'variant' => 'show',
+        ])
+
         <section class="mt-8">
             <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-700">Vendor</h2>
             <dl class="mt-4 grid gap-3 sm:grid-cols-2 text-sm">
                 <div><dt class="text-xs text-slate-500">Company name</dt><dd class="text-slate-900">{{ $purchaseOrder->vendor_company_name ?? $purchaseOrder->vendor?->name ?? '—' }}</dd></div>
-                <div><dt class="text-xs text-slate-500">Contact</dt><dd class="text-slate-900">{{ $purchaseOrder->vendor_contact ?? '—' }}</dd></div>
+                <div><dt class="text-xs text-slate-500">Contact person</dt><dd class="text-slate-900">{{ $purchaseOrder->vendor_contact ?? '—' }}</dd></div>
                 <div><dt class="text-xs text-slate-500">Email</dt><dd class="text-slate-900">{{ $purchaseOrder->vendor_email ?? '—' }}</dd></div>
                 <div><dt class="text-xs text-slate-500">Phone</dt><dd class="text-slate-900">{{ $purchaseOrder->vendor_phone ?? '—' }}</dd></div>
-<div class="sm:col-span-2"><dt class="text-xs text-slate-500">Address</dt><dd class="whitespace-pre-wrap text-slate-900">{{ $purchaseOrder->vendor_address ?? '—' }}</dd></div>
+                <div class="sm:col-span-2"><dt class="text-xs text-slate-500">Address</dt><dd class="whitespace-pre-wrap text-slate-900">{{ $purchaseOrder->vendor_address ?? '—' }}</dd></div>
             </dl>
         </section>
 
+        @if ($purchaseOrder->delivery_contact_name || $purchaseOrder->delivery_contact_phone || $purchaseOrder->delivery_contact_email || $purchaseOrder->delivery_location)
+            <section class="mt-8">
+                <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-700">Delivery</h2>
+                <dl class="mt-4 grid gap-3 sm:grid-cols-2 text-sm">
+                    <div><dt class="text-xs text-slate-500">Contact person</dt><dd class="text-slate-900">{{ $purchaseOrder->delivery_contact_name ?? '—' }}</dd></div>
+                    <div><dt class="text-xs text-slate-500">Phone</dt><dd class="text-slate-900">{{ $purchaseOrder->delivery_contact_phone ?? '—' }}</dd></div>
+                    <div><dt class="text-xs text-slate-500">Email</dt><dd class="text-slate-900">{{ $purchaseOrder->delivery_contact_email ?? '—' }}</dd></div>
+                    <div class="sm:col-span-2"><dt class="text-xs text-slate-500">Delivery location</dt><dd class="whitespace-pre-wrap text-slate-900">{{ $purchaseOrder->delivery_location ?? '—' }}</dd></div>
+                </dl>
+            </section>
+        @endif
+
         @php
             $currency = $purchaseOrder->displayCurrency();
+            $linesSubtotal = $purchaseOrder->items->sum('line_total');
         @endphp
 
         <section class="mt-8 overflow-x-auto">
@@ -70,7 +89,7 @@
                     <th class="border border-slate-200 px-3 py-2 text-left">Item or service description</th>
                     <th class="border border-slate-200 px-3 py-2 text-right">Quantity</th>
                     <th class="border border-slate-200 px-3 py-2 text-right">Price per unit{{ $currency ? ' ('.$currency.')' : '' }}</th>
-                    <th class="border border-slate-200 px-3 py-2 text-right">Total{{ $currency ? ' ('.$currency.')' : '' }}</th>
+                    <th class="border border-slate-200 px-3 py-2 text-right">Line total{{ $currency ? ' ('.$currency.')' : '' }}</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -89,8 +108,20 @@
                 @endforelse
                 </tbody>
                 <tfoot>
+                <tr>
+                    <td colspan="4" class="border border-slate-200 px-3 py-2 text-right text-slate-700">Subtotal</td>
+                    <td class="border border-slate-200 px-3 py-2 text-right font-mono">{{ $purchaseOrder->formatMoneyAmount($linesSubtotal) }}</td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="border border-slate-200 px-3 py-2 text-right text-slate-700">Delivery fee</td>
+                    <td class="border border-slate-200 px-3 py-2 text-right font-mono">{{ $purchaseOrder->formatMoneyAmount($purchaseOrder->delivery_fee ?? 0) }}</td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="border border-slate-200 px-3 py-2 text-right text-slate-700">Discount</td>
+                    <td class="border border-slate-200 px-3 py-2 text-right font-mono">−{{ $purchaseOrder->formatMoneyAmount($purchaseOrder->discount ?? 0) }}</td>
+                </tr>
                 <tr class="bg-slate-50 font-semibold">
-                    <td colspan="4" class="border border-slate-200 px-3 py-2 text-right">Grand Total:{{ $currency ? ' ('.$currency.')' : '' }}</td>
+                    <td colspan="4" class="border border-slate-200 px-3 py-2 text-right">Total price{{ $currency ? ' ('.$currency.')' : '' }}</td>
                     <td class="border border-slate-200 px-3 py-2 text-right font-mono">{{ $purchaseOrder->formatMoneyAmount($purchaseOrder->total_price ?? 0) }}</td>
                 </tr>
                 </tfoot>
@@ -100,22 +131,48 @@
         <section class="mt-8">
             <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-700">Order terms</h2>
             <dl class="mt-4 space-y-3 text-sm">
+                @if ($purchaseOrder->handover_at)
+                    <div>
+                        <dt class="text-xs text-slate-500">Handover date (maintenance from)</dt>
+                        <dd class="text-slate-900">{{ $purchaseOrder->handover_at->format('Y-m-d') }}</dd>
+                    </div>
+                @endif
+                @if ($purchaseOrder->dismantling_at)
+                    <div>
+                        <dt class="text-xs text-slate-500">Dismantling date</dt>
+                        <dd class="text-slate-900">{{ $purchaseOrder->dismantling_at->format('Y-m-d') }}</dd>
+                    </div>
+                @endif
+                @if ($purchaseOrder->handover_at && $purchaseOrder->dismantling_at)
+                    <div>
+                        <dt class="text-xs text-slate-500">Maintenance period</dt>
+                        <dd class="text-slate-900">{{ $purchaseOrder->handover_at->format('Y-m-d') }} — {{ $purchaseOrder->dismantling_at->format('Y-m-d') }}</dd>
+                    </div>
+                @elseif ($purchaseOrder->handover_at)
+                    <div>
+                        <dt class="text-xs text-slate-500">Maintenance</dt>
+                        <dd class="text-slate-900">From {{ $purchaseOrder->handover_at->format('Y-m-d') }}</dd>
+                    </div>
+                @endif
                 <div><dt class="text-xs text-slate-500">Payment terms</dt><dd class="whitespace-pre-wrap text-slate-900">{{ $purchaseOrder->payment_terms ?? '—' }}</dd></div>
-                <div><dt class="text-xs text-slate-500">Delivery time</dt><dd class="text-slate-900">{{ $purchaseOrder->delivery_time ?? '—' }}</dd></div>
-                <div><dt class="text-xs text-slate-500">Delivery location</dt><dd class="whitespace-pre-wrap text-slate-900">{{ $purchaseOrder->delivery_location ?? '—' }}</dd></div>
                 <div><dt class="text-xs text-slate-500">Notes</dt><dd class="whitespace-pre-wrap text-slate-900">{{ $purchaseOrder->notes ?? '—' }}</dd></div>
             </dl>
         </section>
 
+        @include('procurement.purchase-orders._terms', [
+            'po' => $purchaseOrder,
+            'terms' => $terms ?? [],
+            'editable' => false,
+        ])
+
         <section class="mt-8">
-            <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-700">Approval</h2>
+            <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-700">Signatures</h2>
             <div class="mt-4 space-y-4 text-sm">
                 @foreach ([
+                    'Vendor' => ['signature' => $purchaseOrder->vendor_signature, 'date' => $purchaseOrder->vendor_signed_at],
                     'Procurement' => ['signature' => $purchaseOrder->procurement_signature, 'date' => $purchaseOrder->procurement_signed_at],
-                    'Finance' => ['signature' => $purchaseOrder->finance_signature, 'date' => $purchaseOrder->finance_signed_at],
-                    'CEO' => ['signature' => $purchaseOrder->ceo_signature, 'date' => $purchaseOrder->ceo_signed_at],
                 ] as $role => $fields)
-<div class="grid gap-2 border-t border-slate-100 pt-3 first:border-0 first:pt-0 sm:grid-cols-3">
+                    <div class="grid gap-2 border-t border-slate-100 pt-3 first:border-0 first:pt-0 sm:grid-cols-3">
                         <p class="font-medium text-slate-800">{{ $role }}</p>
                         <p><span class="text-xs text-slate-500">Signature:</span> {{ $fields['signature'] ?? '—' }}</p>
                         <p><span class="text-xs text-slate-500">Date:</span> {{ $fields['date']?->format('Y-m-d') ?? '—' }}</p>

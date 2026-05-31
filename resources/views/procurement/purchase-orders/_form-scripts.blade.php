@@ -3,7 +3,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const linesBody = document.getElementById('po-lines-body');
     const template = document.getElementById('po-line-template');
     const addBtn = document.getElementById('po-add-line');
-    const grandTotalEl = document.getElementById('po-grand-total');
+    const subtotalEl = document.getElementById('po-lines-subtotal');
+    const totalPriceEl = document.getElementById('po-total-price');
+    const deliveryFeeInput = document.getElementById('delivery_fee');
+    const discountInput = document.getElementById('discount');
     const vendorSelect = document.getElementById('vendor_id');
     const currencyInput = document.getElementById('currency_code');
     const userDefaultCurrency = (currencyInput?.dataset.userDefaultCurrency || '').trim().toUpperCase();
@@ -74,12 +77,20 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function recalcAll() {
-        let grand = 0;
+        let subtotal = 0;
         linesBody.querySelectorAll('.po-line-row').forEach(function (row) {
-            grand += recalcRow(row);
+            subtotal += recalcRow(row);
         });
-        if (grandTotalEl) {
-            grandTotalEl.textContent = formatMoney(grand);
+
+        const deliveryFee = parseFloat(deliveryFeeInput?.value || '0');
+        const discount = parseFloat(discountInput?.value || '0');
+        const totalPrice = Math.max(0, subtotal + deliveryFee - discount);
+
+        if (subtotalEl) {
+            subtotalEl.textContent = formatMoney(subtotal);
+        }
+        if (totalPriceEl) {
+            totalPriceEl.textContent = formatMoney(totalPrice);
         }
     }
 
@@ -111,6 +122,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     linesBody.querySelectorAll('.po-line-row').forEach(bindRow);
+    document.querySelectorAll('.po-adjustment').forEach(function (input) {
+        input.addEventListener('input', recalcAll);
+    });
     recalcAll();
     applyUserDefaultIfEmpty();
     updateCurrencyLabels();
@@ -160,6 +174,153 @@ document.addEventListener('DOMContentLoaded', function () {
             } catch (e) {
                 console.error(e);
             }
+        });
+    }
+
+    const generalTermsList = document.getElementById('po-general-terms-list');
+    const customTermsList = document.getElementById('po-custom-terms-list');
+    const customTermTemplate = document.getElementById('po-custom-term-template');
+    const addCustomTermBtn = document.getElementById('po-add-custom-term');
+    const scopeTermsMap = JSON.parse(
+        document.getElementById('po-scope-terms-map')?.textContent || '{}'
+    );
+    const termsLocaleInputs = document.querySelectorAll('.po-terms-locale');
+    const handoverInput = document.getElementById('handover_at');
+    const dismantlingInput = document.getElementById('dismantling_at');
+
+    function currentTermsLocale() {
+        const checked = document.querySelector('.po-terms-locale:checked');
+        return checked ? checked.value : 'en';
+    }
+
+    function scopeTextsForLocale(scopeKey, locale) {
+        const entry = scopeTermsMap[scopeKey];
+        if (!entry) {
+            return [];
+        }
+        if (Array.isArray(entry)) {
+            return entry;
+        }
+        return entry[locale] || entry.en || entry.ar || [];
+    }
+
+    function applyCustomTermDirection(locale) {
+        document.querySelectorAll('.po-custom-term-input').forEach(function (input) {
+            if (locale === 'ar') {
+                input.setAttribute('dir', 'rtl');
+            } else {
+                input.removeAttribute('dir');
+            }
+        });
+    }
+
+    if (generalTermsList) {
+        function collectScopeTypesFromOrderTerms() {
+            const found = {};
+            if (handoverInput?.value) {
+                found.Maintenance = true;
+            }
+            if (dismantlingInput?.value) {
+                found.Dismantling = true;
+            }
+            return ['Maintenance', 'Dismantling'].filter(function (scopeType) {
+                return found[scopeType];
+            });
+        }
+
+        function mergeGeneralTerms(scopeTypes) {
+            const merged = [];
+            const seen = {};
+
+            function addTexts(texts) {
+                (texts || []).forEach(function (text) {
+                    if (!text || seen[text]) {
+                        return;
+                    }
+                    seen[text] = true;
+                    merged.push(text);
+                });
+            }
+
+            const locale = currentTermsLocale();
+            addTexts(scopeTextsForLocale('global', locale));
+            scopeTypes.forEach(function (scopeType) {
+                addTexts(scopeTextsForLocale(scopeType, locale));
+            });
+
+            return merged;
+        }
+
+        function renderGeneralTerms(terms) {
+            generalTermsList.innerHTML = '';
+
+            if (terms.length === 0) {
+                const empty = document.createElement('li');
+                empty.id = 'po-general-terms-empty';
+                empty.className = 'text-slate-500';
+                empty.textContent = 'Company-wide terms load automatically. Set handover or dismantling dates to include related scope terms.';
+                generalTermsList.appendChild(empty);
+                return;
+            }
+
+            const locale = currentTermsLocale();
+            terms.forEach(function (text) {
+                const row = document.createElement('li');
+                row.className = 'po-general-term-row flex gap-2';
+                row.innerHTML = '<span class="shrink-0">-</span><span class="min-w-0 flex-1"></span>';
+                const textEl = row.querySelector('span:last-child');
+                textEl.textContent = text;
+                if (locale === 'ar') {
+                    textEl.setAttribute('dir', 'rtl');
+                }
+                generalTermsList.appendChild(row);
+            });
+        }
+
+        window.poSyncGeneralTerms = function () {
+            renderGeneralTerms(mergeGeneralTerms(collectScopeTypesFromOrderTerms()));
+            applyCustomTermDirection(currentTermsLocale());
+        };
+
+        termsLocaleInputs.forEach(function (input) {
+            input.addEventListener('change', function () {
+                window.poSyncGeneralTerms();
+            });
+        });
+
+        document.querySelectorAll('.po-order-term-date').forEach(function (input) {
+            input.addEventListener('change', window.poSyncGeneralTerms);
+        });
+
+        window.poSyncGeneralTerms();
+    }
+
+    if (customTermsList && customTermTemplate) {
+        function reindexCustomTerms() {
+            customTermsList.querySelectorAll('.po-custom-term-row').forEach(function (row, index) {
+                const input = row.querySelector('input[type="text"]');
+                if (input) {
+                    input.setAttribute('name', 'terms_custom[' + index + ']');
+                }
+            });
+        }
+
+        function bindCustomTermRow(row) {
+            row.querySelector('.po-remove-custom-term')?.addEventListener('click', function () {
+                row.remove();
+                reindexCustomTerms();
+            });
+        }
+
+        customTermsList.querySelectorAll('.po-custom-term-row').forEach(bindCustomTermRow);
+
+        addCustomTermBtn?.addEventListener('click', function () {
+            const clone = customTermTemplate.content.cloneNode(true);
+            const row = clone.querySelector('li');
+            customTermsList.appendChild(row);
+            reindexCustomTerms();
+            bindCustomTermRow(row);
+            applyCustomTermDirection(currentTermsLocale());
         });
     }
 });

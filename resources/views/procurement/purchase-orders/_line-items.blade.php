@@ -17,13 +17,6 @@
                        placeholder="{{ $userDefaultCurrency ?: '—' }}"
                        class="admin-filter-control mt-1 uppercase @error('currency_code') border-red-500 @enderror"
                        autocomplete="off">
-                <p class="mt-1 text-xs text-slate-500">
-                    @if ($userDefaultCurrency)
-                    Set your code (e.g. USD, SAR) for line items.
-                    @else
-                        Set your code (e.g. USD, SAR) for line items.
-                    @endif
-                </p>
                 @error('currency_code')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
             </div>
             <button type="button" id="po-add-line"
@@ -46,7 +39,7 @@
                     <span data-po-price-label data-po-price-label-base="Price per unit">Price per unit{{ $currencyCode ? ' ('.$currencyCode.')' : '' }}</span>
                 </th>
                 <th class="px-2 py-2 w-32">
-                    <span data-po-price-label data-po-price-label-base="Total">Total{{ $currencyCode ? ' ('.$currencyCode.')' : '' }}</span>
+                    <span data-po-price-label data-po-price-label-base="Line total">Line total{{ $currencyCode ? ' ('.$currencyCode.')' : '' }}</span>
                 </th>
                 <th class="px-2 py-2 w-16"></th>
             </tr>
@@ -81,11 +74,38 @@
             @endforeach
             </tbody>
             <tfoot>
+            <tr class="border-t border-slate-100">
+                <td colspan="4" class="px-2 py-2 text-right text-sm text-slate-700">Subtotal</td>
+                <td class="px-2 py-2 text-right font-mono text-sm" id="po-lines-subtotal">0.00</td>
+                <td></td>
+            </tr>
+            <tr class="border-t border-slate-100">
+                <td colspan="3" class="px-2 py-2 text-right text-sm text-slate-700">
+                    <label for="delivery_fee" class="text-xs font-medium uppercase tracking-wide text-slate-500">Delivery fee</label>
+                </td>
+                <td class="px-2 py-2" colspan="2">
+                    <input type="number" name="delivery_fee" id="delivery_fee" min="0" step="0.01"
+                           value="{{ old('delivery_fee', $po?->delivery_fee ?? 0) }}"
+                           class="po-adjustment admin-filter-control w-full text-right font-mono @error('delivery_fee') border-red-500 @enderror">
+                </td>
+                <td></td>
+            </tr>
+            <tr class="border-t border-slate-100">
+                <td colspan="3" class="px-2 py-2 text-right text-sm text-slate-700">
+                    <label for="discount" class="text-xs font-medium uppercase tracking-wide text-slate-500">Discount</label>
+                </td>
+                <td class="px-2 py-2" colspan="2">
+                    <input type="number" name="discount" id="discount" min="0" step="0.01"
+                           value="{{ old('discount', $po?->discount ?? 0) }}"
+                           class="po-adjustment admin-filter-control w-full text-right font-mono @error('discount') border-red-500 @enderror">
+                </td>
+                <td></td>
+            </tr>
             <tr class="border-t-2 border-slate-200 bg-slate-50">
                 <td colspan="4" class="px-2 py-3 text-right text-sm font-semibold text-slate-900">
-                    <span data-po-price-label data-po-price-label-base="Grand Total:">Grand Total:{{ $currencyCode ? ' ('.$currencyCode.')' : '' }}</span>
+                    <span data-po-price-label data-po-price-label-base="Total price:">Total price:{{ $currencyCode ? ' ('.$currencyCode.')' : '' }}</span>
                 </td>
-                <td class="px-2 py-3 text-right font-mono text-sm font-semibold text-slate-900" id="po-grand-total">0.00</td>
+                <td class="px-2 py-3 text-right font-mono text-sm font-semibold text-slate-900" id="po-total-price">0.00</td>
                 <td></td>
             </tr>
             </tfoot>

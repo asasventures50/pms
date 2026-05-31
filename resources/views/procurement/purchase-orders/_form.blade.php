@@ -11,7 +11,7 @@
         </div>
 
         <h3 class="mt-6 text-sm font-semibold uppercase tracking-wide text-slate-700">Order information</h3>
-<div class="mt-4 grid gap-4 md:grid-cols-3">
+        <div class="mt-4 grid gap-4 md:grid-cols-3">
             <div>
                 <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Requested by</label>
                 <p class="mt-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800">
@@ -28,7 +28,7 @@
                        class="admin-filter-control font-mono @error('po_number') border-red-500 @enderror">
                 @error('po_number')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
-<div>
+            <div>
                 <label for="ordered_at" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Date</label>
                 <input type="date" name="ordered_at" id="ordered_at"
                        value="{{ old('ordered_at', $po?->ordered_at?->format('Y-m-d') ?? now()->format('Y-m-d')) }}"
@@ -37,6 +37,11 @@
             </div>
         </div>
     </section>
+
+    @include('procurement.purchase-orders._our-company', [
+        'purchaseOrder' => $po,
+        'variant' => 'form',
+    ])
 
     <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 class="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">Vendor</h2>
@@ -61,7 +66,7 @@
                        class="admin-filter-control @error('vendor_company_name') border-red-500 @enderror">
             </div>
             <div>
-                <label for="vendor_contact" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Contact</label>
+                <label for="vendor_contact" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Contact person</label>
                 <input type="text" name="vendor_contact" id="vendor_contact"
                        value="{{ old('vendor_contact', $po?->vendor_contact ?? '') }}"
                        class="admin-filter-control @error('vendor_contact') border-red-500 @enderror">
@@ -86,6 +91,36 @@
         </div>
     </section>
 
+    <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 class="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">Delivery</h2>
+        <div class="mt-4 grid gap-4 md:grid-cols-2">
+            <div>
+                <label for="delivery_contact_name" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Contact person</label>
+                <input type="text" name="delivery_contact_name" id="delivery_contact_name"
+                       value="{{ old('delivery_contact_name', $po?->delivery_contact_name ?? '') }}"
+                       class="admin-filter-control @error('delivery_contact_name') border-red-500 @enderror">
+            </div>
+            <div>
+                <label for="delivery_contact_phone" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Phone</label>
+                <input type="text" name="delivery_contact_phone" id="delivery_contact_phone"
+                       value="{{ old('delivery_contact_phone', $po?->delivery_contact_phone ?? '') }}"
+                       class="admin-filter-control @error('delivery_contact_phone') border-red-500 @enderror">
+            </div>
+            <div>
+                <label for="delivery_contact_email" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Email</label>
+                <input type="email" name="delivery_contact_email" id="delivery_contact_email"
+                       value="{{ old('delivery_contact_email', $po?->delivery_contact_email ?? '') }}"
+                       class="admin-filter-control @error('delivery_contact_email') border-red-500 @enderror">
+            </div>
+            <div class="md:col-span-2">
+                <label for="delivery_location" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Delivery location</label>
+                <input type="text" name="delivery_location" id="delivery_location"
+                       value="{{ old('delivery_location', $po?->delivery_location ?? '') }}"
+                       class="admin-filter-control @error('delivery_location') border-red-500 @enderror">
+            </div>
+        </div>
+    </section>
+
     @include('procurement.purchase-orders._line-items', [
         'lineItems' => $lineItems,
         'po' => $po,
@@ -94,23 +129,27 @@
     <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 class="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">Order terms</h2>
         <div class="mt-4 grid gap-4 md:grid-cols-2">
-
-<div class="md:col-span-2">
+            <div>
+                <label for="handover_at" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Handover date (maintenance from)</label>
+                <input type="date" name="handover_at" id="handover_at"
+                       value="{{ old('handover_at', $po?->handover_at?->format('Y-m-d') ?? '') }}"
+                       class="admin-filter-control po-order-term-date @error('handover_at') border-red-500 @enderror">
+                @error('handover_at')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <label for="dismantling_at" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Dismantling date (if any)</label>
+                <input type="date" name="dismantling_at" id="dismantling_at"
+                       value="{{ old('dismantling_at', $po?->dismantling_at?->format('Y-m-d') ?? '') }}"
+                       class="admin-filter-control po-order-term-date @error('dismantling_at') border-red-500 @enderror">
+                @error('dismantling_at')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
+            <div class="md:col-span-2">
+                <p class="text-xs text-slate-500">Maintenance period runs from handover date until dismantling date (when set).</p>
+            </div>
+            <div class="md:col-span-2">
                 <label for="payment_terms" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Payment terms</label>
                 <textarea name="payment_terms" id="payment_terms" rows="2"
                           class="admin-form-textarea @error('payment_terms') border-red-500 @enderror">{{ old('payment_terms', $po?->payment_terms ?? '') }}</textarea>
-            </div>
-            <div>
-                <label for="delivery_time" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Delivery time</label>
-                <input type="text" name="delivery_time" id="delivery_time"
-                       value="{{ old('delivery_time', $po?->delivery_time ?? '') }}"
-                       class="admin-filter-control @error('delivery_time') border-red-500 @enderror">
-            </div>
-            <div>
-                <label for="delivery_location" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Delivery location</label>
-                <input type="text" name="delivery_location" id="delivery_location"
-                       value="{{ old('delivery_location', $po?->delivery_location ?? '') }}"
-                       class="admin-filter-control @error('delivery_location') border-red-500 @enderror">
             </div>
             <div class="md:col-span-2">
                 <label for="notes" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Notes</label>
@@ -120,14 +159,19 @@
         </div>
     </section>
 
+    @include('procurement.purchase-orders._terms', [
+        'po' => $po,
+        'poTerms' => $poTerms ?? ['general' => [], 'custom' => []],
+        'editable' => true,
+    ])
+
+    <script type="application/json" id="po-scope-terms-map">@json($scopeTermsMap ?? [])</script>
+
     <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 class="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">Approval</h2>
-
-
-@foreach ([
+        <h2 class="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">Signatures</h2>
+        @foreach ([
+            'vendor' => 'Vendor',
             'procurement' => 'Procurement',
-            'finance' => 'Finance',
-            'ceo' => 'CEO',
         ] as $key => $label)
             <div class="mt-4 grid gap-4 border-t border-slate-100 pt-4 first:mt-0 first:border-0 first:pt-0 md:grid-cols-3">
                 <p class="text-sm font-medium text-slate-800 md:pt-2">{{ $label }}</p>
