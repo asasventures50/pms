@@ -30,7 +30,7 @@ use App\Services\Procurement\PurchaseOrders\VendorPurchaseOrderSnapshot;
 
 use App\Services\Procurement\Rfqs\RfqGeneralTermsService;
 
-use App\Enums\Procurement\PurchaseOrders\BuyerCompany;
+use App\Enums\Procurement\BuyerCompany;
 
 use App\Support\Procurement\RfqTerms;
 

@@ -1,12 +1,10 @@
 <?php
 
-namespace App\Enums\Procurement\PurchaseOrders;
-
-use App\Models\Procurement\PurchaseOrders\PurchaseOrder;
+namespace App\Enums\Procurement;
 
 /**
- * Buyer (our company) details on purchase orders.
- * Edit the constants below — values are applied automatically on the web form and saved on each PO.
+ * Buyer (our company) on RFQ, vendor quotation, and purchase order documents.
+ * Edit the constants below — values are snapshotted when each document is saved.
  */
 final class BuyerCompany
 {
@@ -18,16 +16,19 @@ final class BuyerCompany
 
     public const EMAIL = 'fadi@gmail';
 
+    public const WEBSITE = 'asdfghjk';
+
     /**
-     * @return array{name: string|null, address: string|null, phone: string|null, email: string|null}
+     * @return array{name: string|null, phone: string|null, email: string|null, address: string|null, website: string|null}
      */
     public static function defaults(): array
     {
         return [
             'name' => self::nullable(self::NAME),
-            'address' => self::nullable(self::ADDRESS),
             'phone' => self::nullable(self::PHONE),
             'email' => self::nullable(self::EMAIL),
+            'address' => self::nullable(self::ADDRESS),
+            'website' => self::nullable(self::WEBSITE),
         ];
     }
 
@@ -38,33 +39,32 @@ final class BuyerCompany
         return $defaults['name'] !== null
             || $defaults['address'] !== null
             || $defaults['phone'] !== null
-            || $defaults['email'] !== null;
+            || $defaults['email'] !== null
+            || $defaults['website'] !== null;
     }
 
     /**
-     * Values for display on form/show: saved PO snapshot, else BuyerCompany constants.
-     *
-     * @return array{name: string|null, address: string|null, phone: string|null, email: string|null}
+     * @param  object{company_name?: mixed, company_phone?: mixed, company_email?: mixed, company_address?: mixed, company_website?: mixed}|null  $document
+     * @return array{name: string|null, phone: string|null, email: string|null, address: string|null, website: string|null}
      */
-    public static function forDisplay(?PurchaseOrder $purchaseOrder = null): array
+    public static function forDisplay(?object $document = null): array
     {
         $defaults = self::defaults();
 
-        if ($purchaseOrder === null) {
+        if ($document === null) {
             return $defaults;
         }
 
         return [
-            'name' => self::field($purchaseOrder->company_name, $defaults['name']),
-            'address' => self::field($purchaseOrder->company_address, $defaults['address']),
-            'phone' => self::field($purchaseOrder->company_phone, $defaults['phone']),
-            'email' => self::field($purchaseOrder->company_email, $defaults['email']),
+            'name' => self::field($document->company_name ?? null, $defaults['name']),
+            'phone' => self::field($document->company_phone ?? null, $defaults['phone']),
+            'email' => self::field($document->company_email ?? null, $defaults['email']),
+            'address' => self::field($document->company_address ?? null, $defaults['address']),
+            'website' => self::field($document->company_website ?? null, $defaults['website']),
         ];
     }
 
     /**
-     * Always snapshot current organization details onto the PO record.
-     *
      * @param  array<string, mixed>  $header
      */
     public static function applyToHeader(array &$header): void
@@ -73,9 +73,10 @@ final class BuyerCompany
 
         foreach ([
             'company_name' => 'name',
-            'company_address' => 'address',
             'company_phone' => 'phone',
             'company_email' => 'email',
+            'company_address' => 'address',
+            'company_website' => 'website',
         ] as $column => $key) {
             $header[$column] = $defaults[$key];
         }

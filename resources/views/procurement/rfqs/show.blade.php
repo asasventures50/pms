@@ -37,6 +37,12 @@
             </div>
         </div>
 
+        @include('procurement._our-company', [
+            'document' => $rfq,
+            'buyerCompany' => $buyerCompany ?? null,
+            'variant' => 'rfq-doc',
+        ])
+
         <section class="mt-8 overflow-x-auto">
             <h3 class="mb-2 text-sm font-bold uppercase tracking-wide text-slate-900">Request details</h3>
             <table class="min-w-full border-collapse border border-slate-900 text-sm">
@@ -116,7 +122,7 @@
             $hasQuotation = $rfq->items->contains(fn ($line) => $line->unit_price !== null || $line->compliance || $line->quote_lead_time || $line->warranty);
         @endphp
         @if (config('procurement.rfq.show_extended_form_fields') && ($hasQuotation || ($rfq->grand_total ?? 0) > 0))
-            <section class="mt-8 overflow-x-auto print:hidden">
+            <section class="mt-8 overflow-x-auto">
                 <h3 class="text-sm font-bold uppercase tracking-wide text-slate-900">Vendor quotation</h3>
                 <table class="mt-3 min-w-full border-collapse border border-slate-200 text-sm">
                     <thead class="bg-slate-50 text-xs font-semibold uppercase text-slate-600">

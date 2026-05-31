@@ -38,9 +38,9 @@
         </div>
     </section>
 
-    @include('procurement.purchase-orders._our-company', [
-        'purchaseOrder' => $po,
-        'variant' => 'form',
+    @include('procurement._our-company', [
+        'document' => $po,
+        'variant' => 'admin-form',
     ])
 
     <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">

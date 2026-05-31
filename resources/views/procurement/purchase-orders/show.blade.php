@@ -44,10 +44,10 @@
             </dl>
         </section>
 
-        @include('procurement.purchase-orders._our-company', [
-            'purchaseOrder' => $purchaseOrder,
+        @include('procurement._our-company', [
+            'document' => $purchaseOrder,
             'buyerCompany' => $buyerCompany ?? null,
-            'variant' => 'show',
+            'variant' => 'admin-show',
         ])
 
         <section class="mt-8">

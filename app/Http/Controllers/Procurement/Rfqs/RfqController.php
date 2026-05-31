@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Procurement\Rfqs;
 
+use App\Enums\Procurement\BuyerCompany;
 use App\Enums\Procurement\Rfqs\RfqStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Procurement\Rfqs\StoreRfqRequest;
@@ -99,6 +100,7 @@ class RfqController extends Controller
 
         return view('procurement.rfqs.show', [
             'rfq' => $rfq,
+            'buyerCompany' => BuyerCompany::forDisplay($rfq),
             'terms' => $this->resolvedTermsForRfq($rfq),
             'paymentTerms' => $this->termsService->normalizeTexts($rfq->payment_terms),
         ]);

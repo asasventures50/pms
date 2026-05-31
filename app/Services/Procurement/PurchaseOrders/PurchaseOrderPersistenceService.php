@@ -6,7 +6,7 @@ use App\Enums\Procurement\Rfqs\RfqTermsLocale;
 use App\Models\Procurement\PurchaseOrders\PurchaseOrder;
 use App\Models\Procurement\PurchaseOrders\PurchaseOrderItem;
 use App\Services\Procurement\Rfqs\RfqGeneralTermsService;
-use App\Enums\Procurement\PurchaseOrders\BuyerCompany;
+use App\Enums\Procurement\BuyerCompany;
 use Illuminate\Support\Facades\DB;
 
 class PurchaseOrderPersistenceService

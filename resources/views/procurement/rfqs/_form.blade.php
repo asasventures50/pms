@@ -30,6 +30,11 @@
         </div>
     </div>
 
+    @include('procurement._our-company', [
+        'document' => $rfq,
+        'variant' => 'rfq-doc',
+    ])
+
     @include('procurement.rfqs._line-items', [
         'lineItems' => $lineItems,
         'prItemOptions' => $prItemOptions ?? [],

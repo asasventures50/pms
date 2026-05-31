@@ -2,6 +2,7 @@
 
 namespace App\Services\Procurement\Rfqs;
 
+use App\Enums\Procurement\BuyerCompany;
 use App\Enums\Procurement\Rfqs\RfqTermsLocale;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequestItem;
 use App\Models\Procurement\Rfqs\Rfq;
@@ -21,6 +22,7 @@ class RfqPersistenceService
     public function create(array $header, array $items): Rfq
     {
         return DB::transaction(function () use ($header, $items) {
+            BuyerCompany::applyToHeader($header);
             $header = $this->applyTotals($header, $items);
             $rfq = Rfq::query()->create($header);
             $this->syncItems($rfq, $items);
@@ -36,6 +38,7 @@ class RfqPersistenceService
     public function update(Rfq $rfq, array $header, array $items): Rfq
     {
         return DB::transaction(function () use ($rfq, $header, $items) {
+            BuyerCompany::applyToHeader($header);
             $header = $this->applyTotals($header, $items);
             $rfq->fill($header);
             $rfq->save();

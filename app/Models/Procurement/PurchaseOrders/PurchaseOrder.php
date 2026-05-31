@@ -29,6 +29,7 @@ class PurchaseOrder extends Model
         'company_address',
         'company_phone',
         'company_email',
+        'company_website',
         'po_number',
         'title',
         'description',

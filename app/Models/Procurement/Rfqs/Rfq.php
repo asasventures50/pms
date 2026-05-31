@@ -24,6 +24,11 @@ class Rfq extends Model
      */
     protected $fillable = [
         'created_by',
+        'company_name',
+        'company_phone',
+        'company_email',
+        'company_address',
+        'company_website',
         'rfq_number',
         'vendor_id',
         'vendor_company_name',
