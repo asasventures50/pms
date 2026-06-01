@@ -200,6 +200,8 @@ class StoreVendorRequest extends FormRequest
 
             'brochures' => ['nullable', 'array'],
             'brochures.*' => ['file', 'max:20480', 'mimes:pdf,jpeg,jpg,png,gif,webp,doc,docx,xls,xlsx'],
+
+            'nda' => ['nullable', 'file', 'max:20480', 'mimes:pdf,jpeg,jpg,png,doc,docx'],
         ];
     }
 

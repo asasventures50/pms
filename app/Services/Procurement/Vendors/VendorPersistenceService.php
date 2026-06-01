@@ -260,4 +260,48 @@ class VendorPersistenceService
 
         return $stored;
     }
+
+    public function storeNda(Vendor $vendor, ?UploadedFile $file): void
+    {
+        if (! $file instanceof UploadedFile || ! $file->isValid()) {
+            return;
+        }
+
+        if ($vendor->nda_file_path) {
+            Storage::disk('s3')->delete($vendor->nda_file_path);
+        }
+
+        $directory = 'vendors/nda/'.$vendor->id;
+        $path = Storage::disk('s3')->putFileAs(
+            $directory,
+            $file,
+            $file->hashName(),
+            ['visibility' => 'public'],
+        );
+
+        if ($path === false) {
+            throw new \RuntimeException(
+                "Failed to upload NDA file '{$file->getClientOriginalName()}' to S3."
+            );
+        }
+
+        $vendor->forceFill([
+            'nda_file_name' => $file->getClientOriginalName(),
+            'nda_file_path' => $path,
+            'nda_file_type' => $file->getClientMimeType(),
+        ])->save();
+    }
+
+    public function removeNda(Vendor $vendor): void
+    {
+        if ($vendor->nda_file_path) {
+            Storage::disk('s3')->delete($vendor->nda_file_path);
+        }
+
+        $vendor->forceFill([
+            'nda_file_name' => null,
+            'nda_file_path' => null,
+            'nda_file_type' => null,
+        ])->save();
+    }
 }

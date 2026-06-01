@@ -713,6 +713,41 @@
     </tr>
 </template>
 
+{{-- 7b. NDA --}}
+<section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+    <h2 class="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">NDA (Non-Disclosure Agreement)</h2>
+    <p class="mt-2 text-xs text-slate-500">Signed confidentiality agreement with the vendor. PDF, Word, or image. Max 20 MB.</p>
+    <div class="mt-4 space-y-3">
+        @if ($mode === 'edit' && $v && $v->hasNda())
+            <div class="rounded-lg border border-slate-200 bg-slate-50/50 p-4 text-sm">
+                <div class="font-medium text-slate-900">{{ $v->nda_file_name }}</div>
+                @if ($v->nda_file_type)
+                    <div class="mt-1 text-xs text-slate-500">{{ $v->nda_file_type }}</div>
+                @endif
+                <a href="{{ $v->nda_url }}" target="_blank" rel="noopener"
+                   class="mt-2 inline-block text-sm font-medium text-slate-700 hover:text-slate-900">Open current file</a>
+                <label class="mt-3 flex items-center gap-2 text-sm text-red-700">
+                    <input type="checkbox" name="remove_nda" value="1" class="rounded border-slate-300"
+                           @checked(old('remove_nda'))>
+                    Remove NDA on save
+                </label>
+            </div>
+        @endif
+        <div>
+            <label for="nda" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+                @if ($mode === 'edit' && $v && $v->hasNda())
+                    Replace NDA file
+                @else
+                    Upload NDA file
+                @endif
+            </label>
+            <input type="file" name="nda" id="nda"
+                   class="admin-form-file @error('nda') border-red-500 @enderror">
+            @error('nda')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+        </div>
+    </div>
+</section>
+
 {{-- 8. Brochures --}}
 <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
     <h2 class="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">Brochures</h2>
@@ -861,14 +896,27 @@
 
 @include('procurement.vendors.partials.add-subcategory-modal')
 
+@php
+    $vendorFormConfig = [
+        'subData' => $subcategoriesByCategory,
+        'categoryInitial' => $categoryInitialForJs,
+        'citiesByCountry' => $citiesByCountry,
+        'locationInitial' => $locationInitialForJs,
+        'brochureInitial' => $brochureInitialForJs,
+    ];
+@endphp
+
 @push('scripts')
+    <script type="application/json" id="vendor-form-config">@json($vendorFormConfig)</script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const subData = @json($subcategoriesByCategory);
-            const categoryInitial = @json($categoryInitialForJs);
-            const citiesByCountry = @json($citiesByCountry);
-            const locationInitial = @json($locationInitialForJs);
-            const brochureInitial = @json($brochureInitialForJs);
+            const {
+                subData,
+                categoryInitial,
+                citiesByCountry,
+                locationInitial,
+                brochureInitial,
+            } = JSON.parse(document.getElementById('vendor-form-config').textContent);
 
             function subcategoryList(categoryId) {
                 if (!categoryId) {

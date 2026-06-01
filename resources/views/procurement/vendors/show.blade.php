@@ -241,6 +241,29 @@
         </section>
 
         <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 class="border-b border-slate-100 pb-2 text-base font-semibold text-slate-900">NDA (Non-Disclosure Agreement)</h2>
+            @if (! $vendor->hasNda())
+                <p class="mt-3 text-sm text-slate-500">No NDA document on record.</p>
+            @else
+                <dl class="mt-4 text-sm">
+                    <div>
+                        <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">File</dt>
+                        <dd class="mt-1 font-medium text-slate-900">{{ $vendor->nda_file_name }}</dd>
+                    </div>
+                    @if ($vendor->nda_file_type)
+                        <div class="mt-3">
+                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Type</dt>
+                            <dd class="mt-1 text-slate-700">{{ $vendor->nda_file_type }}</dd>
+                        </div>
+                    @endif
+                </dl>
+                <a href="{{ $vendor->nda_url }}"
+                   target="_blank" rel="noopener"
+                   class="mt-4 inline-flex text-sm font-medium text-slate-700 hover:text-slate-900">Open NDA</a>
+            @endif
+        </section>
+
+        <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 class="border-b border-slate-100 pb-2 text-base font-semibold text-slate-900">Brochures</h2>
             @if ($vendor->brochures->isEmpty())
                 <p class="mt-3 text-sm text-slate-500">No brochure files on record.</p>

@@ -247,6 +247,9 @@ class UpdateVendorRequest extends FormRequest
                     fn ($q) => $q->where('vendor_id', $vendorId)
                 ),
             ],
+
+            'nda' => ['nullable', 'file', 'max:20480', 'mimes:pdf,jpeg,jpg,png,doc,docx'],
+            'remove_nda' => ['sometimes', 'boolean'],
         ];
     }
 

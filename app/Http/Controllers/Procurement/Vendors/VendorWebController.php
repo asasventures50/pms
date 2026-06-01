@@ -258,6 +258,7 @@ class VendorWebController extends Controller
             $validated['brochures'],
             $validated['brochure_rows'],
             $validated['locations'],
+            $validated['nda'],
         );
 
         VendorPayloadResolver::finalizeForStore($validated);
@@ -272,6 +273,7 @@ class VendorWebController extends Controller
             $this->persistence->replaceCategories($vendor, $categories);
             $this->persistence->replaceBusinessTypes($vendor, $businessTypes);
 
+            $this->persistence->storeNda($vendor, $request->file('nda'));
             $this->persistence->appendBrochureRows($vendor, $brochureRows);
             $this->persistence->appendBrochures($vendor, $request);
         });
@@ -357,6 +359,8 @@ class VendorWebController extends Controller
         $locations = $validated['locations'] ?? null;
         $removeBrochureIds = $validated['remove_brochure_ids'] ?? null;
 
+        $removeNda = filter_var($request->input('remove_nda'), FILTER_VALIDATE_BOOLEAN);
+
         unset(
             $validated['categories'],
             $validated['business_types'],
@@ -364,11 +368,13 @@ class VendorWebController extends Controller
             $validated['brochure_rows'],
             $validated['locations'],
             $validated['remove_brochure_ids'],
+            $validated['nda'],
+            $validated['remove_nda'],
         );
 
         VendorPayloadResolver::finalizeForUpdate($validated);
 
-        DB::transaction(function () use ($vendor, $validated, $categoriesProvided, $businessTypesProvided, $locationsProvided, $categories, $businessTypes, $locations, $brochureRows, $removeBrochureIds, $request) {
+        DB::transaction(function () use ($vendor, $validated, $categoriesProvided, $businessTypesProvided, $locationsProvided, $categories, $businessTypes, $locations, $brochureRows, $removeBrochureIds, $removeNda, $request) {
             if (is_array($removeBrochureIds) && $removeBrochureIds !== []) {
                 $this->persistence->removeBrochuresByIds($vendor, $removeBrochureIds);
             }
@@ -388,6 +394,11 @@ class VendorWebController extends Controller
                 $this->persistence->replaceCategories($vendor, $categories);
             }
 
+            if ($removeNda) {
+                $this->persistence->removeNda($vendor);
+            }
+
+            $this->persistence->storeNda($vendor, $request->file('nda'));
             $this->persistence->appendBrochureRows($vendor, $brochureRows);
             $this->persistence->appendBrochures($vendor, $request);
         });

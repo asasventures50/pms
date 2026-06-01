@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class Vendor extends Model
 {
@@ -69,8 +70,16 @@ class Vendor extends Model
         'tax_number',
         'registration_number',
         'license_number',
+        'nda_file_name',
+        'nda_file_path',
+        'nda_file_type',
         'rating',
     ];
+
+    /**
+     * @var list<string>
+     */
+    protected $appends = ['nda_url'];
 
     protected function casts(): array
     {
@@ -106,6 +115,21 @@ class Vendor extends Model
     public function brochures(): HasMany
     {
         return $this->hasMany(VendorBrochure::class, 'vendor_id');
+    }
+
+    protected function ndaUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->nda_file_path
+                // @phpstan-ignore-next-line
+                ? Storage::disk('s3')->url($this->nda_file_path)
+                : null,
+        );
+    }
+
+    public function hasNda(): bool
+    {
+        return $this->nda_file_path !== null && $this->nda_file_path !== '';
     }
 
     /**
