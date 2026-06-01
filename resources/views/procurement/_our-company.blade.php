@@ -26,16 +26,9 @@
                     <dt class="shrink-0 font-medium">Address</dt>
                     <dd class="whitespace-pre-wrap">{{ $buyerCompany['address'] ?? '—' }}</dd>
                 </div>
-                <div class="flex flex-col gap-1 border-b border-slate-900 pb-1 sm:flex-row sm:gap-3 sm:col-span-2">
-                    <dt class="shrink-0 font-medium">Website</dt>
-                    <dd>
-                        @if (! empty($buyerCompany['website']))
-                            <a href="{{ str_starts_with($buyerCompany['website'], 'http') ? $buyerCompany['website'] : 'https://'.$buyerCompany['website'] }}"
-                               target="_blank" rel="noopener" class="text-slate-900 underline hover:text-slate-700">{{ $buyerCompany['website'] }}</a>
-                        @else
-                            —
-                        @endif
-                    </dd>
+                <div class="flex flex-col gap-1 border-b border-slate-900 pb-1 sm:flex-row sm:gap-3">
+                    <dt class="shrink-0 font-medium">Fax</dt>
+                    <dd>{{ $buyerCompany['fax'] ?? '—' }}</dd>
                 </div>
             </dl>
         @else
@@ -76,16 +69,9 @@
                         'whitespace-pre-wrap text-slate-900' => $variant === 'admin-show',
                     ])>{{ $buyerCompany['address'] ?? '—' }}</dd>
                 </div>
-                <div class="md:col-span-2 sm:col-span-2">
-                    <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Website</dt>
-                    <dd @class(['mt-1' => $variant === 'admin-form'])>
-                        @if (! empty($buyerCompany['website']))
-                            <a href="{{ str_starts_with($buyerCompany['website'], 'http') ? $buyerCompany['website'] : 'https://'.$buyerCompany['website'] }}"
-                               target="_blank" rel="noopener" class="text-slate-900 underline hover:text-slate-700">{{ $buyerCompany['website'] }}</a>
-                        @else
-                            <span class="text-slate-900">—</span>
-                        @endif
-                    </dd>
+                <div>
+                    <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Fax</dt>
+                    <dd @class(['mt-1 text-slate-900' => $variant === 'admin-form', 'text-slate-900' => $variant === 'admin-show'])>{{ $buyerCompany['fax'] ?? '—' }}</dd>
                 </div>
             </dl>
             @if ($variant === 'admin-form')

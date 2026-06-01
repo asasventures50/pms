@@ -8,18 +8,18 @@ namespace App\Enums\Procurement;
  */
 final class BuyerCompany
 {
-    public const NAME = 'fadi';
+    public const NAME = 'ASAS ventures';
 
-    public const ADDRESS = 'fadi';
+    public const ADDRESS = 'Nouri Pasha, Arawda square, Damascus, Syria';
 
-    public const PHONE = '0938';
+    public const PHONE = '011-3344955/ 011-3344954';
 
-    public const EMAIL = 'fadi@gmail';
+    public const EMAIL = 'asasventures.sy@gmail.com';
 
-    public const WEBSITE = 'asdfghjk';
+    public const FAX = '011-3344953';
 
     /**
-     * @return array{name: string|null, phone: string|null, email: string|null, address: string|null, website: string|null}
+     * @return array{name: string|null, phone: string|null, email: string|null, address: string|null, fax: string|null}
      */
     public static function defaults(): array
     {
@@ -28,7 +28,7 @@ final class BuyerCompany
             'phone' => self::nullable(self::PHONE),
             'email' => self::nullable(self::EMAIL),
             'address' => self::nullable(self::ADDRESS),
-            'website' => self::nullable(self::WEBSITE),
+            'fax' => self::nullable(self::FAX),
         ];
     }
 
@@ -40,12 +40,12 @@ final class BuyerCompany
             || $defaults['address'] !== null
             || $defaults['phone'] !== null
             || $defaults['email'] !== null
-            || $defaults['website'] !== null;
+            || $defaults['fax'] !== null;
     }
 
     /**
      * @param  object{company_name?: mixed, company_phone?: mixed, company_email?: mixed, company_address?: mixed, company_website?: mixed}|null  $document
-     * @return array{name: string|null, phone: string|null, email: string|null, address: string|null, website: string|null}
+     * @return array{name: string|null, phone: string|null, email: string|null, address: string|null, fax: string|null}
      */
     public static function forDisplay(?object $document = null): array
     {
@@ -60,7 +60,7 @@ final class BuyerCompany
             'phone' => self::field($document->company_phone ?? null, $defaults['phone']),
             'email' => self::field($document->company_email ?? null, $defaults['email']),
             'address' => self::field($document->company_address ?? null, $defaults['address']),
-            'website' => self::field($document->company_website ?? null, $defaults['website']),
+            'fax' => self::field($document->company_website ?? null, $defaults['fax']),
         ];
     }
 
@@ -76,7 +76,7 @@ final class BuyerCompany
             'company_phone' => 'phone',
             'company_email' => 'email',
             'company_address' => 'address',
-            'company_website' => 'website',
+            'company_website' => 'fax',
         ] as $column => $key) {
             $header[$column] = $defaults[$key];
         }
