@@ -241,7 +241,7 @@
         </section>
 
         <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 class="border-b border-slate-100 pb-2 text-base font-semibold text-slate-900">NDA (Non-Disclosure Agreement)</h2>
+            <h2 class="border-b border-slate-100 pb-2 text-base font-semibold text-slate-900"> Signed NDA</h2>
             @if (! $vendor->hasNda())
                 <p class="mt-3 text-sm text-slate-500">No NDA document on record.</p>
             @else

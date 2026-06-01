@@ -715,7 +715,7 @@
 
 {{-- 7b. NDA --}}
 <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-    <h2 class="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">NDA (Non-Disclosure Agreement)</h2>
+    <h2 class="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">Signed NDA</h2>
     <p class="mt-2 text-xs text-slate-500">Signed confidentiality agreement with the vendor. PDF, Word, or image. Max 20 MB.</p>
     <div class="mt-4 space-y-3">
         @if ($mode === 'edit' && $v && $v->hasNda())

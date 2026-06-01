@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
 
 class Vendor extends Model
@@ -120,10 +121,16 @@ class Vendor extends Model
     protected function ndaUrl(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->nda_file_path
-                // @phpstan-ignore-next-line
-                ? Storage::disk('s3')->url($this->nda_file_path)
-                : null,
+            get: function (): ?string {
+                if (! $this->nda_file_path) {
+                    return null;
+                }
+
+                /** @var FilesystemAdapter $disk */
+                $disk = Storage::disk('s3');
+
+                return $disk->url($this->nda_file_path);
+            },
         );
     }
 
