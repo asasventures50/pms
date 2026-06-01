@@ -15,8 +15,8 @@
             @endif
             <a href="{{ route('purchase-orders.index') }}"
                class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">Back to list</a>
-            <button type="button" onclick="window.print()"
-                    class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">Print</button>
+            <a href="{{ route('purchase-orders.print', $purchaseOrder) }}" target="_blank" rel="noopener"
+               class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">Print</a>
         </div>
     </div>
 

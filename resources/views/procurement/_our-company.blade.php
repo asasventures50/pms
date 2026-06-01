@@ -5,7 +5,37 @@
     $variant = $variant ?? 'admin-show';
 @endphp
 
-@if ($variant === 'rfq-doc')
+@if ($variant === 'po-print')
+    <section class="mt-6">
+        <h2 class="text-sm font-bold uppercase tracking-wide">Our company</h2>
+        @if (BuyerCompany::hasConfiguredDefaults())
+            <dl class="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+                <div class="flex flex-col gap-0.5 border-b border-slate-900 pb-1 sm:col-span-2 sm:flex-row sm:gap-3">
+                    <dt class="shrink-0 font-medium">Company name</dt>
+                    <dd>{{ $buyerCompany['name'] ?? '—' }}</dd>
+                </div>
+                <div class="flex flex-col gap-0.5 border-b border-slate-900 pb-1 sm:flex-row sm:gap-3">
+                    <dt class="shrink-0 font-medium">Phone</dt>
+                    <dd>{{ $buyerCompany['phone'] ?? '—' }}</dd>
+                </div>
+                <div class="flex flex-col gap-0.5 border-b border-slate-900 pb-1 sm:flex-row sm:gap-3">
+                    <dt class="shrink-0 font-medium">Email</dt>
+                    <dd>{{ $buyerCompany['email'] ?? '—' }}</dd>
+                </div>
+                <div class="flex flex-col gap-0.5 border-b border-slate-900 pb-1 sm:col-span-2 sm:flex-row sm:gap-3">
+                    <dt class="shrink-0 font-medium">Address</dt>
+                    <dd class="whitespace-pre-wrap">{{ $buyerCompany['address'] ?? '—' }}</dd>
+                </div>
+                <div class="flex flex-col gap-0.5 border-b border-slate-900 pb-1 sm:flex-row sm:gap-3">
+                    <dt class="shrink-0 font-medium">Fax</dt>
+                    <dd>{{ $buyerCompany['fax'] ?? '—' }}</dd>
+                </div>
+            </dl>
+        @else
+            <p class="mt-2 text-sm text-amber-800">Configure buyer company in BuyerCompany.php.</p>
+        @endif
+    </section>
+@elseif ($variant === 'rfq-doc')
     <section class="mt-6">
         <h3 class="text-sm font-bold uppercase tracking-wide text-slate-900">Our company</h3>
         @if (BuyerCompany::hasConfiguredDefaults())

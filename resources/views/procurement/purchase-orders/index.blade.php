@@ -79,6 +79,9 @@
                         </td>
                         <td class="whitespace-nowrap px-3 py-2 text-right text-xs">
                             <a href="{{ route('purchase-orders.show', $po) }}" class="font-medium text-slate-700 hover:text-slate-900">View</a>
+                            <span class="mx-1 text-slate-300">|</span>
+                            <a href="{{ route('purchase-orders.print', $po) }}" target="_blank" rel="noopener"
+                               class="font-medium text-slate-700 hover:text-slate-900">Print</a>
                             @if (auth()->user()->hasPermission('purchase-orders.update'))
                                 <span class="mx-1 text-slate-300">|</span>
                                 <a href="{{ route('purchase-orders.edit', $po) }}" class="font-medium text-slate-700 hover:text-slate-900">Edit</a>

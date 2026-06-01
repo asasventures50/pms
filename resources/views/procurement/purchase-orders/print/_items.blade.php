@@ -1,0 +1,79 @@
+@php
+    $currency = $purchaseOrder->displayCurrency();
+    $currencySuffix = $currency ? ' ('.$currency.')' : '';
+    $itemCount = $purchaseOrder->items->count();
+    $emptyRowCount = max(0, $minItemRows - $itemCount);
+    $showDiscountMinus = (float) ($purchaseOrder->discount ?? 0) > 0;
+    $linesSubtotal = round((float) $purchaseOrder->items->sum('line_total'), 2);
+    $deliveryFee = round((float) ($purchaseOrder->delivery_fee ?? 0), 2);
+    $discount = round((float) ($purchaseOrder->discount ?? 0), 2);
+    $totalPrice = round(max(0, $linesSubtotal + $deliveryFee - $discount), 2);
+@endphp
+
+<table class="po-items-table">
+    <thead>
+    <tr>
+        <th class="col-item">Item</th>
+        <th class="col-desc">Item or service<br>description</th>
+        <th class="col-scope">Scope of<br>work</th>
+        <th>Quantity</th>
+        <th>Price per<br>unit{{ $currencySuffix }}</th>
+        <th>Line Total{{ $currencySuffix }}</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach ($purchaseOrder->items as $line)
+        <tr>
+            <td>{{ $line->item }}</td>
+            <td>{{ $line->description }}</td>
+            <td></td>
+            <td>{{ number_format($line->quantity, 3) }}</td>
+            <td>{{ number_format($line->unit_price, 2) }}</td>
+            <td>{{ number_format($line->line_total, 2) }}</td>
+        </tr>
+    @endforeach
+    @for ($i = 0; $i < $emptyRowCount; $i++)
+        <tr>
+            <td>&nbsp;</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+    @endfor
+    @if ($itemCount === 0 && $emptyRowCount === 0)
+        @for ($i = 0; $i < $minItemRows; $i++)
+            <tr>
+                <td>&nbsp;</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        @endfor
+    @endif
+    </tbody>
+</table>
+
+<div class="po-totals-wrap">
+    <table class="po-totals-table">
+        <tr>
+            <td class="po-totals-label">Subtotal</td>
+            <td class="po-totals-value">{{ $purchaseOrder->formatMoneyAmount($linesSubtotal) }}</td>
+        </tr>
+        <tr>
+            <td class="po-totals-label">Delivery fee</td>
+            <td class="po-totals-value">{{ $purchaseOrder->formatMoneyAmount($deliveryFee) }}</td>
+        </tr>
+        <tr>
+            <td class="po-totals-label">Discount</td>
+            <td class="po-totals-value">{{ $showDiscountMinus ? '−' : '' }}{{ $purchaseOrder->formatMoneyAmount($discount) }}</td>
+        </tr>
+        <tr>
+            <td class="po-totals-label">Total Price:</td>
+            <td class="po-totals-value">{{ $purchaseOrder->formatMoneyAmount($totalPrice) }}</td>
+        </tr>
+    </table>
+</div>

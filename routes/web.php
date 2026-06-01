@@ -164,6 +164,10 @@ Route::middleware(['auth'])->group(function () {
             'update' => 'permission:vendors.update',
         ]);
 
+    Route::get('purchase-orders/{purchase_order}/print', [PurchaseOrderController::class, 'print'])
+        ->middleware('permission:purchase-orders.view')
+        ->name('purchase-orders.print');
+
     Route::resource('purchase-orders', PurchaseOrderController::class)
         ->middleware([
             'index' => 'permission:purchase-orders.view',

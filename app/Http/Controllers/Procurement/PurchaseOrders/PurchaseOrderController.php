@@ -222,6 +222,28 @@ class PurchaseOrderController extends Controller
 
 
 
+    public function print(PurchaseOrder $purchaseOrder): View
+
+    {
+
+        $purchaseOrder->load(['vendor', 'creator', 'items']);
+
+
+
+        return view('procurement.purchase-orders.print', [
+
+            'purchaseOrder' => $purchaseOrder,
+
+            'buyerCompany' => BuyerCompany::forDisplay($purchaseOrder),
+
+            'terms' => $this->resolvedTermsForPurchaseOrder($purchaseOrder),
+
+        ]);
+
+    }
+
+
+
     public function edit(PurchaseOrder $purchaseOrder): View
 
     {
