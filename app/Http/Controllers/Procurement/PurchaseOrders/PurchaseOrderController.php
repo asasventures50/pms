@@ -461,18 +461,13 @@ class PurchaseOrderController extends Controller
      */
 
     private function resolvedTermsForPurchaseOrder(PurchaseOrder $purchaseOrder): array
-
     {
-
-        $resolved = $this->termsService->resolveStoredTermsForLocale($purchaseOrder->terms, $purchaseOrder->terms_locale);
+        $resolved = $this->termsService->resolveLiveTermsForPurchaseOrder($purchaseOrder);
         if ($resolved !== []) {
             return $resolved;
         }
 
-
-
         return RfqTerms::legacyDefaults($purchaseOrder->terms_locale);
-
     }
 
 }

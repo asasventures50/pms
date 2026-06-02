@@ -78,7 +78,10 @@ class PurchaseOrderPersistenceService
         }
         $header['terms_locale'] = $locale;
 
-        $scopeTypes = $this->scopeTypesForTerms($header);
+        $scopeTypes = $this->termsService->scopeTypesFromOrderTermDates(
+            $header['handover_at'] ?? null,
+            $header['dismantling_at'] ?? null,
+        );
         $general = $this->termsService->activeTextsForScopeTypes($scopeTypes, $locale);
         $custom = $this->termsService->normalizeCustomTermsInput($header['terms_custom'] ?? [], $locale);
         unset($header['terms_custom']);
@@ -86,25 +89,6 @@ class PurchaseOrderPersistenceService
         $header['terms'] = $this->termsService->buildTermsPayload($general, $custom);
 
         return $header;
-    }
-
-    /**
-     * @param  array<string, mixed>  $header
-     * @return list<string>
-     */
-    private function scopeTypesForTerms(array $header): array
-    {
-        $types = [];
-
-        if (! empty($header['handover_at'])) {
-            $types[] = 'Maintenance';
-        }
-
-        if (! empty($header['dismantling_at'])) {
-            $types[] = 'Dismantling';
-        }
-
-        return $types;
     }
 
     /**

@@ -30,7 +30,7 @@ class StoreRfqGeneralTermRequest extends FormRequest
             'value_en' => ['required_without:value_ar', 'nullable', 'string', 'max:5000'],
             'body_ar' => ['required_without:body_en', 'nullable', 'string', 'max:5000'],
             'body_en' => ['required_without:body_ar', 'nullable', 'string', 'max:5000'],
-            'sort_order' => ['nullable', 'integer', 'min:0', 'max:65535'],
+            'sort_order' => ['nullable', 'numeric', 'decimal:0,2', 'min:0', 'max:99999.99'],
             'is_active' => ['required', 'boolean'],
         ];
     }

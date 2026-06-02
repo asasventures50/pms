@@ -4,6 +4,7 @@ namespace App\Services\Procurement\Rfqs;
 
 use App\Enums\Procurement\Rfqs\RfqTermsLocale;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequestItem;
+use App\Models\Procurement\PurchaseOrders\PurchaseOrder;
 use App\Models\Procurement\Rfqs\RfqGeneralTerm;
 use App\Support\Procurement\ProcurementScopeType;
 use App\Support\Procurement\RfqTerms;
@@ -253,9 +254,56 @@ class RfqGeneralTermsService
     }
 
     /**
+     * General terms from the live library plus PO-specific custom terms from storage.
+     *
+     * @return list<string>
+     */
+    public function resolveLiveTermsForPurchaseOrder(PurchaseOrder $purchaseOrder): array
+    {
+        $locale = $this->normalizeLocale($purchaseOrder->terms_locale);
+        $scopeTypes = $this->scopeTypesFromOrderTermDates(
+            $purchaseOrder->handover_at,
+            $purchaseOrder->dismantling_at,
+        );
+        $general = $this->activeTextsForScopeTypes($scopeTypes, $locale);
+        $custom = $this->resolveStoredCustomTermsForLocale($purchaseOrder->terms, $locale);
+
+        return array_values(array_merge($general, $custom));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function scopeTypesFromOrderTermDates(mixed $handoverAt, mixed $dismantlingAt): array
+    {
+        $types = [];
+
+        if (! empty($handoverAt)) {
+            $types[] = 'Maintenance';
+        }
+
+        if (! empty($dismantlingAt)) {
+            $types[] = 'Dismantling';
+        }
+
+        return $types;
+    }
+
+    /**
      * @return list<string>
      */
     public function resolveStoredTermsForLocale(mixed $stored, ?string $locale = null): array
+    {
+        $parsed = $this->parseStoredTerms($stored);
+        $custom = $this->resolveStoredCustomTermsForLocale($stored, $locale);
+
+        return array_values(array_merge($parsed['general'], $custom));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function resolveStoredCustomTermsForLocale(mixed $stored, ?string $locale = null): array
     {
         $locale = $this->normalizeLocale($locale);
         $entryValueKey = $locale === RfqTermsLocale::Ar->value ? 'value_ar' : 'value_en';
@@ -263,10 +311,9 @@ class RfqGeneralTermsService
         $entryKeyKey = $locale === RfqTermsLocale::Ar->value ? 'key_ar' : 'key_en';
         $entryFallbackKeyKey = $locale === RfqTermsLocale::Ar->value ? 'key_en' : 'key_ar';
 
-        $parsed = $this->parseStoredTerms($stored);
         $entries = $this->customTermEntriesFromStored($stored);
         if ($entries === []) {
-            return $parsed['all'];
+            return $this->parseStoredTerms($stored)['custom'];
         }
 
         $resolvedCustom = [];
@@ -276,11 +323,13 @@ class RfqGeneralTermsService
 
             if ($key !== '' && $value !== '') {
                 $resolvedCustom[] = $key.': '.$value;
+
                 continue;
             }
 
             if ($value !== '') {
                 $resolvedCustom[] = $value;
+
                 continue;
             }
 
@@ -289,7 +338,7 @@ class RfqGeneralTermsService
             }
         }
 
-        return array_values(array_merge($parsed['general'], $resolvedCustom));
+        return array_values($resolvedCustom);
     }
 
     /**
@@ -345,7 +394,7 @@ class RfqGeneralTermsService
     /**
      * @param  list<string>|null  $scopeTypes
      */
-    public function nextSortOrder(?array $scopeTypes): int
+    public function nextSortOrder(?array $scopeTypes): float
     {
         $query = RfqGeneralTerm::query();
 
@@ -359,7 +408,7 @@ class RfqGeneralTermsService
 
         $max = $query->max('sort_order');
 
-        return ((int) $max) + 1;
+        return round(((float) ($max ?? 0)) + 1, 2);
     }
 
     /**

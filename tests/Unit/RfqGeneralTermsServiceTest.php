@@ -45,6 +45,41 @@ class RfqGeneralTermsServiceTest extends TestCase
         $this->assertSame(['General A', 'Custom B'], $parsed['all']);
     }
 
+    public function test_resolve_stored_terms_for_locale_merges_general_and_custom(): void
+    {
+        $service = new RfqGeneralTermsService;
+
+        $resolved = $service->resolveStoredTermsForLocale([
+            'general' => ['General A'],
+            'custom' => ['Custom B'],
+        ]);
+
+        $this->assertSame(['General A', 'Custom B'], $resolved);
+    }
+
+    public function test_resolve_stored_custom_terms_for_locale_returns_only_custom(): void
+    {
+        $service = new RfqGeneralTermsService;
+
+        $custom = $service->resolveStoredCustomTermsForLocale([
+            'general' => ['General A'],
+            'custom' => ['Custom B'],
+        ]);
+
+        $this->assertSame(['Custom B'], $custom);
+    }
+
+    public function test_scope_types_from_order_term_dates(): void
+    {
+        $service = new RfqGeneralTermsService;
+
+        $this->assertSame(
+            ['Maintenance', 'Dismantling'],
+            $service->scopeTypesFromOrderTermDates('2026-01-01', '2026-02-01')
+        );
+        $this->assertSame([], $service->scopeTypesFromOrderTermDates(null, null));
+    }
+
     public function test_build_terms_payload_normalizes_both_groups(): void
     {
         $service = new RfqGeneralTermsService;

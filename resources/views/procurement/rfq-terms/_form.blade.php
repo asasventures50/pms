@@ -81,9 +81,10 @@
         <div class="grid gap-4 sm:grid-cols-2">
             <div>
                 <label for="sort_order" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Sort order</label>
-                <input type="number" name="sort_order" id="sort_order" min="0" max="65535"
+                <input type="number" name="sort_order" id="sort_order" min="0" max="99999.99" step="0.01"
                        value="{{ old('sort_order', $term?->sort_order ?? 0) }}"
                        class="admin-filter-control @error('sort_order') border-red-500 @enderror">
+                <p class="mt-1 text-xs text-slate-500">Use decimals to insert between items (e.g. 15.1 between 15 and 16).</p>
                 @error('sort_order')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
             <div>

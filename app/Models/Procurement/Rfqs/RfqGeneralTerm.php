@@ -25,7 +25,7 @@ class RfqGeneralTerm extends Model
     {
         return [
             'scope_types' => 'array',
-            'sort_order' => 'integer',
+            'sort_order' => 'decimal:2',
             'is_active' => 'boolean',
         ];
     }
