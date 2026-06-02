@@ -343,6 +343,10 @@
         overflow-wrap: break-word;
     }
 
+    .po-term-key {
+        font-weight: bold;
+    }
+
     .po-terms-block--rtl .po-section-title {
         text-align: right;
     }

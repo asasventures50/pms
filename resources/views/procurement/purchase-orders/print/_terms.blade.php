@@ -32,7 +32,20 @@
     @if (count($terms) > 0)
         <ul class="po-terms-list">
             @foreach ($terms as $term)
-                <li @if ($termsRtl) lang="ar" @endif>{{ $term }}</li>
+                @php
+                    $termText = trim((string) $term);
+                    $parts = explode(':', $termText, 2);
+                    $hasKeyValue = count($parts) === 2 && trim($parts[0]) !== '' && trim($parts[1]) !== '';
+                    $termKey = $hasKeyValue ? trim($parts[0]) : '';
+                    $termValue = $hasKeyValue ? trim($parts[1]) : $termText;
+                @endphp
+                <li @if ($termsRtl) lang="ar" @endif>
+                    @if ($hasKeyValue)
+                        <strong class="po-term-key">{{ $termKey }}:</strong> {{ $termValue }}
+                    @else
+                        {{ $termText }}
+                    @endif
+                </li>
             @endforeach
         </ul>
     @else
