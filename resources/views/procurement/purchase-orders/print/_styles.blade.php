@@ -307,6 +307,7 @@
         width: 100%;
         margin-top: 6px;
         padding: 0 4px;
+        font-size: 9px;
     }
 
     .po-terms-block--rtl {
@@ -338,13 +339,18 @@
 
     .po-terms-list li {
         margin-bottom: 6px;
-        line-height: 1.45;
+        line-height: 1.35;
         word-wrap: break-word;
         overflow-wrap: break-word;
     }
 
     .po-term-key {
         font-weight: bold;
+    }
+
+    .po-terms-block .po-field-label {
+        font-size: 12px;
+        margin-bottom: 3px;
     }
 
     .po-terms-block--rtl .po-section-title {
