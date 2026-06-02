@@ -1,7 +1,9 @@
 @php
+    use App\Services\Procurement\PurchaseOrders\PurchaseOrderProcurementRequestContext;
     use Illuminate\Support\Facades\Storage;
 
     $buyer = $buyerCompany ?? \App\Enums\Procurement\BuyerCompany::forDisplay($purchaseOrder);
+    $prContext = $prContext ?? PurchaseOrderProcurementRequestContext::resolve($purchaseOrder);
     $minItemRows = 1;
     $poLogoPublicPath = public_path('images/po/logo.png');
     $poLogoExists = is_file($poLogoPublicPath)
@@ -19,9 +21,13 @@
         'buyer' => $buyer,
         'poLogoUrl' => $poLogoUrl,
         'poLogoExists' => $poLogoExists,
+        'prContext' => $prContext,
     ])
     @include('procurement.purchase-orders.print._parties')
-    @include('procurement.purchase-orders.print._items', ['minItemRows' => $minItemRows])
+    @include('procurement.purchase-orders.print._items', [
+        'minItemRows' => $minItemRows,
+        'prContext' => $prContext,
+    ])
     @include('procurement.purchase-orders.print._terms', ['termsLocale' => $termsLocale])
     @include('procurement.purchase-orders.print._signatures')
 </div>

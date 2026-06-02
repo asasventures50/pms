@@ -22,6 +22,7 @@ use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
 use App\Models\Procurement\Vendors\Vendor;
 
 use App\Services\Procurement\PurchaseOrders\ProcurementRequestOptionsForPurchaseOrderQuery;
+use App\Services\Procurement\PurchaseOrders\PurchaseOrderProcurementRequestContext;
 use App\Services\Procurement\Vendors\VendorSelectOptions;
 use App\Services\Procurement\PurchaseOrders\PurchaseOrderCodeGenerator;
 
@@ -231,9 +232,12 @@ class PurchaseOrderController extends Controller
 
     {
 
-        $purchaseOrder->load(['vendor', 'creator', 'items', 'procurementRequest']);
-
-
+        $purchaseOrder->load([
+            'vendor',
+            'creator',
+            'items',
+            'procurementRequest.items.project',
+        ]);
 
         return view('procurement.purchase-orders.print', [
 
@@ -242,6 +246,8 @@ class PurchaseOrderController extends Controller
             'buyerCompany' => BuyerCompany::forDisplay($purchaseOrder),
 
             'terms' => $this->resolvedTermsForPurchaseOrder($purchaseOrder),
+
+            'prContext' => PurchaseOrderProcurementRequestContext::resolve($purchaseOrder),
 
         ]);
 

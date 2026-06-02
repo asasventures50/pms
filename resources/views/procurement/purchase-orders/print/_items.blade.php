@@ -22,11 +22,18 @@
     </tr>
     </thead>
     <tbody>
+    @php
+        $prItemsByLine = $prContext['pr_items_by_line'] ?? [];
+    @endphp
     @foreach ($purchaseOrder->items as $line)
+        @php
+            $prLine = $prItemsByLine[trim((string) ($line->item ?? ''))] ?? null;
+            $scopeOfWork = trim((string) ($prLine?->scope_of_work ?? ''));
+        @endphp
         <tr>
             <td>{{ $line->item }}</td>
             <td>{{ $line->description }}</td>
-            <td></td>
+            <td>{{ $scopeOfWork }}</td>
             <td>{{ number_format($line->quantity, 3) }}</td>
             <td>{{ number_format($line->unit_price, 2) }}</td>
             <td>{{ number_format($line->line_total, 2) }}</td>

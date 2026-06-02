@@ -49,15 +49,15 @@
     <div class="po-grid-col po-order-right">
         <div class="po-form-group">
             <span class="po-form-label">Category:</span>
-            <span class="po-form-line"></span>
+            <span class="po-form-line">{{ $prContext['category'] ?? '' }}</span>
         </div>
         <div class="po-form-group">
             <span class="po-form-label">Scope Type:</span>
-            <span class="po-form-line"></span>
+            <span class="po-form-line">{{ $prContext['scope_type'] ?? '' }}</span>
         </div>
         <div class="po-form-group">
             <span class="po-form-label">Project:</span>
-            <span class="po-form-line"></span>
+            <span class="po-form-line">{{ $prContext['project'] ?? '' }}</span>
         </div>
     </div>
 </div>
