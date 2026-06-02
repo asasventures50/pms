@@ -10,11 +10,31 @@ trait NormalizesRfqGeneralTermScopeTypes
     {
         $scopeTypes = ProcurementScopeType::selectedValues($this->input('scope_types'));
 
+        $bodyAr = $this->normalizeTermBodyForLocale('ar');
+        $bodyEn = $this->normalizeTermBodyForLocale('en');
+
         $this->merge([
             'is_active' => $this->boolean('is_active'),
             'scope_types' => $scopeTypes === [] ? null : $scopeTypes,
-            'body_ar' => $this->filled('body_ar') ? trim((string) $this->input('body_ar')) : null,
-            'body_en' => $this->filled('body_en') ? trim((string) $this->input('body_en')) : null,
+            'body_ar' => $bodyAr,
+            'body_en' => $bodyEn,
         ]);
+    }
+
+    private function normalizeTermBodyForLocale(string $locale): ?string
+    {
+        $key = trim((string) $this->input('key_'.$locale, ''));
+        $valueInput = $this->input('value_'.$locale);
+
+        if ($valueInput !== null || $key !== '') {
+            $value = trim((string) ($valueInput ?? ''));
+            if ($value === '') {
+                return null;
+            }
+
+            return $key !== '' ? $key.': '.$value : $value;
+        }
+
+        return $this->filled('body_'.$locale) ? trim((string) $this->input('body_'.$locale)) : null;
     }
 }

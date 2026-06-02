@@ -13,6 +13,7 @@ class RfqGeneralTermsService
 {
     /** JSON key for company-wide terms on the RFQ form. */
     public const GLOBAL_SCOPE_KEY = 'global';
+    private const TERM_ENTRY_KEYS = ['key_ar', 'key_en', 'value_ar', 'value_en'];
 
     /**
      * Map passed to the RFQ form: global terms + per-scope terms, each in ar/en.
@@ -166,6 +167,15 @@ class RfqGeneralTermsService
      */
     public function buildTermsPayload(array $general, array $custom): array
     {
+        $customEntries = $this->normalizeTermEntries($custom);
+
+        if ($customEntries !== []) {
+            return [
+                'general' => $this->normalizeTexts($general),
+                'custom' => $customEntries,
+            ];
+        }
+
         return [
             'general' => $this->normalizeTexts($general),
             'custom' => $this->normalizeTexts($custom),
@@ -202,6 +212,87 @@ class RfqGeneralTermsService
     }
 
     /**
+     * @return list<array{key_ar: string, key_en: string, value_ar: string, value_en: string}>
+     */
+    public function normalizeTermEntries(mixed $raw): array
+    {
+        if (! is_array($raw)) {
+            return [];
+        }
+
+        $entries = [];
+        foreach ($raw as $value) {
+            $normalized = $this->normalizeSingleTermEntry($value);
+            if ($normalized !== null) {
+                $entries[] = $normalized;
+            }
+        }
+
+        return array_values($entries);
+    }
+
+    /**
+     * @return list<array{key_ar: string, key_en: string, value_ar: string, value_en: string}>
+     */
+    public function customTermEntriesFromStored(mixed $stored): array
+    {
+        if (! is_array($stored)) {
+            return [];
+        }
+
+        if (array_key_exists('custom', $stored)) {
+            $entries = $this->normalizeTermEntries($stored['custom']);
+            if ($entries !== []) {
+                return $entries;
+            }
+
+            return $this->normalizeTermEntries($this->normalizeTexts($stored['custom']));
+        }
+
+        return $this->normalizeTermEntries($stored);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function resolveStoredTermsForLocale(mixed $stored, ?string $locale = null): array
+    {
+        $locale = $this->normalizeLocale($locale);
+        $entryValueKey = $locale === RfqTermsLocale::Ar->value ? 'value_ar' : 'value_en';
+        $entryFallbackValueKey = $locale === RfqTermsLocale::Ar->value ? 'value_en' : 'value_ar';
+        $entryKeyKey = $locale === RfqTermsLocale::Ar->value ? 'key_ar' : 'key_en';
+        $entryFallbackKeyKey = $locale === RfqTermsLocale::Ar->value ? 'key_en' : 'key_ar';
+
+        $parsed = $this->parseStoredTerms($stored);
+        $entries = $this->customTermEntriesFromStored($stored);
+        if ($entries === []) {
+            return $parsed['all'];
+        }
+
+        $resolvedCustom = [];
+        foreach ($entries as $entry) {
+            $key = trim($entry[$entryKeyKey] ?: $entry[$entryFallbackKeyKey]);
+            $value = trim($entry[$entryValueKey] ?: $entry[$entryFallbackValueKey]);
+
+            if ($key !== '' && $value !== '') {
+                $resolvedCustom[] = $key.': '.$value;
+                continue;
+            }
+
+            if ($value !== '') {
+                $resolvedCustom[] = $value;
+                continue;
+            }
+
+            if ($key !== '') {
+                $resolvedCustom[] = $key;
+            }
+        }
+
+        return array_values(array_merge($parsed['general'], $resolvedCustom));
+    }
+
+    /**
      * @return list<string>
      */
     public function activeTexts(?string $locale = null): array
@@ -223,6 +314,8 @@ class RfqGeneralTermsService
         foreach ($raw as $value) {
             if (is_array($value) && isset($value['body'])) {
                 $text = trim((string) $value['body']);
+            } elseif (is_array($value) && $this->isTermEntryArray($value)) {
+                $text = trim((string) ($value['value_en'] ?? $value['value_ar'] ?? ''));
             } else {
                 $text = trim((string) $value);
             }
@@ -338,5 +431,49 @@ class RfqGeneralTermsService
         return in_array($locale, RfqTermsLocale::values(), true)
             ? $locale
             : RfqTermsLocale::default()->value;
+    }
+
+    private function isTermEntryArray(array $value): bool
+    {
+        foreach (self::TERM_ENTRY_KEYS as $key) {
+            if (array_key_exists($key, $value)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return array{key_ar: string, key_en: string, value_ar: string, value_en: string}|null
+     */
+    private function normalizeSingleTermEntry(mixed $value): ?array
+    {
+        if (is_array($value) && $this->isTermEntryArray($value)) {
+            $entry = [
+                'key_ar' => trim((string) ($value['key_ar'] ?? '')),
+                'key_en' => trim((string) ($value['key_en'] ?? '')),
+                'value_ar' => trim((string) ($value['value_ar'] ?? '')),
+                'value_en' => trim((string) ($value['value_en'] ?? '')),
+            ];
+
+            if ($entry['value_ar'] === '' && $entry['value_en'] === '') {
+                return null;
+            }
+
+            return $entry;
+        }
+
+        $text = trim((string) $value);
+        if ($text === '') {
+            return null;
+        }
+
+        return [
+            'key_ar' => '',
+            'key_en' => '',
+            'value_ar' => $text,
+            'value_en' => $text,
+        ];
     }
 }

@@ -24,6 +24,10 @@ class StoreRfqGeneralTermRequest extends FormRequest
         return [
             'scope_types' => ['nullable', 'array'],
             'scope_types.*' => ['required', 'string', Rule::in(ProcurementScopeType::values())],
+            'key_ar' => ['nullable', 'string', 'max:255'],
+            'key_en' => ['nullable', 'string', 'max:255'],
+            'value_ar' => ['required_without:value_en', 'nullable', 'string', 'max:5000'],
+            'value_en' => ['required_without:value_ar', 'nullable', 'string', 'max:5000'],
             'body_ar' => ['required_without:body_en', 'nullable', 'string', 'max:5000'],
             'body_en' => ['required_without:body_ar', 'nullable', 'string', 'max:5000'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:65535'],

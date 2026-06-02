@@ -363,9 +363,11 @@ class PurchaseOrderController extends Controller
 
 
     /**
-
-     * @return array{general: list<string>, custom: list<string>}
-
+     * @return array{
+     *     general: list<string>,
+     *     custom: list<string>,
+     *     custom_entries: list<array{key_ar: string, key_en: string, value_ar: string, value_en: string}>
+     * }
      */
 
     private function termsForForm(?PurchaseOrder $purchaseOrder = null): array
@@ -375,15 +377,15 @@ class PurchaseOrderController extends Controller
         $customFromOld = old('terms_custom');
 
         if (is_array($customFromOld)) {
+            $customEntries = $this->termsService->normalizeTermEntries($customFromOld);
 
             return [
-
                 'general' => [],
-
                 'custom' => $this->termsService->normalizeTexts($customFromOld),
-
+                'custom_entries' => $customEntries !== []
+                    ? $customEntries
+                    : $this->termsService->normalizeTermEntries($this->termsService->normalizeTexts($customFromOld)),
             ];
-
         }
 
 
@@ -395,18 +397,16 @@ class PurchaseOrderController extends Controller
 
 
             return [
-
                 'general' => [],
-
                 'custom' => $parsed['custom'],
-
+                'custom_entries' => $this->termsService->customTermEntriesFromStored($purchaseOrder->terms),
             ];
 
         }
 
 
 
-        return ['general' => [], 'custom' => []];
+        return ['general' => [], 'custom' => [], 'custom_entries' => []];
 
     }
 
@@ -422,14 +422,9 @@ class PurchaseOrderController extends Controller
 
     {
 
-        $parsed = $this->termsService->parseStoredTerms($purchaseOrder->terms);
-
-
-
-        if ($parsed['all'] !== []) {
-
-            return $parsed['all'];
-
+        $resolved = $this->termsService->resolveStoredTermsForLocale($purchaseOrder->terms, $purchaseOrder->terms_locale);
+        if ($resolved !== []) {
+            return $resolved;
         }
 
 
