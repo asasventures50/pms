@@ -214,7 +214,6 @@
 
         .rfq-terms-print__section {
             margin-bottom: 24px;
-            break-inside: avoid;
         }
 
         .rfq-terms-print__section-title {
@@ -238,7 +237,6 @@
             display: flex;
             gap: 10px;
             margin-bottom: 10px;
-            break-inside: avoid;
         }
 
         .rfq-terms-print__order {
@@ -293,8 +291,26 @@
         }
 
         @media print {
-            .no-print {
+            @page {
+                margin: 12mm;
+            }
+
+            html,
+            body.po-print-body {
+                height: auto;
+                margin: 0;
+                padding: 0;
+                background: #fff;
+            }
+
+            .no-print,
+            .rfq-terms-print__toolbar {
                 display: none !important;
+                height: 0 !important;
+                overflow: hidden !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: none !important;
             }
 
             .print-only-header {
@@ -306,8 +322,14 @@
                 padding: 0;
             }
 
-            .rfq-terms-print__section {
-                page-break-inside: avoid;
+            .rfq-terms-print__section-title {
+                break-after: avoid;
+                page-break-after: avoid;
+            }
+
+            .rfq-terms-print__item {
+                break-inside: auto;
+                page-break-inside: auto;
             }
         }
     </style>
