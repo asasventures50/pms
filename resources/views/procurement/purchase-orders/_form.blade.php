@@ -35,21 +35,29 @@
                        class="admin-filter-control @error('ordered_at') border-red-500 @enderror">
                 @error('ordered_at')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
-            <div>
+            <div class="md:col-span-2">
                 <label for="procurement_request_id" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Linked P.R.</label>
-                <select
-                    name="procurement_request_id"
-                    id="procurement_request_id"
-                    data-lines-url-template="{{ url('/procurement-requests/__ID__/purchase-order-lines') }}"
-                    class="admin-filter-control @error('procurement_request_id') border-red-500 @enderror"
-                >
-                    <option value="">— Not linked —</option>
-                    @foreach (($procurementRequestOptions ?? []) as $option)
-                        <option value="{{ $option['id'] }}" @selected(old('procurement_request_id', $po?->procurement_request_id) == $option['id'])>
-                            {{ $option['label'] }}
-                        </option>
-                    @endforeach
-                </select>
+                <div class="mt-1 flex flex-wrap items-center gap-2">
+                    <select
+                        name="procurement_request_id"
+                        id="procurement_request_id"
+                        data-lines-url-template="{{ url('/procurement-requests/__ID__/purchase-order-lines') }}"
+                        class="admin-filter-control min-w-[14rem] flex-1 @error('procurement_request_id') border-red-500 @enderror"
+                    >
+                        <option value="">— Not linked —</option>
+                        @foreach (($procurementRequestOptions ?? []) as $option)
+                            <option value="{{ $option['id'] }}" @selected(old('procurement_request_id', $po?->procurement_request_id) == $option['id'])>
+                                {{ $option['label'] }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <button type="button" id="po-import-pr-lines"
+                            class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled>
+                        Import lines…
+                    </button>
+                </div>
+                <p class="mt-1 text-xs text-slate-500">Choose which P.R. lines to add — not all lines are imported automatically.</p>
                 @error('procurement_request_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
         </div>
@@ -232,6 +240,46 @@
             </div>
         </div>
     </details>
+</div>
+
+<div id="po-pr-import-modal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="po-pr-import-title">
+    <div class="absolute inset-0 bg-slate-900/50" data-po-pr-import-dismiss></div>
+    <div class="relative flex min-h-full items-center justify-center p-4">
+        <div class="max-h-[90vh] w-full max-w-3xl overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+            <div class="border-b border-slate-100 px-5 py-4">
+                <h3 id="po-pr-import-title" class="text-lg font-semibold text-slate-900">Import lines from P.R.</h3>
+                <p id="po-pr-import-subtitle" class="mt-1 text-sm text-slate-500"></p>
+            </div>
+            <div class="max-h-[50vh] overflow-y-auto px-5 py-3">
+                <p id="po-pr-import-empty" class="hidden py-6 text-center text-sm text-slate-500">This P.R. has no line items.</p>
+                <table id="po-pr-import-table" class="min-w-full text-left text-sm">
+                    <thead class="sticky top-0 bg-white text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <tr>
+                        <th class="w-10 py-2 pr-2">
+                            <input type="checkbox" id="po-pr-import-select-all" class="rounded border-slate-300" title="Select all">
+                        </th>
+                        <th class="py-2 pr-3">Line</th>
+                        <th class="py-2 pr-3">Project</th>
+                        <th class="py-2 pr-3">Category</th>
+                        <th class="py-2">Description</th>
+                    </tr>
+                    </thead>
+                    <tbody id="po-pr-import-body" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+            <div class="flex flex-wrap items-center justify-end gap-2 border-t border-slate-100 bg-slate-50 px-5 py-4">
+                <button type="button" data-po-pr-import-dismiss
+                        class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100">
+                    Cancel
+                </button>
+                <button type="button" id="po-pr-import-confirm"
+                        class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                        disabled>
+                    Import selected
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 @push('scripts')

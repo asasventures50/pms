@@ -31,12 +31,12 @@
             $scopeOfWork = trim((string) ($prLine?->scope_of_work ?? ''));
         @endphp
         <tr>
-            <td>{{ $line->item }}</td>
-            <td>{{ $line->description }}</td>
-            <td>{{ $scopeOfWork }}</td>
-            <td>{{ number_format($line->quantity, 3) }}</td>
-            <td>{{ number_format($line->unit_price, 2) }}</td>
-            <td>{{ number_format($line->line_total, 2) }}</td>
+            <td class="po-cell-item">{{ $line->item }}</td>
+            <td class="po-cell-text">{{ $line->description }}</td>
+            <td class="po-cell-text">{{ $scopeOfWork }}</td>
+            <td class="po-cell-num">{{ number_format($line->quantity, 3) }}</td>
+            <td class="po-cell-num">{{ number_format($line->unit_price, 2) }}</td>
+            <td class="po-cell-num">{{ number_format($line->line_total, 2) }}</td>
         </tr>
     @endforeach
     @for ($i = 0; $i < $emptyRowCount; $i++)

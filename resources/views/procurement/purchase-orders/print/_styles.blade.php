@@ -176,6 +176,12 @@
     .po-order-right .po-form-line {
         width: calc(100% - 96px);
         max-width: 200px;
+        text-align: left;
+        line-height: 1.3;
+    }
+
+    .po-order-right .po-form-group {
+        margin-bottom: 6px;
     }
 
     .po-parties .po-form-label {
@@ -198,19 +204,38 @@
         border: 1px solid #000;
         padding: 6px 4px;
         text-align: center;
-        vertical-align: middle;
+        vertical-align: top;
     }
 
     .po-items-table th {
         font-weight: bold;
         font-size: 11px;
         line-height: 1.25;
+        vertical-align: middle;
     }
 
     .po-items-table td {
         min-height: 25px;
-        height: 25px;
         font-size: 11px;
+        line-height: 1.35;
+    }
+
+    .po-items-table .po-cell-text {
+        text-align: left;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
+    .po-items-table .po-cell-item {
+        text-align: center;
+        vertical-align: middle;
+        font-size: 10px;
+    }
+
+    .po-items-table .po-cell-num {
+        text-align: right;
+        vertical-align: middle;
+        white-space: nowrap;
     }
 
     .po-items-table .col-item {

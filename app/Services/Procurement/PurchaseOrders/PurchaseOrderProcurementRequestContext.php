@@ -38,6 +38,17 @@ class PurchaseOrderProcurementRequestContext
             $items->load('project');
         }
 
+        $poLineNumbers = self::purchaseOrderLineNumbers($purchaseOrder);
+        if ($poLineNumbers !== []) {
+            $items = $items->filter(function (ProcurementRequestItem $item) use ($poLineNumbers) {
+                $lineNumber = trim((string) ($item->line_number ?? ''));
+
+                return $lineNumber !== '' && in_array($lineNumber, $poLineNumbers, true);
+            })->values();
+        } else {
+            $items = collect();
+        }
+
         /** @var array<string, ProcurementRequestItem> $byLine */
         $byLine = [];
         foreach ($items as $item) {
@@ -124,5 +135,25 @@ class PurchaseOrderProcurementRequestContext
         }
 
         return implode('; ', array_keys($labels));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function purchaseOrderLineNumbers(PurchaseOrder $purchaseOrder): array
+    {
+        $poItems = $purchaseOrder->relationLoaded('items')
+            ? $purchaseOrder->items
+            : $purchaseOrder->items()->get(['item']);
+
+        $numbers = [];
+        foreach ($poItems as $poItem) {
+            $lineNumber = trim((string) ($poItem->item ?? ''));
+            if ($lineNumber !== '') {
+                $numbers[] = $lineNumber;
+            }
+        }
+
+        return array_values(array_unique($numbers));
     }
 }

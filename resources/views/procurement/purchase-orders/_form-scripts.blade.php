@@ -374,6 +374,239 @@ document.addEventListener('DOMContentLoaded', function () {
         recalcAll();
     }
 
+    function appendRowsFromProcurementRequest(rows) {
+        if (!Array.isArray(rows) || rows.length === 0) {
+            return;
+        }
+
+        const existingItems = new Set();
+        linesBody.querySelectorAll('.po-line-row').forEach(function (row) {
+            const itemCode = row.querySelector('[name$="[item]"]')?.value?.trim();
+            if (itemCode) {
+                existingItems.add(itemCode);
+            }
+        });
+
+        let added = false;
+        rows.forEach(function (rowData) {
+            const itemCode = (rowData.item || '').trim();
+            if (itemCode && existingItems.has(itemCode)) {
+                return;
+            }
+            if (itemCode) {
+                existingItems.add(itemCode);
+            }
+            addRowFromData(rowData);
+            added = true;
+        });
+
+        if (added) {
+            reindexRows();
+            recalcAll();
+        }
+    }
+
+    function linesBodyHasContent() {
+        return Array.from(linesBody.querySelectorAll('.po-line-row')).some(function (row) {
+            const item = row.querySelector('[name$="[item]"]')?.value?.trim();
+            const description = row.querySelector('[name$="[description]"]')?.value?.trim();
+            return Boolean(item || description);
+        });
+    }
+
+    const prImportModal = document.getElementById('po-pr-import-modal');
+    const prImportSubtitle = document.getElementById('po-pr-import-subtitle');
+    const prImportEmpty = document.getElementById('po-pr-import-empty');
+    const prImportTable = document.getElementById('po-pr-import-table');
+    const prImportBody = document.getElementById('po-pr-import-body');
+    const prImportSelectAll = document.getElementById('po-pr-import-select-all');
+    const prImportConfirm = document.getElementById('po-pr-import-confirm');
+    const prImportBtn = document.getElementById('po-import-pr-lines');
+
+    let prImportPendingLines = [];
+    let prImportOnConfirm = null;
+    let prImportRevertSelect = null;
+
+    function updatePrImportConfirmState() {
+        if (!prImportConfirm || !prImportBody) {
+            return;
+        }
+        const anyChecked = prImportBody.querySelector('input[type="checkbox"][data-pr-line]:checked');
+        prImportConfirm.disabled = !anyChecked;
+        if (prImportSelectAll) {
+            const boxes = prImportBody.querySelectorAll('input[type="checkbox"][data-pr-line]');
+            prImportSelectAll.checked = boxes.length > 0 && boxes.length === prImportBody.querySelectorAll('input[type="checkbox"][data-pr-line]:checked').length;
+            prImportSelectAll.indeterminate = Boolean(anyChecked) && !prImportSelectAll.checked;
+        }
+    }
+
+    function closePrImportModal() {
+        if (!prImportModal) {
+            return;
+        }
+        prImportModal.classList.add('hidden');
+        prImportPendingLines = [];
+        prImportOnConfirm = null;
+        if (prImportRevertSelect && procurementRequestSelect) {
+            procurementRequestSelect.value = prImportRevertSelect;
+            prImportRevertSelect = null;
+        }
+        updatePrImportButtonState();
+    }
+
+    function openPrImportModal(requestNumber, lines, onConfirm) {
+        if (!prImportModal || !prImportBody) {
+            return;
+        }
+
+        prImportPendingLines = Array.isArray(lines) ? lines : [];
+        prImportOnConfirm = onConfirm;
+        prImportSubtitle.textContent = requestNumber
+            ? 'P.R. ' + requestNumber + ' — select the lines to add to this purchase order.'
+            : 'Select the lines to add to this purchase order.';
+
+        prImportBody.innerHTML = '';
+        const hasLines = prImportPendingLines.length > 0;
+        prImportEmpty.classList.toggle('hidden', hasLines);
+        prImportTable.classList.toggle('hidden', !hasLines);
+
+        prImportPendingLines.forEach(function (line, index) {
+            const tr = document.createElement('tr');
+            tr.className = 'align-top';
+
+            const checkTd = document.createElement('td');
+            checkTd.className = 'py-3 pr-2';
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'rounded border-slate-300';
+            checkbox.setAttribute('data-pr-line', String(index));
+            checkbox.addEventListener('change', updatePrImportConfirmState);
+            checkTd.appendChild(checkbox);
+            tr.appendChild(checkTd);
+
+            const lineTd = document.createElement('td');
+            lineTd.className = 'py-3 pr-3 font-mono text-xs text-slate-800';
+            lineTd.textContent = line.item || '—';
+            tr.appendChild(lineTd);
+
+            const projectTd = document.createElement('td');
+            projectTd.className = 'py-3 pr-3 text-slate-700';
+            projectTd.textContent = line.project || '—';
+            tr.appendChild(projectTd);
+
+            const categoryTd = document.createElement('td');
+            categoryTd.className = 'py-3 pr-3 text-slate-700';
+            categoryTd.textContent = line.category || '—';
+            tr.appendChild(categoryTd);
+
+            const descTd = document.createElement('td');
+            descTd.className = 'py-3 text-slate-600';
+            descTd.textContent = line.summary || line.description || '—';
+            tr.appendChild(descTd);
+
+            prImportBody.appendChild(tr);
+        });
+
+        if (prImportSelectAll) {
+            prImportSelectAll.checked = false;
+            prImportSelectAll.indeterminate = false;
+        }
+        updatePrImportConfirmState();
+        prImportModal.classList.remove('hidden');
+    }
+
+    function updatePrImportButtonState() {
+        if (!prImportBtn || !procurementRequestSelect) {
+            return;
+        }
+        prImportBtn.disabled = !procurementRequestSelect.value;
+    }
+
+    async function fetchProcurementRequestLines(requestId) {
+        const urlTemplate = procurementRequestSelect?.getAttribute('data-lines-url-template');
+        if (!urlTemplate || !requestId) {
+            return null;
+        }
+
+        const response = await fetch(urlTemplate.replace('__ID__', requestId), {
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        });
+        if (!response.ok) {
+            return null;
+        }
+
+        return response.json();
+    }
+
+    async function openPrImportForRequest(requestId, options) {
+        const opts = options || {};
+        if (!requestId) {
+            return;
+        }
+
+        try {
+            const data = await fetchProcurementRequestLines(requestId);
+            if (!data) {
+                return;
+            }
+
+            openPrImportModal(data.request_number || '', data.items || [], function (selectedRows, mode) {
+                if (opts.onImported) {
+                    opts.onImported();
+                }
+                if (mode === 'append') {
+                    appendRowsFromProcurementRequest(selectedRows);
+                } else {
+                    replaceRowsFromProcurementRequest(selectedRows);
+                }
+            });
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    prImportModal?.querySelectorAll('[data-po-pr-import-dismiss]').forEach(function (el) {
+        el.addEventListener('click', closePrImportModal);
+    });
+
+    prImportSelectAll?.addEventListener('change', function () {
+        prImportBody?.querySelectorAll('input[type="checkbox"][data-pr-line]').forEach(function (cb) {
+            cb.checked = prImportSelectAll.checked;
+        });
+        updatePrImportConfirmState();
+    });
+
+    prImportConfirm?.addEventListener('click', function () {
+        const selected = [];
+        prImportBody?.querySelectorAll('input[type="checkbox"][data-pr-line]:checked').forEach(function (cb) {
+            const index = parseInt(cb.getAttribute('data-pr-line'), 10);
+            if (!Number.isNaN(index) && prImportPendingLines[index]) {
+                selected.push(prImportPendingLines[index]);
+            }
+        });
+
+        if (selected.length === 0 || !prImportOnConfirm) {
+            return;
+        }
+
+        let mode = 'replace';
+        if (linesBodyHasContent()) {
+            const replaceExisting = window.confirm(
+                'Replace all current line items with the selected P.R. lines?\n\nOK = replace table\nCancel = add selected lines (duplicate line codes are skipped)'
+            );
+            mode = replaceExisting ? 'replace' : 'append';
+        }
+
+        prImportOnConfirm(selected, mode);
+        prImportRevertSelect = null;
+        prImportPendingLines = [];
+        prImportOnConfirm = null;
+        if (prImportModal) {
+            prImportModal.classList.add('hidden');
+        }
+        updatePrImportButtonState();
+    });
+
     linesBody.querySelectorAll('.po-line-row').forEach(bindRow);
     document.querySelectorAll('.po-adjustment').forEach(function (input) {
         input.addEventListener('input', recalcAll);
@@ -393,41 +626,39 @@ document.addEventListener('DOMContentLoaded', function () {
     currencyInput?.closest('form')?.addEventListener('submit', applyUserDefaultIfEmpty);
 
     if (procurementRequestSelect) {
-        const initialProcurementRequestId = procurementRequestSelect.value;
-        procurementRequestSelect.addEventListener('change', async function () {
+        let previousProcurementRequestId = procurementRequestSelect.value;
+
+        procurementRequestSelect.addEventListener('change', function () {
+            const requestId = procurementRequestSelect.value;
+            updatePrImportButtonState();
+
+            if (!requestId) {
+                previousProcurementRequestId = '';
+                return;
+            }
+
+            if (requestId === previousProcurementRequestId) {
+                return;
+            }
+
+            prImportRevertSelect = previousProcurementRequestId;
+            openPrImportForRequest(requestId, {
+                onImported: function () {
+                    previousProcurementRequestId = requestId;
+                    prImportRevertSelect = null;
+                },
+            });
+        });
+
+        prImportBtn?.addEventListener('click', function () {
             const requestId = procurementRequestSelect.value;
             if (!requestId) {
                 return;
             }
-
-            if (initialProcurementRequestId && requestId === initialProcurementRequestId) {
-                return;
-            }
-
-            const urlTemplate = procurementRequestSelect.getAttribute('data-lines-url-template');
-            if (!urlTemplate) {
-                return;
-            }
-
-            const confirmed = window.confirm('Load line items from this P.R.? Current table rows will be replaced, and you can still edit them afterward.');
-            if (!confirmed) {
-                return;
-            }
-
-            try {
-                const response = await fetch(urlTemplate.replace('__ID__', requestId), {
-                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-                });
-                if (!response.ok) {
-                    return;
-                }
-
-                const data = await response.json();
-                replaceRowsFromProcurementRequest(data.items || []);
-            } catch (e) {
-                console.error(e);
-            }
+            openPrImportForRequest(requestId, {});
         });
+
+        updatePrImportButtonState();
     }
 
     const generalTermsList = document.getElementById('po-general-terms-list');

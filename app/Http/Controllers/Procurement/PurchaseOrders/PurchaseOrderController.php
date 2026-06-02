@@ -21,6 +21,7 @@ use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
 
 use App\Models\Procurement\Vendors\Vendor;
 
+use App\Services\Procurement\PurchaseOrders\ProcurementRequestLinesForPurchaseOrderPresenter;
 use App\Services\Procurement\PurchaseOrders\ProcurementRequestOptionsForPurchaseOrderQuery;
 use App\Services\Procurement\PurchaseOrders\PurchaseOrderProcurementRequestContext;
 use App\Services\Procurement\Vendors\VendorSelectOptions;
@@ -377,30 +378,11 @@ class PurchaseOrderController extends Controller
 
     }
 
-    public function procurementRequestLines(ProcurementRequest $procurementRequest): JsonResponse
-
-    {
-
-        $procurementRequest->load(['items']);
-
-        return response()->json([
-
-            'request_number' => $procurementRequest->request_number,
-
-            'items' => $procurementRequest->items->map(fn ($line) => [
-
-                'item' => $line->line_number,
-
-                'description' => $line->description,
-
-                'quantity' => $line->quantity,
-
-                'unit_price' => 0,
-
-            ])->values()->all(),
-
-        ]);
-
+    public function procurementRequestLines(
+        ProcurementRequest $procurementRequest,
+        ProcurementRequestLinesForPurchaseOrderPresenter $presenter,
+    ): JsonResponse {
+        return response()->json($presenter->present($procurementRequest));
     }
 
 
