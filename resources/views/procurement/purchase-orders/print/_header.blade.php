@@ -41,6 +41,10 @@
             <span class="po-form-label">Date:</span>
             <span class="po-form-line">{{ $purchaseOrder->ordered_at?->format('d-m-Y') ?? '' }}</span>
         </div>
+        <div class="po-form-group">
+            <span class="po-form-label">P.R. number:</span>
+            <span class="po-form-line">{{ $purchaseOrder->procurementRequest?->request_number ?? '' }}</span>
+        </div>
     </div>
     <div class="po-grid-col po-order-right">
         <div class="po-form-group">

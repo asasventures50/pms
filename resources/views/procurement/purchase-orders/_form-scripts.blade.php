@@ -7,9 +7,231 @@ document.addEventListener('DOMContentLoaded', function () {
     const totalPriceEl = document.getElementById('po-total-price');
     const deliveryFeeInput = document.getElementById('delivery_fee');
     const discountInput = document.getElementById('discount');
-    const vendorSelect = document.getElementById('vendor_id');
+    const vendorIdInput = document.getElementById('vendor_id');
+    const vendorSearchRoot = document.querySelector('.vendor-search-select');
+    const procurementRequestSelect = document.getElementById('procurement_request_id');
     const currencyInput = document.getElementById('currency_code');
     const userDefaultCurrency = (currencyInput?.dataset.userDefaultCurrency || '').trim().toUpperCase();
+
+    function applyBilingualDirection(field) {
+        const text = field.value || '';
+        const hasArabic = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/.test(text);
+        if (hasArabic) {
+            field.setAttribute('dir', 'rtl');
+            field.setAttribute('lang', 'ar');
+        } else {
+            field.removeAttribute('dir');
+            field.removeAttribute('lang');
+        }
+    }
+
+    document.querySelectorAll('.po-bilingual-text').forEach(function (field) {
+        applyBilingualDirection(field);
+        field.addEventListener('input', function () {
+            applyBilingualDirection(field);
+        });
+    });
+
+    document.querySelectorAll('.po-terms-locale').forEach(function (radio) {
+        radio.addEventListener('change', function () {
+            if (!radio.checked) {
+                return;
+            }
+            document.querySelectorAll('.po-bilingual-text').forEach(function (field) {
+                if (radio.value === 'ar') {
+                    field.setAttribute('dir', 'rtl');
+                    field.setAttribute('lang', 'ar');
+                } else if (radio.value === 'en') {
+                    applyBilingualDirection(field);
+                }
+            });
+        });
+    });
+
+    async function loadVendorSnapshot(vendorId) {
+        if (!vendorId) {
+            if (currencyInput && userDefaultCurrency) {
+                currencyInput.value = userDefaultCurrency;
+                updateCurrencyLabels();
+            }
+            return;
+        }
+        const base = vendorSearchRoot?.getAttribute('data-snapshot-url');
+        if (!base) {
+            return;
+        }
+        try {
+            const response = await fetch(base + '/' + vendorId + '/purchase-order-snapshot', {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            });
+            if (!response.ok) {
+                return;
+            }
+            const data = await response.json();
+            const fields = ['vendor_company_name', 'vendor_contact', 'vendor_email', 'vendor_phone', 'vendor_address', 'payment_terms', 'currency_code'];
+            fields.forEach(function (key) {
+                const el = document.getElementById(key);
+                if (!el) {
+                    return;
+                }
+                if (key === 'currency_code') {
+                    el.value = currencyFromVendor(data.currency_code);
+                } else if (data[key]) {
+                    el.value = data[key];
+                    if (el.classList.contains('po-bilingual-text')) {
+                        applyBilingualDirection(el);
+                    }
+                }
+            });
+            updateCurrencyLabels();
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    if (vendorIdInput && vendorSearchRoot) {
+        const searchInput = document.getElementById('vendor_search_input');
+        const resultsList = document.getElementById('vendor_search_results');
+        const clearBtn = document.getElementById('vendor_search_clear');
+        const maxVisible = 150;
+        let vendorOptions = [];
+
+        try {
+            vendorOptions = JSON.parse(document.getElementById('vendor-select-options')?.textContent || '[]');
+        } catch (e) {
+            console.error(e);
+        }
+
+        let lastSelectedLabel = searchInput?.value || '';
+
+        function closeVendorResults() {
+            resultsList?.classList.add('hidden');
+            searchInput?.setAttribute('aria-expanded', 'false');
+        }
+
+        function openVendorResults() {
+            resultsList?.classList.remove('hidden');
+            searchInput?.setAttribute('aria-expanded', 'true');
+        }
+
+        function normalizeFilterText(text) {
+            return (text || '').toLowerCase().trim();
+        }
+
+        function filterQueryForList() {
+            const typed = searchInput?.value.trim() || '';
+            if (vendorIdInput.value && typed === lastSelectedLabel) {
+                return '';
+            }
+            return typed;
+        }
+
+        function filterVendors(query) {
+            const normalized = normalizeFilterText(query);
+            if (!normalized) {
+                return vendorOptions;
+            }
+            return vendorOptions.filter(function (item) {
+                return normalizeFilterText(item.label).includes(normalized);
+            });
+        }
+
+        function renderVendorResults(items) {
+            if (!resultsList) {
+                return;
+            }
+
+            resultsList.innerHTML = '';
+            const total = items.length;
+
+            if (total === 0) {
+                const empty = document.createElement('li');
+                empty.className = 'px-3 py-2 text-sm text-slate-500';
+                empty.textContent = vendorOptions.length === 0
+                    ? 'No vendors in the system.'
+                    : 'No vendors match your search.';
+                resultsList.appendChild(empty);
+                return;
+            }
+
+            if (total > maxVisible) {
+                const hint = document.createElement('li');
+                hint.className = 'border-b border-slate-100 px-3 py-2 text-xs text-slate-500';
+                hint.textContent = 'Showing ' + maxVisible + ' of ' + total + ' — type more to narrow the list.';
+                resultsList.appendChild(hint);
+            }
+
+            items.slice(0, maxVisible).forEach(function (item) {
+                const option = document.createElement('li');
+                option.className = 'cursor-pointer px-3 py-2 text-sm text-slate-800 hover:bg-slate-50';
+                option.textContent = item.label;
+                option.setAttribute('role', 'option');
+                option.addEventListener('mousedown', function (event) {
+                    event.preventDefault();
+                    selectVendor(item.id, item.label);
+                });
+                resultsList.appendChild(option);
+            });
+        }
+
+        function refreshVendorDropdown() {
+            renderVendorResults(filterVendors(filterQueryForList()));
+            openVendorResults();
+        }
+
+        function selectVendor(id, label) {
+            vendorIdInput.value = String(id);
+            if (searchInput) {
+                searchInput.value = label;
+            }
+            lastSelectedLabel = label;
+            closeVendorResults();
+            vendorIdInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        function clearVendorSelection() {
+            vendorIdInput.value = '';
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            lastSelectedLabel = '';
+            closeVendorResults();
+            vendorIdInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        vendorIdInput.addEventListener('change', function () {
+            loadVendorSnapshot(vendorIdInput.value);
+        });
+
+        clearBtn?.addEventListener('click', clearVendorSelection);
+
+        searchInput?.addEventListener('focus', function () {
+            refreshVendorDropdown();
+        });
+
+        searchInput?.addEventListener('input', function () {
+            const query = searchInput.value.trim();
+            if (vendorIdInput.value && query !== lastSelectedLabel) {
+                vendorIdInput.value = '';
+            }
+            refreshVendorDropdown();
+        });
+
+        searchInput?.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                closeVendorResults();
+            }
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!vendorSearchRoot.contains(event.target)) {
+                closeVendorResults();
+                if (searchInput && vendorIdInput.value && searchInput.value.trim() === '') {
+                    searchInput.value = lastSelectedLabel;
+                }
+            }
+        });
+    }
 
     if (!linesBody || !template) {
         return;
@@ -121,6 +343,37 @@ document.addEventListener('DOMContentLoaded', function () {
         recalcAll();
     }
 
+    function addRowFromData(rowData) {
+        const clone = template.content.cloneNode(true);
+        const row = clone.querySelector('tr');
+        if (!row) {
+            return;
+        }
+
+        row.querySelector('[data-name="item"]').value = rowData.item || '';
+        row.querySelector('[data-name="description"]').value = rowData.description || '';
+        row.querySelector('[data-name="quantity"]').value = rowData.quantity ?? 1;
+        row.querySelector('[data-name="unit_price"]').value = rowData.unit_price ?? 0;
+
+        linesBody.appendChild(row);
+        bindRow(row);
+    }
+
+    function replaceRowsFromProcurementRequest(rows) {
+        linesBody.innerHTML = '';
+
+        if (!Array.isArray(rows) || rows.length === 0) {
+            addRow();
+            return;
+        }
+
+        rows.forEach(function (rowData) {
+            addRowFromData(rowData);
+        });
+        reindexRows();
+        recalcAll();
+    }
+
     linesBody.querySelectorAll('.po-line-row').forEach(bindRow);
     document.querySelectorAll('.po-adjustment').forEach(function (input) {
         input.addEventListener('input', recalcAll);
@@ -139,38 +392,38 @@ document.addEventListener('DOMContentLoaded', function () {
     currencyInput?.addEventListener('blur', applyUserDefaultIfEmpty);
     currencyInput?.closest('form')?.addEventListener('submit', applyUserDefaultIfEmpty);
 
-    if (vendorSelect) {
-        vendorSelect.addEventListener('change', async function () {
-            const vendorId = vendorSelect.value;
-            if (!vendorId) {
-                if (currencyInput && userDefaultCurrency) {
-                    currencyInput.value = userDefaultCurrency;
-                    updateCurrencyLabels();
-                }
+    if (procurementRequestSelect) {
+        const initialProcurementRequestId = procurementRequestSelect.value;
+        procurementRequestSelect.addEventListener('change', async function () {
+            const requestId = procurementRequestSelect.value;
+            if (!requestId) {
                 return;
             }
-            const base = vendorSelect.getAttribute('data-snapshot-url');
+
+            if (initialProcurementRequestId && requestId === initialProcurementRequestId) {
+                return;
+            }
+
+            const urlTemplate = procurementRequestSelect.getAttribute('data-lines-url-template');
+            if (!urlTemplate) {
+                return;
+            }
+
+            const confirmed = window.confirm('Load line items from this P.R.? Current table rows will be replaced, and you can still edit them afterward.');
+            if (!confirmed) {
+                return;
+            }
+
             try {
-                const response = await fetch(base + '/' + vendorId + '/purchase-order-snapshot', {
+                const response = await fetch(urlTemplate.replace('__ID__', requestId), {
                     headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                 });
                 if (!response.ok) {
                     return;
                 }
+
                 const data = await response.json();
-                const fields = ['vendor_company_name', 'vendor_contact', 'vendor_email', 'vendor_phone', 'vendor_address', 'payment_terms', 'currency_code'];
-                fields.forEach(function (key) {
-                    const el = document.getElementById(key);
-                    if (!el) {
-                        return;
-                    }
-                    if (key === 'currency_code') {
-                        el.value = currencyFromVendor(data.currency_code);
-                    } else if (data[key]) {
-                        el.value = data[key];
-                    }
-                });
-                updateCurrencyLabels();
+                replaceRowsFromProcurementRequest(data.items || []);
             } catch (e) {
                 console.error(e);
             }

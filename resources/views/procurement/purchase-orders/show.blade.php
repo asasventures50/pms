@@ -154,8 +154,18 @@
                         <dd class="text-slate-900">From {{ $purchaseOrder->handover_at->format('Y-m-d') }}</dd>
                     </div>
                 @endif
-                <div><dt class="text-xs text-slate-500">Payment terms</dt><dd class="whitespace-pre-wrap text-slate-900">{{ $purchaseOrder->payment_terms ?? '—' }}</dd></div>
-                <div><dt class="text-xs text-slate-500">Notes</dt><dd class="whitespace-pre-wrap text-slate-900">{{ $purchaseOrder->notes ?? '—' }}</dd></div>
+                @php
+                    $paymentTermsDisplay = trim((string) ($purchaseOrder->payment_terms ?? ''));
+                    $notesDisplay = trim((string) ($purchaseOrder->notes ?? ''));
+                @endphp
+                <div>
+                    <dt class="text-xs text-slate-500">Payment terms</dt>
+                    <dd class="whitespace-pre-wrap text-slate-900" @if($paymentTermsDisplay !== '' && \App\Support\TextDirection::isRtl($paymentTermsDisplay)) dir="rtl" lang="ar" @endif>{{ $paymentTermsDisplay !== '' ? $paymentTermsDisplay : '—' }}</dd>
+                </div>
+                <div>
+                    <dt class="text-xs text-slate-500">Notes</dt>
+                    <dd class="whitespace-pre-wrap text-slate-900" @if($notesDisplay !== '' && \App\Support\TextDirection::isRtl($notesDisplay)) dir="rtl" lang="ar" @endif>{{ $notesDisplay !== '' ? $notesDisplay : '—' }}</dd>
+                </div>
             </dl>
         </section>
 

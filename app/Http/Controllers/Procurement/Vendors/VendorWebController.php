@@ -15,6 +15,7 @@ use App\Models\Procurement\Vendors\Vendor;
 use App\Services\Procurement\Vendors\VendorCodeGenerator;
 use App\Services\Procurement\Vendors\VendorPayloadResolver;
 use App\Services\Procurement\Vendors\VendorPersistenceService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -211,6 +212,33 @@ class VendorWebController extends Controller
             'defaultCityId' => $damascus?->id,
             'suggestedVendorCode' => $suggestedVendorCode,
         ]);
+    }
+
+    public function searchForSelect(Request $request): JsonResponse
+    {
+        $term = trim($request->string('q'));
+
+        $query = Vendor::query()->orderBy('name');
+
+        if ($term !== '') {
+            $like = '%'.$term.'%';
+            $query->where(function ($builder) use ($like) {
+                $builder->where('name', 'like', $like)
+                    ->orWhere('vendor_code', 'like', $like);
+            });
+        }
+
+        return response()->json(
+            $query
+                ->limit($term === '' ? 500 : 25)
+                ->get(['id', 'vendor_code', 'name'])
+                ->map(fn (Vendor $vendor) => [
+                    'id' => $vendor->id,
+                    'label' => trim($vendor->vendor_code.' — '.$vendor->name),
+                ])
+                ->values()
+                ->all()
+        );
     }
 
     public function importForm(): View

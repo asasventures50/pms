@@ -35,6 +35,23 @@
                        class="admin-filter-control @error('ordered_at') border-red-500 @enderror">
                 @error('ordered_at')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
+            <div>
+                <label for="procurement_request_id" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Linked P.R.</label>
+                <select
+                    name="procurement_request_id"
+                    id="procurement_request_id"
+                    data-lines-url-template="{{ url('/procurement-requests/__ID__/purchase-order-lines') }}"
+                    class="admin-filter-control @error('procurement_request_id') border-red-500 @enderror"
+                >
+                    <option value="">— Not linked —</option>
+                    @foreach (($procurementRequestOptions ?? []) as $option)
+                        <option value="{{ $option['id'] }}" @selected(old('procurement_request_id', $po?->procurement_request_id) == $option['id'])>
+                            {{ $option['label'] }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('procurement_request_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
         </div>
     </section>
 
@@ -47,16 +64,10 @@
         <h2 class="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">Vendor</h2>
         <div class="mt-4 grid gap-4 md:grid-cols-2">
             <div class="md:col-span-2">
-                <label for="vendor_id" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Vendor (from system)</label>
-                <select name="vendor_id" id="vendor_id" data-snapshot-url="{{ url('/vendors') }}"
-                        class="admin-filter-control @error('vendor_id') border-red-500 @enderror">
-                    <option value="">— Manual entry —</option>
-                    @foreach ($vendors as $vendor)
-                        <option value="{{ $vendor->id }}" @selected(old('vendor_id', $po?->vendor_id) == $vendor->id)>
-                            {{ $vendor->vendor_code }} — {{ $vendor->name }}
-                        </option>
-                    @endforeach
-                </select>
+                <label for="vendor_search_input" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Vendor (from system)</label>
+                @include('procurement.partials._vendor-search-select', [
+                    'selectedVendor' => $selectedVendor ?? null,
+                ])
                 @error('vendor_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
             <div>
@@ -146,15 +157,24 @@
             <div class="md:col-span-2">
                 <p class="text-xs text-slate-500">Maintenance period runs from handover date until dismantling date (when set).</p>
             </div>
+            @php
+                $paymentTermsValue = old('payment_terms', $po?->payment_terms ?? '');
+                $notesValue = old('notes', $po?->notes ?? '');
+                $paymentTermsRtl = \App\Support\TextDirection::isRtl($paymentTermsValue);
+                $notesRtl = \App\Support\TextDirection::isRtl($notesValue);
+            @endphp
             <div class="md:col-span-2">
                 <label for="payment_terms" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Payment terms</label>
-                <textarea name="payment_terms" id="payment_terms" rows="2"
-                          class="admin-form-textarea @error('payment_terms') border-red-500 @enderror">{{ old('payment_terms', $po?->payment_terms ?? '') }}</textarea>
+                <p class="mt-0.5 text-xs text-slate-500">Supports Arabic and English — text direction adjusts automatically while typing.</p>
+                <textarea name="payment_terms" id="payment_terms" rows="3"
+                          class="po-bilingual-text admin-form-textarea @error('payment_terms') border-red-500 @enderror"
+                          @if ($paymentTermsRtl) dir="rtl" lang="ar" @endif>{{ $paymentTermsValue }}</textarea>
             </div>
             <div class="md:col-span-2">
                 <label for="notes" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Notes</label>
                 <textarea name="notes" id="notes" rows="3"
-                          class="admin-form-textarea @error('notes') border-red-500 @enderror">{{ old('notes', $po?->notes ?? '') }}</textarea>
+                          class="po-bilingual-text admin-form-textarea @error('notes') border-red-500 @enderror"
+                          @if ($notesRtl) dir="rtl" lang="ar" @endif>{{ $notesValue }}</textarea>
             </div>
         </div>
     </section>

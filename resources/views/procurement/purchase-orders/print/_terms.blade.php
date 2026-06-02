@@ -1,6 +1,12 @@
 @php
+    use App\Support\TextDirection;
+
     $termsLocale = $termsLocale ?? ($purchaseOrder->terms_locale ?? 'en');
     $termsRtl = $termsLocale === 'ar';
+    $paymentTermsText = trim((string) ($purchaseOrder->payment_terms ?? ''));
+    $paymentTermsRtl = $paymentTermsText !== '' && TextDirection::isRtl($paymentTermsText);
+    $notesText = trim((string) ($purchaseOrder->notes ?? ''));
+    $notesRtl = $notesText !== '' && TextDirection::isRtl($notesText);
 @endphp
 
 <div class="po-section-title">Order terms</div>
@@ -19,12 +25,12 @@
 
 <div class="po-field-block">
     <div class="po-field-label">Payment terms:</div>
-    <div class="po-field-value">{{ $purchaseOrder->payment_terms ?? '' }}</div>
+    <div class="po-field-value" @if ($paymentTermsRtl) dir="rtl" lang="ar" @endif>{{ $paymentTermsText }}</div>
 </div>
 
 <div class="po-field-block">
     <div class="po-field-label">Notes:</div>
-    <div class="po-field-value">{{ $purchaseOrder->notes ?? '' }}</div>
+    <div class="po-field-value" @if ($notesRtl) dir="rtl" lang="ar" @endif>{{ $notesText }}</div>
 </div>
 
 <div @class(['po-terms-block', 'po-terms-block--rtl' => $termsRtl]) @if ($termsRtl) dir="rtl" lang="ar" @endif>

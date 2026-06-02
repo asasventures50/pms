@@ -5,6 +5,7 @@ namespace App\Models\Procurement\PurchaseOrders;
 use App\Enums\Procurement\PurchaseOrders\PaymentStatus;
 use App\Enums\Procurement\PurchaseOrders\PurchaseOrderStatus;
 use App\Models\Concerns\LogsActivity;
+use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
 use App\Models\Procurement\Vendors\Vendor;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -38,6 +39,7 @@ class PurchaseOrder extends Model
         'notes',
         'status',
         'vendor_id',
+        'procurement_request_id',
         'vendor_company_name',
         'vendor_contact',
         'vendor_email',
@@ -96,6 +98,11 @@ class PurchaseOrder extends Model
     public function vendor(): BelongsTo
     {
         return $this->belongsTo(Vendor::class, 'vendor_id');
+    }
+
+    public function procurementRequest(): BelongsTo
+    {
+        return $this->belongsTo(ProcurementRequest::class, 'procurement_request_id');
     }
 
     public function items(): HasMany

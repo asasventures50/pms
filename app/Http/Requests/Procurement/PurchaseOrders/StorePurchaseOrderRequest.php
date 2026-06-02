@@ -39,6 +39,7 @@ class StorePurchaseOrderRequest extends FormRequest
             'title' => ['nullable', 'string', 'max:255'],
             'ordered_at' => ['nullable', 'date'],
             'vendor_id' => ['nullable', 'integer', Rule::exists('vendors', 'id')->whereNull('deleted_at')],
+            'procurement_request_id' => ['nullable', 'integer', Rule::exists('procurement_requests', 'id')->whereNull('deleted_at')],
             'vendor_company_name' => ['nullable', 'string', 'max:255'],
             'vendor_contact' => ['nullable', 'string', 'max:255'],
             'vendor_email' => ['nullable', 'string', 'email', 'max:255'],

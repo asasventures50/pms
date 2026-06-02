@@ -19,7 +19,6 @@
         @method('PUT')
         @include('procurement.purchase-orders._form', [
             'purchaseOrder' => $purchaseOrder,
-            'vendors' => $vendors,
             'defaultItems' => $defaultItems,
         ])
 

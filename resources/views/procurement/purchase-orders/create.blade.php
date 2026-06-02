@@ -14,7 +14,6 @@
     <form action="{{ route('purchase-orders.store') }}" method="post" class="space-y-8">
         @csrf
         @include('procurement.purchase-orders._form', [
-            'vendors' => $vendors,
             'nextCode' => $nextCode,
             'defaultItems' => $defaultItems,
         ])

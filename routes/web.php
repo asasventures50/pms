@@ -137,9 +137,17 @@ Route::middleware(['auth'])->group(function () {
             'destroy' => 'permission:locations.manage',
         ]);
 
+    Route::get('/vendors/search-for-select', [VendorWebController::class, 'searchForSelect'])
+        ->middleware('permission:purchase-orders.create|purchase-orders.update|rfqs.create|rfqs.update')
+        ->name('vendors.search-for-select');
+
     Route::get('/vendors/{vendor}/purchase-order-snapshot', [PurchaseOrderController::class, 'vendorSnapshot'])
         ->middleware('permission:purchase-orders.create')
         ->name('vendors.purchase-order-snapshot');
+
+    Route::get('/procurement-requests/{procurementRequest}/purchase-order-lines', [PurchaseOrderController::class, 'procurementRequestLines'])
+        ->middleware('permission:purchase-orders.create|purchase-orders.update')
+        ->name('procurement-requests.purchase-order-lines');
 
     Route::get('/vendors/{vendor}/rfq-snapshot', [RfqController::class, 'vendorSnapshot'])
         ->middleware('permission:rfqs.create')

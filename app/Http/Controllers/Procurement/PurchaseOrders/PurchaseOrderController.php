@@ -17,9 +17,12 @@ use App\Http\Requests\Procurement\PurchaseOrders\StorePurchaseOrderRequest;
 use App\Http\Requests\Procurement\PurchaseOrders\UpdatePurchaseOrderRequest;
 
 use App\Models\Procurement\PurchaseOrders\PurchaseOrder;
+use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
 
 use App\Models\Procurement\Vendors\Vendor;
 
+use App\Services\Procurement\PurchaseOrders\ProcurementRequestOptionsForPurchaseOrderQuery;
+use App\Services\Procurement\Vendors\VendorSelectOptions;
 use App\Services\Procurement\PurchaseOrders\PurchaseOrderCodeGenerator;
 
 use App\Services\Procurement\PurchaseOrders\PurchaseOrderPayloadResolver;
@@ -132,13 +135,15 @@ class PurchaseOrderController extends Controller
 
         $nextCode = app(PurchaseOrderCodeGenerator::class)->next();
 
-        $vendors = Vendor::query()->orderBy('name')->get(['id', 'vendor_code', 'name']);
+        $procurementRequestOptions = app(ProcurementRequestOptionsForPurchaseOrderQuery::class)->options();
 
         return view('procurement.purchase-orders.create', [
 
             'nextCode' => $nextCode,
 
-            'vendors' => $vendors,
+            'selectedVendor' => null,
+            'vendorSelectOptions' => VendorSelectOptions::all(),
+            'procurementRequestOptions' => $procurementRequestOptions,
 
             'defaultItems' => [['item' => '', 'description' => '', 'quantity' => 1, 'unit_price' => 0]],
 
@@ -204,7 +209,7 @@ class PurchaseOrderController extends Controller
 
     {
 
-        $purchaseOrder->load(['vendor', 'creator', 'items']);
+        $purchaseOrder->load(['vendor', 'creator', 'items', 'procurementRequest']);
 
 
 
@@ -226,7 +231,7 @@ class PurchaseOrderController extends Controller
 
     {
 
-        $purchaseOrder->load(['vendor', 'creator', 'items']);
+        $purchaseOrder->load(['vendor', 'creator', 'items', 'procurementRequest']);
 
 
 
@@ -250,7 +255,11 @@ class PurchaseOrderController extends Controller
 
         $purchaseOrder->load(['items', 'creator']);
 
-        $vendors = Vendor::query()->orderBy('name')->get(['id', 'vendor_code', 'name']);
+        $selectedVendor = $purchaseOrder->vendor_id
+            ? Vendor::query()->find($purchaseOrder->vendor_id, ['id', 'vendor_code', 'name'])
+            : null;
+        $procurementRequestOptions = app(ProcurementRequestOptionsForPurchaseOrderQuery::class)
+            ->options($purchaseOrder->procurement_request_id);
 
 
 
@@ -280,7 +289,9 @@ class PurchaseOrderController extends Controller
 
             'purchaseOrder' => $purchaseOrder,
 
-            'vendors' => $vendors,
+            'selectedVendor' => $selectedVendor,
+            'vendorSelectOptions' => VendorSelectOptions::all(),
+            'procurementRequestOptions' => $procurementRequestOptions,
 
             'defaultItems' => $defaultItems,
 
@@ -357,6 +368,32 @@ class PurchaseOrderController extends Controller
     {
 
         return response()->json(VendorPurchaseOrderSnapshot::fromVendor($vendor));
+
+    }
+
+    public function procurementRequestLines(ProcurementRequest $procurementRequest): JsonResponse
+
+    {
+
+        $procurementRequest->load(['items']);
+
+        return response()->json([
+
+            'request_number' => $procurementRequest->request_number,
+
+            'items' => $procurementRequest->items->map(fn ($line) => [
+
+                'item' => $line->line_number,
+
+                'description' => $line->description,
+
+                'quantity' => $line->quantity,
+
+                'unit_price' => 0,
+
+            ])->values()->all(),
+
+        ]);
 
     }
 
