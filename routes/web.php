@@ -187,6 +187,10 @@ Route::middleware(['auth'])->group(function () {
             'destroy' => 'permission:purchase-orders.update',
         ]);
 
+    Route::get('rfq-terms/print', [RfqGeneralTermController::class, 'print'])
+        ->middleware('permission:rfq-terms.view')
+        ->name('rfq-terms.print');
+
     Route::resource('rfq-terms', RfqGeneralTermController::class)
         ->except(['show'])
         ->parameters(['rfq-terms' => 'rfq_term'])

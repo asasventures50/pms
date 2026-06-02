@@ -80,6 +80,35 @@ class RfqGeneralTermsServiceTest extends TestCase
         $this->assertSame([], $service->scopeTypesFromOrderTermDates(null, null));
     }
 
+    public function test_sections_for_print_groups_by_scope_when_unfiltered(): void
+    {
+        $service = new RfqGeneralTermsService;
+        $terms = collect([
+            new RfqGeneralTerm(['scope_types' => null, 'body_en' => 'Global']),
+            new RfqGeneralTerm(['scope_types' => ['Supplier'], 'body_en' => 'Supply']),
+        ]);
+
+        $sections = $service->sectionsForPrint($terms, null);
+
+        $this->assertCount(2, $sections);
+        $this->assertSame('General (all RFQs)', $sections[0]['label']);
+        $this->assertSame('Global', $sections[0]['terms']->first()->body_en);
+        $this->assertSame('Supplier', $sections[1]['label']);
+    }
+
+    public function test_sections_for_print_single_section_when_scope_filtered(): void
+    {
+        $service = new RfqGeneralTermsService;
+        $terms = collect([
+            new RfqGeneralTerm(['scope_types' => null, 'body_en' => 'Global']),
+        ]);
+
+        $sections = $service->sectionsForPrint($terms, RfqGeneralTermsService::GLOBAL_SCOPE_KEY);
+
+        $this->assertCount(1, $sections);
+        $this->assertSame('General (all RFQs) only', $sections[0]['label']);
+    }
+
     public function test_build_terms_payload_normalizes_both_groups(): void
     {
         $service = new RfqGeneralTermsService;

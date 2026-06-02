@@ -9,6 +9,7 @@ use App\Models\Procurement\Rfqs\RfqGeneralTerm;
 use App\Support\Procurement\ProcurementScopeType;
 use App\Support\Procurement\RfqTerms;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 class RfqGeneralTermsService
 {
@@ -445,6 +446,60 @@ class RfqGeneralTermsService
         if (in_array($filter, ProcurementScopeType::values(), true)) {
             $query->matchingScopeType($filter);
         }
+    }
+
+    public function printScopeFilterLabel(?string $scopeFilter): string
+    {
+        if ($scopeFilter === null || $scopeFilter === '') {
+            return 'All scopes';
+        }
+
+        if ($scopeFilter === self::GLOBAL_SCOPE_KEY) {
+            return 'General (all RFQs) only';
+        }
+
+        return $scopeFilter;
+    }
+
+    /**
+     * @param  Collection<int, RfqGeneralTerm>  $terms
+     * @return list<array{label: string, terms: Collection<int, RfqGeneralTerm>}>
+     */
+    public function sectionsForPrint(Collection $terms, ?string $scopeFilter): array
+    {
+        if ($scopeFilter !== null && $scopeFilter !== '') {
+            return [
+                [
+                    'label' => $this->printScopeFilterLabel($scopeFilter),
+                    'terms' => $terms->values(),
+                ],
+            ];
+        }
+
+        $sections = [];
+
+        $global = $terms->filter(fn (RfqGeneralTerm $term) => $term->isGlobal())->values();
+        if ($global->isNotEmpty()) {
+            $sections[] = [
+                'label' => 'General (all RFQs)',
+                'terms' => $global,
+            ];
+        }
+
+        foreach (ProcurementScopeType::options() as $scopeType) {
+            $scoped = $terms
+                ->filter(fn (RfqGeneralTerm $term) => $term->appliesToScopeType($scopeType))
+                ->values();
+
+            if ($scoped->isNotEmpty()) {
+                $sections[] = [
+                    'label' => $scopeType,
+                    'terms' => $scoped,
+                ];
+            }
+        }
+
+        return $sections;
     }
 
     /**

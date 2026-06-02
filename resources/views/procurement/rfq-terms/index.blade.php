@@ -15,6 +15,15 @@
                     Add term
                 </a>
             @endif
+            <a href="{{ route('rfq-terms.print', array_filter([
+                'scope_type' => request('scope_type'),
+                'q' => request('q'),
+                'is_active' => request()->filled('is_active') ? request('is_active') : '1',
+            ])) }}"
+               class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50"
+               target="_blank" rel="noopener">
+                Print terms
+            </a>
             <a href="{{ route('rfqs.index') }}"
                class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">
                 Back to RFQs
@@ -51,6 +60,13 @@
         </div>
         <div class="flex flex-wrap items-center gap-3">
             <button type="submit" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">Apply</button>
+            <a href="{{ route('rfq-terms.print', array_filter([
+                'scope_type' => request('scope_type'),
+                'q' => request('q'),
+                'is_active' => request()->filled('is_active') ? request('is_active') : '1',
+            ])) }}"
+               class="text-sm font-medium text-slate-600 hover:text-slate-900"
+               target="_blank" rel="noopener">Print with these filters</a>
             <a href="{{ route('rfq-terms.index') }}" class="text-sm font-medium text-slate-600 hover:text-slate-900">Reset</a>
         </div>
     </form>
