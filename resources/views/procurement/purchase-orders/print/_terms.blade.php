@@ -4,14 +4,18 @@
 @endphp
 
 <div class="po-section-title">Order terms</div>
-<div class="po-form-group po-form-group--row">
-    <span class="po-form-label po-form-label--wide">Handover date (maintenance from):</span>
-    <span class="po-form-line po-form-line--flex">{{ $purchaseOrder->handover_at?->format('d-m-Y') ?? '' }}</span>
-</div>
-<div class="po-form-group po-form-group--row">
-    <span class="po-form-label po-form-label--wide">Dismantling date (if any):</span>
-    <span class="po-form-line po-form-line--flex">{{ $purchaseOrder->dismantling_at?->format('d-m-Y') ?? '' }}</span>
-</div>
+@if ($purchaseOrder->handover_at)
+    <div class="po-form-group po-form-group--row">
+        <span class="po-form-label po-form-label--wide">Handover date (maintenance from):</span>
+        <span class="po-form-line po-form-line--flex">{{ $purchaseOrder->handover_at->format('d-m-Y') }}</span>
+    </div>
+@endif
+@if ($purchaseOrder->dismantling_at)
+    <div class="po-form-group po-form-group--row">
+        <span class="po-form-label po-form-label--wide">Dismantling date (if any):</span>
+        <span class="po-form-line po-form-line--flex">{{ $purchaseOrder->dismantling_at->format('d-m-Y') }}</span>
+    </div>
+@endif
 
 <div class="po-field-block">
     <div class="po-field-label">Payment terms:</div>

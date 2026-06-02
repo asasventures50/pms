@@ -2,7 +2,7 @@
     use Illuminate\Support\Facades\Storage;
 
     $buyer = $buyerCompany ?? \App\Enums\Procurement\BuyerCompany::forDisplay($purchaseOrder);
-    $minItemRows = 5;
+    $minItemRows = 1;
     $poLogoPublicPath = public_path('images/po/logo.png');
     $poLogoExists = is_file($poLogoPublicPath)
         || Storage::disk('public')->exists('logo.png');
