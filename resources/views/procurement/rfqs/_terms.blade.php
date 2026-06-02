@@ -1,10 +1,10 @@
 @php
     use App\Enums\Procurement\Rfqs\RfqTermsLocale;
 
-    $rfqTerms = $rfqTerms ?? ['general' => [], 'custom' => []];
+    $rfqTerms = $rfqTerms ?? ['general' => [], 'custom_rows' => []];
     $generalTerms = $rfqTerms['general'] ?? [];
-    $customTerms = $rfqTerms['custom'] ?? [];
-    $terms = $terms ?? array_merge($generalTerms, $customTerms);
+    $customRows = $rfqTerms['custom_rows'] ?? [];
+    $terms = $terms ?? [];
     $editable = $editable ?? false;
     $termsLocale = old('terms_locale', $rfq?->terms_locale ?? RfqTermsLocale::default()->value);
 @endphp
@@ -54,42 +54,23 @@
             </ul>
         </div>
 
-        <div class="mt-6">
-            <h4 class="text-xs font-semibold uppercase tracking-wide text-slate-600">Additional terms <span class="font-normal normal-case text-slate-500">(this RFQ only)</span></h4>
-            <ul id="rfq-custom-terms-list" class="mt-2 list-none space-y-2">
-                @foreach ($customTerms as $index => $term)
-                    <li class="rfq-custom-term-row flex gap-2">
-                        <span class="shrink-0 pt-2 text-sm text-slate-800">-</span>
-                        <input type="text" name="terms_custom[{{ $index }}]" value="{{ $term }}"
-                               class="rfq-doc-field rfq-custom-term-input min-w-0 flex-1 text-sm @error('terms_custom.'.$index) border-red-500 @enderror"
-                               @if($termsLocale === 'ar') dir="rtl" @endif>
-                        <button type="button" class="rfq-remove-custom-term shrink-0 rounded-lg px-2 py-1 text-sm font-medium text-red-700 hover:bg-red-50 print:hidden">Remove</button>
-                    </li>
-                @endforeach
-            </ul>
-            <button type="button" id="rfq-add-custom-term"
-                    class="mt-3 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-800 hover:bg-slate-50 print:hidden">
-                Add term
-            </button>
-            <template id="rfq-custom-term-template">
-                <li class="rfq-custom-term-row flex gap-2">
-                    <span class="shrink-0 pt-2 text-sm text-slate-800">-</span>
-                    <input type="text" data-name="terms_custom[]" value=""
-                           class="rfq-doc-field rfq-custom-term-input min-w-0 flex-1 text-sm">
-                    <button type="button" class="rfq-remove-custom-term shrink-0 rounded-lg px-2 py-1 text-sm font-medium text-red-700 hover:bg-red-50">Remove</button>
-                </li>
-            </template>
-        </div>
+        @include('procurement.partials._additional-custom-terms', [
+            'customRows' => $customRows,
+            'termsLocale' => $termsLocale,
+            'listId' => 'rfq-custom-terms-list',
+            'templateId' => 'rfq-custom-term-template',
+            'addButtonId' => 'rfq-add-custom-term',
+            'rowClass' => 'rfq-custom-term-row',
+            'removeClass' => 'rfq-remove-custom-term',
+            'inputClass' => 'rfq-doc-field',
+            'scopeLabel' => 'this RFQ only',
+            'headingTag' => 'h4',
+        ])
     @else
-        <ul class="mt-3 list-none space-y-1.5 text-sm text-slate-800">
-            @forelse ($terms as $term)
-                <li class="flex gap-2">
-                    <span class="shrink-0">-</span>
-                    <span @if(($rfq->terms_locale ?? 'en') === 'ar') dir="rtl" @endif>{{ $term }}</span>
-                </li>
-            @empty
-                <li class="text-slate-500">No terms specified.</li>
-            @endforelse
-        </ul>
+        @include('procurement.partials._terms-display-list', [
+            'terms' => $terms,
+            'termsLocale' => $rfq->terms_locale ?? 'en',
+            'compact' => true,
+        ])
     @endif
 </section>

@@ -363,51 +363,56 @@ class PurchaseOrderController extends Controller
 
 
     /**
-     * @return array{
-     *     general: list<string>,
-     *     custom: list<string>,
-     *     custom_entries: list<array{key_ar: string, key_en: string, value_ar: string, value_en: string}>
-     * }
+     * @return array{general: list<string>, custom_rows: list<array{key: string, value: string}>}
      */
-
     private function termsForForm(?PurchaseOrder $purchaseOrder = null): array
-
     {
+        $locale = old('terms_locale', $purchaseOrder?->terms_locale);
 
         $customFromOld = old('terms_custom');
-
         if (is_array($customFromOld)) {
-            $customEntries = $this->termsService->normalizeTermEntries($customFromOld);
-
             return [
                 'general' => [],
-                'custom' => $this->termsService->normalizeTexts($customFromOld),
-                'custom_entries' => $customEntries !== []
-                    ? $customEntries
-                    : $this->termsService->normalizeTermEntries($this->termsService->normalizeTexts($customFromOld)),
+                'custom_rows' => $this->customRowsFromOldInput($customFromOld),
             ];
         }
-
-
 
         if ($purchaseOrder !== null) {
-
-            $parsed = $this->termsService->parseStoredTerms($purchaseOrder->terms);
-
-
-
             return [
                 'general' => [],
-                'custom' => $parsed['custom'],
-                'custom_entries' => $this->termsService->customTermEntriesFromStored($purchaseOrder->terms),
+                'custom_rows' => $this->termsService->customTermRowsForForm($purchaseOrder->terms, $locale),
             ];
-
         }
 
+        return ['general' => [], 'custom_rows' => []];
+    }
 
+    /**
+     * @param  array<int, mixed>  $raw
+     * @return list<array{key: string, value: string}>
+     */
+    private function customRowsFromOldInput(array $raw): array
+    {
+        $rows = [];
+        foreach ($raw as $row) {
+            if (is_array($row)) {
+                $value = trim((string) ($row['value'] ?? ''));
+                if ($value === '') {
+                    continue;
+                }
+                $rows[] = [
+                    'key' => trim((string) ($row['key'] ?? '')),
+                    'value' => $value,
+                ];
+            } else {
+                $split = $this->termsService->splitKeyValueText((string) $row);
+                if ($split['value'] !== '') {
+                    $rows[] = $split;
+                }
+            }
+        }
 
-        return ['general' => [], 'custom' => [], 'custom_entries' => []];
-
+        return $rows;
     }
 
 

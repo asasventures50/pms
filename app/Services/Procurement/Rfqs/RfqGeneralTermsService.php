@@ -447,6 +447,120 @@ class RfqGeneralTermsService
     /**
      * @return array{key_ar: string, key_en: string, value_ar: string, value_en: string}|null
      */
+    /**
+     * @return array{key: string, value: string}
+     */
+    public function splitKeyValueText(?string $text): array
+    {
+        $raw = trim((string) ($text ?? ''));
+        if ($raw === '') {
+            return ['key' => '', 'value' => ''];
+        }
+
+        $parts = explode(':', $raw, 2);
+        if (count($parts) < 2) {
+            return ['key' => '', 'value' => $raw];
+        }
+
+        return [
+            'key' => trim($parts[0]),
+            'value' => trim($parts[1]),
+        ];
+    }
+
+    /**
+     * Rows for Additional terms form (key + value) with legacy support.
+     *
+     * @return list<array{key: string, value: string}>
+     */
+    public function customTermRowsForForm(mixed $stored, ?string $locale = null): array
+    {
+        $locale = $this->normalizeLocale($locale);
+        $keyField = $locale === RfqTermsLocale::Ar->value ? 'key_ar' : 'key_en';
+        $valueField = $locale === RfqTermsLocale::Ar->value ? 'value_ar' : 'value_en';
+        $fallbackKeyField = $locale === RfqTermsLocale::Ar->value ? 'key_en' : 'key_ar';
+        $fallbackValueField = $locale === RfqTermsLocale::Ar->value ? 'value_en' : 'value_ar';
+
+        $entries = $this->customTermEntriesFromStored($stored);
+        if ($entries !== []) {
+            $rows = [];
+            foreach ($entries as $entry) {
+                $value = trim($entry[$valueField] ?: $entry[$fallbackValueField]);
+                if ($value === '') {
+                    continue;
+                }
+
+                $rows[] = [
+                    'key' => trim($entry[$keyField] ?: $entry[$fallbackKeyField]),
+                    'value' => $value,
+                ];
+            }
+
+            return $rows;
+        }
+
+        $parsed = $this->parseStoredTerms($stored);
+        $rows = [];
+        foreach ($parsed['custom'] as $text) {
+            $row = $this->splitKeyValueText($text);
+            if ($row['value'] !== '') {
+                $rows[] = $row;
+            }
+        }
+
+        return $rows;
+    }
+
+    /**
+     * @param  mixed  $raw
+     * @return list<array{key_ar: string, key_en: string, value_ar: string, value_en: string}>
+     */
+    public function normalizeCustomTermsInput(mixed $raw, ?string $locale = null): array
+    {
+        if (! is_array($raw)) {
+            return [];
+        }
+
+        $locale = $this->normalizeLocale($locale);
+        $entries = [];
+
+        foreach ($raw as $value) {
+            if (is_array($value) && (array_key_exists('key', $value) || array_key_exists('value', $value))) {
+                $key = trim((string) ($value['key'] ?? ''));
+                $val = trim((string) ($value['value'] ?? ''));
+                if ($val === '') {
+                    continue;
+                }
+
+                $entry = [
+                    'key_ar' => '',
+                    'key_en' => '',
+                    'value_ar' => '',
+                    'value_en' => '',
+                ];
+
+                if ($locale === RfqTermsLocale::Ar->value) {
+                    $entry['key_ar'] = $key;
+                    $entry['value_ar'] = $val;
+                } else {
+                    $entry['key_en'] = $key;
+                    $entry['value_en'] = $val;
+                }
+
+                $entries[] = $entry;
+
+                continue;
+            }
+
+            $normalized = $this->normalizeSingleTermEntry($value);
+            if ($normalized !== null) {
+                $entries[] = $normalized;
+            }
+        }
+
+        return array_values($entries);
+    }
+
     private function normalizeSingleTermEntry(mixed $value): ?array
     {
         if (is_array($value) && $this->isTermEntryArray($value)) {

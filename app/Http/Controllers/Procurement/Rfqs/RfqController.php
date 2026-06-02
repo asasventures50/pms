@@ -212,28 +212,56 @@ class RfqController extends Controller
     }
 
     /**
-     * @return array{general: list<string>, custom: list<string>}
+     * @return array{general: list<string>, custom_rows: list<array{key: string, value: string}>}
      */
     private function termsForForm(?Rfq $rfq = null): array
     {
+        $locale = old('terms_locale', $rfq?->terms_locale);
+
         $customFromOld = old('terms_custom');
         if (is_array($customFromOld)) {
             return [
                 'general' => [],
-                'custom' => $this->termsService->normalizeTexts($customFromOld),
+                'custom_rows' => $this->customRowsFromOldInput($customFromOld),
             ];
         }
 
         if ($rfq !== null) {
-            $parsed = $this->termsService->parseStoredTerms($rfq->terms);
-
             return [
                 'general' => [],
-                'custom' => $parsed['custom'],
+                'custom_rows' => $this->termsService->customTermRowsForForm($rfq->terms, $locale),
             ];
         }
 
-        return ['general' => [], 'custom' => []];
+        return ['general' => [], 'custom_rows' => []];
+    }
+
+    /**
+     * @param  array<int, mixed>  $raw
+     * @return list<array{key: string, value: string}>
+     */
+    private function customRowsFromOldInput(array $raw): array
+    {
+        $rows = [];
+        foreach ($raw as $row) {
+            if (is_array($row)) {
+                $value = trim((string) ($row['value'] ?? ''));
+                if ($value === '') {
+                    continue;
+                }
+                $rows[] = [
+                    'key' => trim((string) ($row['key'] ?? '')),
+                    'value' => $value,
+                ];
+            } else {
+                $split = $this->termsService->splitKeyValueText((string) $row);
+                if ($split['value'] !== '') {
+                    $rows[] = $split;
+                }
+            }
+        }
+
+        return $rows;
     }
 
     /**
@@ -258,10 +286,9 @@ class RfqController extends Controller
      */
     private function resolvedTermsForRfq(Rfq $rfq): array
     {
-        $parsed = $this->termsService->parseStoredTerms($rfq->terms);
-
-        if ($parsed['all'] !== []) {
-            return $parsed['all'];
+        $resolved = $this->termsService->resolveStoredTermsForLocale($rfq->terms, $rfq->terms_locale);
+        if ($resolved !== []) {
+            return $resolved;
         }
 
         return RfqTerms::legacyDefaults($rfq->terms_locale);

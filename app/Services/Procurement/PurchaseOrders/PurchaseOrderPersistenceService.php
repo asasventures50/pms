@@ -80,7 +80,7 @@ class PurchaseOrderPersistenceService
 
         $scopeTypes = $this->scopeTypesForTerms($header);
         $general = $this->termsService->activeTextsForScopeTypes($scopeTypes, $locale);
-        $custom = $this->termsService->normalizeTexts($header['terms_custom'] ?? []);
+        $custom = $this->termsService->normalizeCustomTermsInput($header['terms_custom'] ?? [], $locale);
         unset($header['terms_custom']);
 
         $header['terms'] = $this->termsService->buildTermsPayload($general, $custom);

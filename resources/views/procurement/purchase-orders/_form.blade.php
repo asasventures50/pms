@@ -161,7 +161,7 @@
 
     @include('procurement.purchase-orders._terms', [
         'po' => $po,
-        'poTerms' => $poTerms ?? ['general' => [], 'custom' => [], 'custom_entries' => []],
+        'poTerms' => $poTerms ?? ['general' => [], 'custom_rows' => []],
         'editable' => true,
     ])
 

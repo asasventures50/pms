@@ -272,7 +272,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function applyCustomTermDirection(locale) {
-        document.querySelectorAll('.rfq-custom-term-input, .rfq-payment-term-input').forEach(function (input) {
+        document.querySelectorAll('.custom-term-key, .custom-term-value, .rfq-payment-term-input').forEach(function (input) {
             if (locale === 'ar') {
                 input.setAttribute('dir', 'rtl');
             } else {
@@ -370,10 +370,16 @@ document.addEventListener('DOMContentLoaded', function () {
     if (customTermsList && customTermTemplate) {
         function reindexCustomTerms() {
             customTermsList.querySelectorAll('.rfq-custom-term-row').forEach(function (row, index) {
-                const input = row.querySelector('input[type="text"]');
-                if (input) {
-                    input.setAttribute('name', 'terms_custom[' + index + ']');
-                }
+                row.querySelectorAll('[data-name]').forEach(function (input) {
+                    const field = input.getAttribute('data-name');
+                    input.setAttribute('name', 'terms_custom[' + index + '][' + field + ']');
+                });
+                row.querySelectorAll('[name^="terms_custom["]').forEach(function (input) {
+                    const match = input.getAttribute('name').match(/terms_custom\[\d+]\[(\w+)]/);
+                    if (match) {
+                        input.setAttribute('name', 'terms_custom[' + index + '][' + match[1] + ']');
+                    }
+                });
             });
         }
 

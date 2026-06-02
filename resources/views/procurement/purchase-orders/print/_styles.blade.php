@@ -349,7 +349,7 @@
     }
 
     .po-terms-block .po-field-label {
-        font-size: 12px;
+        font-size: 9px;
         margin-bottom: 3px;
     }
 
