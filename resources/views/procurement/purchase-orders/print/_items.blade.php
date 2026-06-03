@@ -8,10 +8,22 @@
     $deliveryFee = round((float) ($purchaseOrder->delivery_fee ?? 0), 2);
     $discount = round((float) ($purchaseOrder->discount ?? 0), 2);
     $totalPrice = round(max(0, $linesSubtotal + $deliveryFee - $discount), 2);
+    $vendorLabel = trim((string) ($purchaseOrder->vendor_company_name ?? $purchaseOrder->vendor?->name ?? ''));
 @endphp
 
 <table class="po-items-table">
     <thead>
+    <tr class="po-thead-meta">
+        <th colspan="6">
+            P.O. {{ $purchaseOrder->po_number }}
+            @if ($purchaseOrder->ordered_at)
+                · {{ $purchaseOrder->ordered_at->format('d-m-Y') }}
+            @endif
+            @if ($vendorLabel !== '')
+                · {{ $vendorLabel }}
+            @endif
+        </th>
+    </tr>
     <tr>
         <th class="col-item">Item</th>
         <th class="col-desc">Item or service<br>description</th>

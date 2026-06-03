@@ -33,15 +33,55 @@
             display: none !important;
         }
 
-        .po-field-block,
+        .po-header-table,
+        .po-company-info {
+            break-inside: avoid-page;
+            page-break-inside: avoid;
+        }
+
         .po-form-group--row {
             break-inside: avoid-page;
             page-break-inside: avoid;
         }
 
+        .po-field-block,
+        .po-field-value,
         .po-terms-list li {
+            break-inside: auto;
+            page-break-inside: auto;
+        }
+
+        .po-section-title {
+            break-after: avoid-page;
+            page-break-after: avoid;
+        }
+
+        .po-items-table thead {
+            display: table-header-group;
+        }
+
+        .po-items-table tbody tr {
             break-inside: avoid-page;
             page-break-inside: avoid;
+        }
+
+        .po-totals-wrap {
+            break-before: avoid-page;
+            page-break-before: avoid;
+            break-inside: avoid-page;
+            page-break-inside: avoid;
+        }
+
+        .po-items-table th,
+        .po-items-table td {
+            font-size: 10px;
+            padding: 4px 3px;
+        }
+
+        .po-items-table .po-thead-meta th {
+            font-size: 9px;
+            padding: 3px 6px;
+            background: #fff;
         }
 
         .po-signatures {
@@ -248,6 +288,15 @@
 
     .po-items-table .col-scope {
         width: 18%;
+    }
+
+    .po-items-table .po-thead-meta th {
+        font-size: 10px;
+        font-weight: bold;
+        text-align: left;
+        line-height: 1.3;
+        vertical-align: middle;
+        background: #f8fafc;
     }
 
     .po-totals-wrap {
