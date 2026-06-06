@@ -12,6 +12,14 @@
 @endphp
 
 <table class="po-items-table">
+    <colgroup>
+        <col class="col-item">
+        <col class="col-desc">
+        <col class="col-scope">
+        <col class="col-qty">
+        <col class="col-price">
+        <col class="col-total">
+    </colgroup>
     <thead>
     <tr class="po-thead-meta">
         <th colspan="6">
@@ -28,9 +36,9 @@
         <th class="col-item">Item</th>
         <th class="col-desc">Item or service<br>description</th>
         <th class="col-scope">Scope of<br>work</th>
-        <th>Quantity</th>
-        <th>Price per<br>unit{{ $currencySuffix }}</th>
-        <th>Line Total{{ $currencySuffix }}</th>
+        <th class="col-qty">Quantity</th>
+        <th class="col-price">Price per<br>unit{{ $currencySuffix }}</th>
+        <th class="col-total">Line Total{{ $currencySuffix }}</th>
     </tr>
     </thead>
     <tbody>
@@ -46,9 +54,9 @@
             <td class="po-cell-item">{{ $line->item }}</td>
             <td class="po-cell-text">{{ $line->description }}</td>
             <td class="po-cell-text">{{ $scopeOfWork }}</td>
-            <td class="po-cell-num">{{ number_format($line->quantity, 3) }}</td>
-            <td class="po-cell-num">{{ number_format($line->unit_price, 2) }}</td>
-            <td class="po-cell-num">{{ number_format($line->line_total, 2) }}</td>
+            <td class="po-cell-num po-cell-qty">{{ number_format($line->quantity, 3) }}</td>
+            <td class="po-cell-num po-cell-money">{{ number_format($line->unit_price, 2) }}</td>
+            <td class="po-cell-num po-cell-money">{{ number_format($line->line_total, 2) }}</td>
         </tr>
     @endforeach
     @for ($i = 0; $i < $emptyRowCount; $i++)

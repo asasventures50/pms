@@ -237,12 +237,14 @@
         border-collapse: collapse;
         margin-bottom: 0;
         border: 2px solid #000;
+        table-layout: fixed;
     }
 
     .po-items-table th,
     .po-items-table td {
+        box-sizing: border-box;
         border: 1px solid #000;
-        padding: 6px 4px;
+        padding: 5px 4px;
         text-align: center;
         vertical-align: top;
     }
@@ -269,25 +271,70 @@
     .po-items-table .po-cell-item {
         text-align: center;
         vertical-align: middle;
-        font-size: 10px;
+        font-size: 9px;
+        line-height: 1.3;
+        padding-left: 3px;
+        padding-right: 3px;
+        word-break: break-word;
+        overflow-wrap: break-word;
     }
 
     .po-items-table .po-cell-num {
-        text-align: right;
+        text-align: center;
         vertical-align: middle;
         white-space: nowrap;
+        padding-left: 3px;
+        padding-right: 3px;
     }
 
+    .po-items-table .po-cell-qty,
+    .po-items-table th.col-qty {
+        padding-left: 4px;
+        padding-right: 4px;
+    }
+
+    .po-items-table .po-cell-money,
+    .po-items-table th.col-price,
+    .po-items-table th.col-total {
+        padding-left: 2px;
+        padding-right: 2px;
+        font-size: 10px;
+    }
+
+    .po-items-table th.col-price,
+    .po-items-table th.col-total {
+        font-size: 9px;
+        line-height: 1.15;
+    }
+
+    .po-items-table col.col-item,
     .po-items-table .col-item {
+        width: 14%;
+    }
+
+    .po-items-table col.col-desc,
+    .po-items-table .col-desc {
+        width: 11%;
+    }
+
+    .po-items-table col.col-scope,
+    .po-items-table .col-scope {
+        width: 48%;
+    }
+
+    .po-items-table col.col-qty,
+    .po-items-table .col-qty {
+        width: 10%;
+    }
+
+    .po-items-table col.col-price,
+    .po-items-table .col-price {
         width: 8%;
     }
 
-    .po-items-table .col-desc {
-        width: 28%;
-    }
-
-    .po-items-table .col-scope {
-        width: 18%;
+    .po-items-table col.col-total,
+    .po-items-table .col-total {
+        width: 9%;
     }
 
     .po-items-table .po-thead-meta th {
