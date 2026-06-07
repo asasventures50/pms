@@ -59,6 +59,7 @@
                     <th class="px-3 py-2">Issue date</th>
                     <th class="px-3 py-2">Deadline</th>
                     <th class="px-3 py-2">Grand total</th>
+                    <th class="px-3 py-2">Quotations</th>
                     <th class="px-3 py-2">Status</th>
                     <th class="px-3 py-2 text-right">Actions</th>
                 </tr>
@@ -72,12 +73,24 @@
                         <td class="whitespace-nowrap px-3 py-2 text-xs">{{ $rfq->issue_date?->format('Y-m-d') ?? '—' }}</td>
                         <td class="whitespace-nowrap px-3 py-2 text-xs">{{ $rfq->submission_deadline?->format('Y-m-d') ?? '—' }}</td>
                         <td class="whitespace-nowrap px-3 py-2">{{ $rfq->grand_total !== null ? number_format($rfq->grand_total, 2) : '—' }}</td>
+                        <td class="whitespace-nowrap px-3 py-2">
+                            @if ($rfq->vendor_quotations_count > 0)
+                                <a href="{{ route('rfqs.show', $rfq) }}#vendor-quotations"
+                                   class="inline-flex items-center gap-1 font-medium text-emerald-800 hover:text-emerald-950"
+                                   title="View all quotations">
+                                    <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold">{{ $rfq->vendor_quotations_count }}</span>
+                                    <span class="text-xs">view</span>
+                                </a>
+                            @else
+                                <span class="text-xs text-slate-400">0</span>
+                            @endif
+                        </td>
                         <td class="px-3 py-2"><span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium">{{ ucfirst($rfq->status->value) }}</span></td>
                         <td class="whitespace-nowrap px-3 py-2 text-right text-xs">
                             <a href="{{ route('rfqs.show', $rfq) }}" class="font-medium text-slate-700 hover:text-slate-900">View</a>
                             @if ($rfq->items_count > 0 && (auth()->user()->hasPermission('vendor-quotations.create') || auth()->user()->hasPermission('rfqs.update')))
                                 <span class="mx-1 text-slate-300">|</span>
-                                <a href="{{ route('rfqs.quotations.create', $rfq) }}" class="font-medium text-emerald-800 hover:text-emerald-950">Quotation</a>
+                                <a href="{{ route('rfqs.quotations.create', $rfq) }}" class="font-medium text-emerald-800 hover:text-emerald-950" title="Add vendor quotation (multiple allowed)">+ Quotation</a>
                             @endif
                             @if (auth()->user()->hasPermission('rfqs.update'))
                                 <span class="mx-1 text-slate-300">|</span>
@@ -86,7 +99,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="8" class="px-3 py-10 text-center text-slate-500">No RFQs found.</td></tr>
+                    <tr><td colspan="9" class="px-3 py-10 text-center text-slate-500">No RFQs found.</td></tr>
                 @endforelse
                 </tbody>
             </table>

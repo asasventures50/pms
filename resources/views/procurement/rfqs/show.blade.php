@@ -14,9 +14,6 @@
             <p class="mt-1 text-sm text-slate-600">Prepared by {{ $rfq->creator?->name ?? '—' }}</p>
         </div>
         <div class="flex flex-wrap gap-3">
-            @if ($canAddQuotation && $rfq->items->isNotEmpty())
-                <a href="{{ route('rfqs.quotations.create', $rfq) }}" class="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800">Add vendor quotation</a>
-            @endif
             @if (auth()->user()->hasPermission('rfqs.update'))
                 <a href="{{ route('rfqs.edit', $rfq) }}" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">Edit</a>
             @endif
@@ -25,26 +22,32 @@
         </div>
     </div>
 
-    <section class="mx-auto mb-6 max-w-4xl rounded-xl border-2 border-emerald-300 bg-emerald-50 p-4 shadow-sm print:hidden">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <section id="vendor-quotations" class="mx-auto mb-6 max-w-4xl scroll-mt-6 rounded-xl border-2 border-emerald-300 bg-emerald-50 p-4 shadow-sm print:hidden">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-                <h2 class="text-base font-bold text-slate-900">Vendor quotations</h2>
-                <p class="mt-1 text-sm text-slate-600">عروض أسعار الموردين المرتبطة بهذا الطلب — ليست قائمة منفصلة في القائمة العلوية.</p>
+                <div class="flex flex-wrap items-center gap-2">
+                    <h2 class="text-base font-bold text-slate-900">Vendor quotations</h2>
+                    <span class="rounded-full bg-emerald-200 px-2.5 py-0.5 text-xs font-bold text-emerald-950">
+                        {{ $rfq->vendorQuotations->count() }}
+                    </span>
+                </div>
+                <p class="mt-1 text-sm text-slate-600">
+                    Each RFQ can have multiple vendor quotations — from different vendors or revised offers — to compare before creating a purchase order.
+                </p>
             </div>
-            @if ($canAddQuotation)
-                @if ($rfq->items->isNotEmpty())
-                    <a href="{{ route('rfqs.quotations.create', $rfq) }}"
-                       class="inline-flex shrink-0 items-center justify-center rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800">
-                        + Add vendor quotation
-                    </a>
-                @else
-                    <p class="text-sm font-medium text-amber-800">أضف بنوداً للـ RFQ أولاً (Edit → Request details).</p>
-                @endif
-            @else
-                <p class="text-sm text-slate-600">لا توجد صلاحية لإنشاء عروض الموردين.</p>
+            @if ($canAddQuotation && $rfq->items->isNotEmpty())
+                <a href="{{ route('rfqs.quotations.create', $rfq) }}"
+                   class="inline-flex shrink-0 items-center justify-center rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800">
+                    + {{ $rfq->vendorQuotations->isEmpty() ? 'Add quotation' : 'Add another quotation' }}
+                </a>
+            @elseif (! $canAddQuotation)
+                <p class="text-sm text-slate-600">You do not have permission to create vendor quotations.</p>
             @endif
         </div>
-        @include('procurement.rfqs._vendor-quotations-list', ['rfq' => $rfq])
+        @include('procurement.rfqs._vendor-quotations-list', [
+            'rfq' => $rfq,
+            'canAddQuotation' => $canAddQuotation,
+        ])
     </section>
 
     <article class="rfq-document mx-auto max-w-4xl border-2 border-slate-900 bg-white p-6 text-slate-900 shadow-sm sm:p-8 print:border print:shadow-none">

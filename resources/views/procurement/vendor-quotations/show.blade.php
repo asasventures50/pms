@@ -3,20 +3,36 @@
 @section('title', $quotation->quotation_number)
 
 @section('content')
+    @php
+        $canAddQuotation = auth()->user()->hasPermission('vendor-quotations.create')
+            || auth()->user()->hasPermission('rfqs.update');
+    @endphp
+
     <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between print:hidden">
         <div>
             <h1 class="text-2xl font-semibold tracking-tight text-slate-900 font-mono">{{ $quotation->quotation_number }}</h1>
             <p class="mt-1 text-sm text-slate-600">
-                Vendor quotation for RFQ <a href="{{ route('rfqs.show', $rfq) }}" class="font-mono font-medium text-slate-800 hover:underline">{{ $rfq->rfq_number }}</a>
+                Vendor quotation for RFQ <a href="{{ route('rfqs.show', $rfq) }}#vendor-quotations" class="font-mono font-medium text-slate-800 hover:underline">{{ $rfq->rfq_number }}</a>
             </p>
         </div>
         <div class="flex flex-wrap gap-3">
+            @if ($canAddQuotation && $rfq->items->isNotEmpty())
+                <a href="{{ route('rfqs.quotations.create', $rfq) }}" class="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800">+ Add another quotation</a>
+            @endif
             @if (auth()->user()->hasPermission('vendor-quotations.update'))
                 <a href="{{ route('rfqs.quotations.edit', [$rfq, $quotation]) }}" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">Edit</a>
             @endif
-            <a href="{{ route('rfqs.show', $rfq) }}" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">Back to RFQ</a>
+            <a href="{{ route('rfqs.show', $rfq) }}#vendor-quotations" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">Back to RFQ</a>
             <button type="button" onclick="window.print()" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">Print</button>
         </div>
+    </div>
+
+    <div class="mb-6 print:hidden">
+        @include('procurement.rfqs._sibling-quotations-nav', [
+            'rfq' => $rfq,
+            'currentQuotationId' => $quotation->id,
+            'canAddQuotation' => $canAddQuotation,
+        ])
     </div>
 
     <article class="mx-auto max-w-5xl space-y-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8 print:border print:shadow-none">

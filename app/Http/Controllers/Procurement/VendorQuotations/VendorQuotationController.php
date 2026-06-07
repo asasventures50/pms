@@ -26,6 +26,7 @@ class VendorQuotationController extends Controller
     {
         $rfq->load([
             'items.procurementRequestItem.procurementRequest',
+            'vendorQuotations.vendor',
         ]);
 
         if ($rfq->items->isEmpty()) {
@@ -70,7 +71,7 @@ class VendorQuotationController extends Controller
 
         return redirect()
             ->route('rfqs.quotations.show', [$rfq, $quotation])
-            ->with('success', 'Vendor quotation saved successfully.');
+            ->with('success', 'Vendor quotation saved. You can add another offer to compare prices.');
     }
 
     public function show(Rfq $rfq, VendorQuotation $quotation): View
@@ -82,6 +83,8 @@ class VendorQuotationController extends Controller
             'creator',
             'items.rfqItem.procurementRequestItem.procurementRequest',
         ]);
+
+        $rfq->load('vendorQuotations.vendor');
 
         return view('procurement.vendor-quotations.show', [
             'rfq' => $rfq,
