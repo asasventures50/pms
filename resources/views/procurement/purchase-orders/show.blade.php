@@ -42,6 +42,26 @@
                     <dd class="mt-1 text-slate-900">{{ $purchaseOrder->ordered_at?->format('Y-m-d') ?? '—' }}</dd>
                 </div>
             </dl>
+
+            @if ($purchaseOrder->procurementRequest)
+                <div class="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
+                    <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-600">Linked P.R. — {{ $purchaseOrder->procurementRequest->request_number }}</h3>
+                    <dl class="mt-3 grid gap-3 sm:grid-cols-3 text-sm">
+                        <div>
+                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Scope type</dt>
+                            <dd class="mt-0.5 text-slate-900">{{ ($prContext['scope_type'] ?? '') ?: '—' }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Category</dt>
+                            <dd class="mt-0.5 text-slate-900">{{ ($prContext['category'] ?? '') ?: '—' }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Project</dt>
+                            <dd class="mt-0.5 text-slate-900">{{ ($prContext['project'] ?? '') ?: '—' }}</dd>
+                        </div>
+                    </dl>
+                </div>
+            @endif
         </section>
 
         @include('procurement._our-company', [

@@ -111,9 +111,9 @@
         </div>
         <div>
             <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">
-                Scope type <span class="normal-case text-red-600">*</span>
+                Type <span class="normal-case text-slate-400">(optional — none, one, or more)</span>
             </label>
-            <div class="@error("items.$index.scope_type") rounded-lg ring-1 ring-red-500 @enderror">
+            <div class="@error("items.$index.scope_type") rounded-lg ring-1 ring-red-500 @enderror @error("items.$index.scope_type.*") rounded-lg ring-1 ring-red-500 @enderror">
                 @include('procurement.procurement-requests._scope-type-picker', [
                     'pickerIndex' => $index,
                     'selectedScopeTypes' => $selectedScopeTypes,

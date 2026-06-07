@@ -23,9 +23,7 @@ class PurchaseOrderProcurementRequestContext
 
         if ($request === null) {
             return [
-                'category' => '',
-                'scope_type' => '',
-                'project' => '',
+                ...self::emptyAggregates(),
                 'pr_items_by_line' => [],
             ];
         }
@@ -59,10 +57,21 @@ class PurchaseOrderProcurementRequestContext
         }
 
         return [
+            ...self::aggregateFromItems($items),
+            'pr_items_by_line' => $byLine,
+        ];
+    }
+
+    /**
+     * @param  Collection<int, ProcurementRequestItem>  $items
+     * @return array{category: string, scope_type: string, project: string}
+     */
+    public static function aggregateFromItems(Collection $items): array
+    {
+        return [
             'category' => self::aggregateCategories($items),
             'scope_type' => self::aggregateScopeTypes($items),
             'project' => self::aggregateProjects($items),
-            'pr_items_by_line' => $byLine,
         ];
     }
 
@@ -112,7 +121,34 @@ class PurchaseOrderProcurementRequestContext
             }
         }
 
-        return implode(', ', $ordered);
+        return implode(', ', array_map(
+            static fn (string $scope): string => ProcurementScopeType::label($scope),
+            $ordered
+        ));
+    }
+
+    /**
+     * @param  Collection<int, ProcurementRequestItem>  $items
+     * @return list<string>
+     */
+    public static function scopeTypeKeys(Collection $items): array
+    {
+        $found = [];
+
+        foreach ($items as $item) {
+            foreach (ProcurementScopeType::selectedValues($item->scope_type) as $scope) {
+                $found[$scope] = true;
+            }
+        }
+
+        $ordered = [];
+        foreach (ProcurementScopeType::options() as $option) {
+            if (isset($found[$option])) {
+                $ordered[] = $option;
+            }
+        }
+
+        return $ordered;
     }
 
     /**
@@ -135,6 +171,18 @@ class PurchaseOrderProcurementRequestContext
         }
 
         return implode('; ', array_keys($labels));
+    }
+
+    /**
+     * @return array{category: string, scope_type: string, project: string}
+     */
+    public static function emptyAggregates(): array
+    {
+        return [
+            'category' => '',
+            'scope_type' => '',
+            'project' => '',
+        ];
     }
 
     /**

@@ -1,4 +1,5 @@
 <script>
+(function () {
 document.addEventListener('DOMContentLoaded', function () {
     const linesBody = document.getElementById('po-lines-body');
     const template = document.getElementById('po-line-template');
@@ -421,7 +422,93 @@ document.addEventListener('DOMContentLoaded', function () {
     const prImportBody = document.getElementById('po-pr-import-body');
     const prImportSelectAll = document.getElementById('po-pr-import-select-all');
     const prImportConfirm = document.getElementById('po-pr-import-confirm');
-    const prImportBtn = document.getElementById('po-import-pr-lines');
+    const poPrContextPanel = document.getElementById('po-pr-context');
+    const poPrContextNumber = document.getElementById('po-pr-context-number');
+    const poPrContextScopeType = document.getElementById('po-pr-context-scope-type');
+    const poPrContextCategory = document.getElementById('po-pr-context-category');
+    const poPrContextProject = document.getElementById('po-pr-context-project');
+
+    let poPrScopeTypeKeys = [];
+    try {
+        poPrScopeTypeKeys = JSON.parse(poPrContextPanel?.dataset.initialScopeTypeKeys || '[]');
+    } catch (e) {
+        poPrScopeTypeKeys = [];
+    }
+
+    function aggregateContextFromLines(lines) {
+        const categories = new Set();
+        const projects = new Set();
+        const scopeKeys = new Set();
+        const scopeLabels = new Set();
+
+        (lines || []).forEach(function (line) {
+            if (line.category) {
+                categories.add(line.category);
+            }
+            if (line.project) {
+                projects.add(line.project);
+            }
+            if (Array.isArray(line.scope_type_keys)) {
+                line.scope_type_keys.forEach(function (key) {
+                    if (key) {
+                        scopeKeys.add(key);
+                    }
+                });
+            } else if (line.scope_type_key) {
+                scopeKeys.add(line.scope_type_key);
+            }
+            if (line.scope_type) {
+                scopeLabels.add(line.scope_type);
+            }
+        });
+
+        return {
+            category: Array.from(categories).join('; '),
+            project: Array.from(projects).join('; '),
+            scopeType: Array.from(scopeLabels).join(', '),
+            scopeTypeKeys: Array.from(scopeKeys),
+        };
+    }
+
+    function updatePoPrContextPanel(requestNumber, context) {
+        const payload = context || {};
+        const hasContent = Boolean(
+            requestNumber
+            || payload.category
+            || payload.scopeType
+            || payload.project
+        );
+
+        if (poPrContextPanel) {
+            poPrContextPanel.classList.toggle('hidden', !hasContent);
+        }
+        if (poPrContextNumber) {
+            poPrContextNumber.textContent = requestNumber || '—';
+        }
+        if (poPrContextScopeType) {
+            poPrContextScopeType.textContent = payload.scopeType || '—';
+        }
+        if (poPrContextCategory) {
+            poPrContextCategory.textContent = payload.category || '—';
+        }
+        if (poPrContextProject) {
+            poPrContextProject.textContent = payload.project || '—';
+        }
+
+        poPrScopeTypeKeys = Array.isArray(payload.scopeTypeKeys) ? payload.scopeTypeKeys : [];
+        if (typeof window.poSyncGeneralTerms === 'function') {
+            window.poSyncGeneralTerms();
+        }
+    }
+
+    function clearPoPrContextPanel() {
+        updatePoPrContextPanel('', {
+            category: '',
+            project: '',
+            scopeType: '',
+            scopeTypeKeys: [],
+        });
+    }
 
     let prImportPendingLines = [];
     let prImportOnConfirm = null;
@@ -494,6 +581,11 @@ document.addEventListener('DOMContentLoaded', function () {
             projectTd.textContent = line.project || '—';
             tr.appendChild(projectTd);
 
+            const scopeTd = document.createElement('td');
+            scopeTd.className = 'py-3 pr-3 text-slate-700';
+            scopeTd.textContent = line.scope_type || '—';
+            tr.appendChild(scopeTd);
+
             const categoryTd = document.createElement('td');
             categoryTd.className = 'py-3 pr-3 text-slate-700';
             categoryTd.textContent = line.category || '—';
@@ -515,11 +607,16 @@ document.addEventListener('DOMContentLoaded', function () {
         prImportModal.classList.remove('hidden');
     }
 
+    function prImportBtn() {
+        return document.getElementById('po-import-pr-lines');
+    }
+
     function updatePrImportButtonState() {
-        if (!prImportBtn || !procurementRequestSelect) {
+        const importBtn = prImportBtn();
+        if (!importBtn || !procurementRequestSelect) {
             return;
         }
-        prImportBtn.disabled = !procurementRequestSelect.value;
+        importBtn.disabled = !procurementRequestSelect.value;
     }
 
     async function fetchProcurementRequestLines(requestId) {
@@ -551,6 +648,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             openPrImportModal(data.request_number || '', data.items || [], function (selectedRows, mode) {
+                const aggregated = aggregateContextFromLines(selectedRows);
+                updatePoPrContextPanel(data.request_number || '', aggregated);
                 if (opts.onImported) {
                     opts.onImported();
                 }
@@ -634,6 +733,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!requestId) {
                 previousProcurementRequestId = '';
+                clearPoPrContextPanel();
                 return;
             }
 
@@ -650,7 +750,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
 
-        prImportBtn?.addEventListener('click', function () {
+        prImportBtn()?.addEventListener('click', function () {
             const requestId = procurementRequestSelect.value;
             if (!requestId) {
                 return;
@@ -701,15 +801,16 @@ document.addEventListener('DOMContentLoaded', function () {
     if (generalTermsList) {
         function collectScopeTypesFromOrderTerms() {
             const found = {};
+            poPrScopeTypeKeys.forEach(function (scopeType) {
+                found[scopeType] = true;
+            });
             if (handoverInput?.value) {
                 found.Maintenance = true;
             }
             if (dismantlingInput?.value) {
                 found.Dismantling = true;
             }
-            return ['Maintenance', 'Dismantling'].filter(function (scopeType) {
-                return found[scopeType];
-            });
+            return Object.keys(found);
         }
 
         function mergeGeneralTerms(scopeTypes) {
@@ -814,4 +915,5 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+})();
 </script>

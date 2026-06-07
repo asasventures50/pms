@@ -6,6 +6,7 @@ use App\Enums\Procurement\Rfqs\RfqTermsLocale;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequestItem;
 use App\Models\Procurement\PurchaseOrders\PurchaseOrder;
 use App\Models\Procurement\Rfqs\RfqGeneralTerm;
+use App\Services\Procurement\PurchaseOrders\PurchaseOrderProcurementRequestContext;
 use App\Support\Procurement\ProcurementScopeType;
 use App\Support\Procurement\RfqTerms;
 use Illuminate\Database\Eloquent\Builder;
@@ -262,14 +263,71 @@ class RfqGeneralTermsService
     public function resolveLiveTermsForPurchaseOrder(PurchaseOrder $purchaseOrder): array
     {
         $locale = $this->normalizeLocale($purchaseOrder->terms_locale);
-        $scopeTypes = $this->scopeTypesFromOrderTermDates(
-            $purchaseOrder->handover_at,
-            $purchaseOrder->dismantling_at,
-        );
+        $scopeTypes = $this->scopeTypesForPurchaseOrder($purchaseOrder);
         $general = $this->activeTextsForScopeTypes($scopeTypes, $locale);
         $custom = $this->resolveStoredCustomTermsForLocale($purchaseOrder->terms, $locale);
 
         return array_values(array_merge($general, $custom));
+    }
+
+    /**
+     * Scope types for PO general terms: linked P.R. line scope types plus order-term dates.
+     *
+     * @return list<string>
+     */
+    public function scopeTypesForPurchaseOrder(PurchaseOrder $purchaseOrder): array
+    {
+        $prContext = PurchaseOrderProcurementRequestContext::resolve($purchaseOrder);
+
+        return $this->mergePurchaseOrderScopeTypes(
+            PurchaseOrderProcurementRequestContext::scopeTypeKeys(
+                collect($prContext['pr_items_by_line'])->values()
+            ),
+            $this->scopeTypesFromOrderTermDates(
+                $purchaseOrder->handover_at,
+                $purchaseOrder->dismantling_at,
+            ),
+        );
+    }
+
+    /**
+     * @param  list<string>  $poLineNumbers
+     * @return list<string>
+     */
+    public function scopeTypesFromLinkedProcurementRequest(
+        ?int $procurementRequestId,
+        array $poLineNumbers,
+        mixed $handoverAt = null,
+        mixed $dismantlingAt = null,
+    ): array {
+        $fromPr = [];
+
+        if ($procurementRequestId !== null && $poLineNumbers !== []) {
+            $items = ProcurementRequestItem::query()
+                ->where('procurement_request_id', $procurementRequestId)
+                ->whereIn('line_number', $poLineNumbers)
+                ->get(['scope_type']);
+
+            $fromPr = PurchaseOrderProcurementRequestContext::scopeTypeKeys($items);
+        }
+
+        return $this->mergePurchaseOrderScopeTypes(
+            $fromPr,
+            $this->scopeTypesFromOrderTermDates($handoverAt, $dismantlingAt),
+        );
+    }
+
+    /**
+     * @param  list<string>  $prScopeTypes
+     * @param  list<string>  $dateScopeTypes
+     * @return list<string>
+     */
+    public function mergePurchaseOrderScopeTypes(array $prScopeTypes, array $dateScopeTypes): array
+    {
+        return array_values(array_unique(array_merge(
+            $this->orderScopeTypes($prScopeTypes),
+            $dateScopeTypes,
+        )));
     }
 
     /**

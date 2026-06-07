@@ -80,6 +80,32 @@ class RfqGeneralTermsServiceTest extends TestCase
         $this->assertSame([], $service->scopeTypesFromOrderTermDates(null, null));
     }
 
+    public function test_merge_purchase_order_scope_types_includes_pr_and_date_scopes(): void
+    {
+        $service = new RfqGeneralTermsService;
+
+        $merged = $service->mergePurchaseOrderScopeTypes(
+            [ProcurementScopeType::Contractor, ProcurementScopeType::Supplier],
+            ['Maintenance'],
+        );
+
+        $this->assertSame([
+            ProcurementScopeType::Contractor,
+            ProcurementScopeType::Supplier,
+            'Maintenance',
+        ], $merged);
+    }
+
+    public function test_scope_types_from_linked_procurement_request_without_pr_returns_date_scopes_only(): void
+    {
+        $service = new RfqGeneralTermsService;
+
+        $this->assertSame(
+            ['Maintenance'],
+            $service->scopeTypesFromLinkedProcurementRequest(null, ['PR-001-01'], '2026-01-01', null)
+        );
+    }
+
     public function test_sections_for_print_groups_by_scope_when_unfiltered(): void
     {
         $service = new RfqGeneralTermsService;

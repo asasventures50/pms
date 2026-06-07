@@ -13,7 +13,8 @@
                 <a href="{{ route('procurement-requests.edit', $procurementRequest) }}" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">Edit</a>
             @endif
             <a href="{{ route('procurement-requests.index') }}" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">Back</a>
-            <button type="button" onclick="window.print()" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">Print</button>
+            <a href="{{ route('procurement-requests.print', $procurementRequest) }}" target="_blank" rel="noopener"
+               class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">Print</a>
         </div>
     </div>
 
@@ -57,10 +58,6 @@
             @endif
         </section>
 
-        <section class="rounded-xl border border-slate-200 bg-white p-6 text-sm shadow-sm">
-            <h3 class="text-sm font-semibold text-slate-900">Classification</h3>
-            <p class="mt-4 text-slate-900">{{ $procurementRequest->classification ?: '—' }}</p>
-        </section>
 
         <p class="text-xs text-slate-500 print:hidden">Status: {{ ucfirst($procurementRequest->status->value) }}</p>
     </article>

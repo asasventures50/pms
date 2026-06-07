@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Procurement\ProcurementRequests;
 
+use App\Enums\Procurement\BuyerCompany;
 use App\Enums\Procurement\ProcurementRequests\ProcurementRequestStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Procurement\ProcurementRequests\StoreProcurementRequestRequest;
@@ -91,6 +92,16 @@ class ProcurementRequestController extends Controller
 
         return view('procurement.procurement-requests.show', [
             'procurementRequest' => $procurementRequest,
+        ]);
+    }
+
+    public function print(ProcurementRequest $procurementRequest): View
+    {
+        $procurementRequest->load(['creator', 'items.project', 'items.zone', 'items.documents']);
+
+        return view('procurement.procurement-requests.print', [
+            'procurementRequest' => $procurementRequest,
+            'buyerCompany' => BuyerCompany::forDisplay(),
         ]);
     }
 

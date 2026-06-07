@@ -24,6 +24,8 @@ class ProcurementRequestLinesForPurchaseOrderPresenter
 
         return [
             'request_number' => $procurementRequest->request_number ?? '',
+            'context' => PurchaseOrderProcurementRequestContext::aggregateFromItems($items),
+            'scope_type_keys' => PurchaseOrderProcurementRequestContext::scopeTypeKeys($items),
             'items' => $items->map(fn (ProcurementRequestItem $line) => $this->toLine($line))->all(),
         ];
     }
@@ -59,6 +61,7 @@ class ProcurementRequestLinesForPurchaseOrderPresenter
             'project' => $projectLabel,
             'category' => $categoryLabel,
             'scope_type' => ProcurementScopeType::display($line->scope_type),
+            'scope_type_keys' => ProcurementScopeType::selectedValues($line->scope_type),
             'summary' => $shortDescription,
         ];
     }

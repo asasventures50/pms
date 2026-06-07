@@ -14,7 +14,7 @@
         <div>
             <h2 class="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">Terms &amp; conditions</h2>
             @if ($editable)
-                <p class="mt-2 text-xs text-slate-500">General terms load live from the library (print uses the latest version). Maintenance and dismantling scope terms apply when the related order-term dates are set.</p>
+                <p class="mt-2 text-xs text-slate-500">General terms load live from the library (print uses the latest version). Scope terms from linked P.R. lines and maintenance/dismantling dates are included automatically.</p>
             @endif
         </div>
         @if ($editable && auth()->user()->hasPermission('rfq-terms.view'))

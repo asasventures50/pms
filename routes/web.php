@@ -226,6 +226,10 @@ Route::middleware(['auth'])->group(function () {
             'destroy' => 'permission:vendor-quotations.update|rfqs.update',
         ]);
 
+    Route::get('procurement-requests/{procurement_request}/print', [ProcurementRequestController::class, 'print'])
+        ->middleware('permission:procurement-requests.view')
+        ->name('procurement-requests.print');
+
     Route::resource('procurement-requests', ProcurementRequestController::class)
         ->middleware([
             'index' => 'permission:procurement-requests.view',

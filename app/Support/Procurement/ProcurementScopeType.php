@@ -10,6 +10,19 @@ final class ProcurementScopeType
 
     public const Studies = 'Studies';
 
+    /**
+     * Scope types selectable on procurement request line items.
+     *
+     * @return list<string>
+     */
+    public static function requestLineOptions(): array
+    {
+        return [
+            self::Supplier,
+            self::Contractor,
+            self::Studies,
+        ];
+    }
 
     /**
      * @return list<string>
@@ -20,8 +33,17 @@ final class ProcurementScopeType
             self::Contractor,
             self::Supplier,
             self::Studies,
-
         ];
+    }
+
+    public static function label(string $value): string
+    {
+        return match ($value) {
+            self::Supplier => 'Supplier',
+            self::Contractor => 'Contractor',
+            self::Studies => 'Studies',
+            default => $value,
+        };
     }
 
     /**
@@ -78,13 +100,13 @@ final class ProcurementScopeType
 
     public static function display(?string $stored): string
     {
-        $encoded = self::encode($stored);
-        if ($encoded !== null && $encoded !== '') {
-            return $encoded;
+        $selected = self::selectedValues($stored);
+        if ($selected !== []) {
+            return implode(', ', array_map(self::label(...), $selected));
         }
 
         $legacy = trim((string) $stored);
 
-        return $legacy;
+        return $legacy !== '' ? $legacy : '';
     }
 }

@@ -78,7 +78,19 @@ class PurchaseOrderPersistenceService
         }
         $header['terms_locale'] = $locale;
 
-        $scopeTypes = $this->termsService->scopeTypesFromOrderTermDates(
+        $poLineNumbers = [];
+        foreach ($items as $row) {
+            $lineNumber = trim((string) ($row['item'] ?? ''));
+            if ($lineNumber !== '') {
+                $poLineNumbers[] = $lineNumber;
+            }
+        }
+
+        $scopeTypes = $this->termsService->scopeTypesFromLinkedProcurementRequest(
+            isset($header['procurement_request_id']) && $header['procurement_request_id'] !== ''
+                ? (int) $header['procurement_request_id']
+                : null,
+            array_values(array_unique($poLineNumbers)),
             $header['handover_at'] ?? null,
             $header['dismantling_at'] ?? null,
         );

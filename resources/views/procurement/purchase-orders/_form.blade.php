@@ -61,6 +61,12 @@
                 @error('procurement_request_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
         </div>
+
+        @include('procurement.purchase-orders._pr-context', [
+            'purchaseOrder' => $po,
+            'prContext' => $prContext ?? null,
+            'scopeTypeKeys' => $scopeTypeKeys ?? [],
+        ])
     </section>
 
     @include('procurement._our-company', [
@@ -260,6 +266,7 @@
                         </th>
                         <th class="py-2 pr-3">Line</th>
                         <th class="py-2 pr-3">Project</th>
+                        <th class="py-2 pr-3">Scope type</th>
                         <th class="py-2 pr-3">Category</th>
                         <th class="py-2">Description</th>
                     </tr>
@@ -282,6 +289,8 @@
     </div>
 </div>
 
+@once
 @push('scripts')
     @include('procurement.purchase-orders._form-scripts')
 @endpush
+@endonce

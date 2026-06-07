@@ -46,7 +46,7 @@
             <dd class="mt-0.5 text-slate-900">{{ $line->subcategory ?: '—' }}</dd>
         </div>
         <div>
-            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Scope type</dt>
+            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Type </dt>
             <dd class="mt-0.5 text-slate-900">{{ ProcurementScopeType::display($line->scope_type) ?: '—' }}</dd>
         </div>
     </dl>

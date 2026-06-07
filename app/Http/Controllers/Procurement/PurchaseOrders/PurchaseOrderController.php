@@ -146,6 +146,8 @@ class PurchaseOrderController extends Controller
             'selectedVendor' => null,
             'vendorSelectOptions' => VendorSelectOptions::all(),
             'procurementRequestOptions' => $procurementRequestOptions,
+            'prContext' => PurchaseOrderProcurementRequestContext::emptyAggregates(),
+            'scopeTypeKeys' => [],
 
             'defaultItems' => [['item' => '', 'description' => '', 'quantity' => 1, 'unit_price' => 0]],
 
@@ -211,9 +213,9 @@ class PurchaseOrderController extends Controller
 
     {
 
-        $purchaseOrder->load(['vendor', 'creator', 'items', 'procurementRequest']);
+        $purchaseOrder->load(['vendor', 'creator', 'items', 'procurementRequest.items.project']);
 
-
+        $prContext = PurchaseOrderProcurementRequestContext::resolve($purchaseOrder);
 
         return view('procurement.purchase-orders.show', [
 
@@ -222,6 +224,8 @@ class PurchaseOrderController extends Controller
             'buyerCompany' => BuyerCompany::forDisplay($purchaseOrder),
 
             'terms' => $this->resolvedTermsForPurchaseOrder($purchaseOrder),
+
+            'prContext' => $prContext,
 
         ]);
 
@@ -260,13 +264,18 @@ class PurchaseOrderController extends Controller
 
     {
 
-        $purchaseOrder->load(['items', 'creator']);
+        $purchaseOrder->load(['items', 'creator', 'procurementRequest.items.project']);
 
         $selectedVendor = $purchaseOrder->vendor_id
             ? Vendor::query()->find($purchaseOrder->vendor_id, ['id', 'vendor_code', 'name'])
             : null;
         $procurementRequestOptions = app(ProcurementRequestOptionsForPurchaseOrderQuery::class)
             ->options($purchaseOrder->procurement_request_id);
+
+        $prContext = PurchaseOrderProcurementRequestContext::resolve($purchaseOrder);
+        $scopeTypeKeys = PurchaseOrderProcurementRequestContext::scopeTypeKeys(
+            collect($prContext['pr_items_by_line'])->values()
+        );
 
 
 
@@ -299,6 +308,8 @@ class PurchaseOrderController extends Controller
             'selectedVendor' => $selectedVendor,
             'vendorSelectOptions' => VendorSelectOptions::all(),
             'procurementRequestOptions' => $procurementRequestOptions,
+            'prContext' => $prContext,
+            'scopeTypeKeys' => $scopeTypeKeys,
 
             'defaultItems' => $defaultItems,
 

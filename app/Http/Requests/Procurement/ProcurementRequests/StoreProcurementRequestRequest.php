@@ -4,6 +4,7 @@ namespace App\Http\Requests\Procurement\ProcurementRequests;
 
 use App\Enums\Procurement\ProcurementRequests\ProcurementRequestStatus;
 use App\Support\Procurement\ProcurementScopeType;
+use App\Http\Requests\Procurement\ProcurementRequests\Concerns\NormalizesProcurementScopeType;
 use App\Http\Requests\Procurement\ProcurementRequests\Concerns\NormalizesProcurementDeliveryDate;
 use App\Http\Requests\Procurement\ProcurementRequests\Concerns\PreparesSupportingDocuments;
 use App\Http\Requests\Procurement\ProcurementRequests\Concerns\ValidatesProcurementRequestLineItems;
@@ -12,6 +13,7 @@ use Illuminate\Validation\Rule;
 
 class StoreProcurementRequestRequest extends FormRequest
 {
+    use NormalizesProcurementScopeType;
     use NormalizesProcurementDeliveryDate {
         prepareForValidation as normalizeDeliveryDateFields;
     }
@@ -21,6 +23,7 @@ class StoreProcurementRequestRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->normalizeDeliveryDateFields();
+        $this->normalizeProcurementScopeTypeFields();
         $this->prepareSupportingDocumentsForValidation();
     }
     public function authorize(): bool
@@ -42,8 +45,8 @@ class StoreProcurementRequestRequest extends FormRequest
             'items.*.zone_id' => ['nullable', 'integer', 'exists:zones,id'],
             'items.*.category' => ['required', 'string', 'max:255'],
             'items.*.subcategory' => ['nullable', 'string', 'max:255'],
-            'items.*.scope_type' => ['required', 'array', 'min:1'],
-            'items.*.scope_type.*' => ['required', 'string', Rule::in(ProcurementScopeType::values())],
+            'items.*.scope_type' => ['nullable', 'array'],
+            'items.*.scope_type.*' => ['required', 'string', Rule::in(ProcurementScopeType::requestLineOptions())],
             'items.*.description' => ['required', 'string', 'max:5000'],
             'items.*.unit' => ['nullable', 'string', 'max:50'],
             'items.*.quantity' => ['required', 'numeric', 'min:0'],

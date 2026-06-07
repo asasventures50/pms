@@ -79,6 +79,9 @@
                         <td class="px-3 py-2"><span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium">{{ ucfirst($request->status->value) }}</span></td>
                         <td class="whitespace-nowrap px-3 py-2 text-right text-xs">
                             <a href="{{ route('procurement-requests.show', $request) }}" class="font-medium text-slate-700 hover:text-slate-900">View</a>
+                            <span class="mx-1 text-slate-300">|</span>
+                            <a href="{{ route('procurement-requests.print', $request) }}" target="_blank" rel="noopener"
+                               class="font-medium text-slate-700 hover:text-slate-900">Print</a>
                             @if (auth()->user()->hasPermission('procurement-requests.update'))
                                 <span class="mx-1 text-slate-300">|</span>
                                 <a href="{{ route('procurement-requests.edit', $request) }}" class="font-medium text-slate-700 hover:text-slate-900">Edit</a>
