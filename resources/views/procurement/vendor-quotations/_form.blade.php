@@ -38,16 +38,13 @@
     <h2 class="text-lg font-semibold text-slate-900">Vendor company</h2>
     <div class="mt-4 grid gap-4 md:grid-cols-2">
         <div class="md:col-span-2">
-            <label for="vendor_id" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Vendor from system</label>
-            <select name="vendor_id" id="vendor_id" data-snapshot-url="{{ url('/vendors') }}"
-                    class="admin-filter-control mt-1 @error('vendor_id') border-red-500 @enderror">
-                <option value="">— Manual entry —</option>
-                @foreach ($vendors as $vendor)
-                    <option value="{{ $vendor->id }}" @selected(old('vendor_id', $quotation?->vendor_id) == $vendor->id)>
-                        {{ $vendor->vendor_code }} — {{ $vendor->name }}
-                    </option>
-                @endforeach
-            </select>
+            <label for="vendor_search_input" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Vendor from system</label>
+            <div class="mt-1">
+                @include('procurement.partials._vendor-search-select', [
+                    'selectedVendor' => $selectedVendor ?? null,
+                ])
+            </div>
+            @error('vendor_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
         <div>
             <label for="vendor_company_name" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Company name *</label>

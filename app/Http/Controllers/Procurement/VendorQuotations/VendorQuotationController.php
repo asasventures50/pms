@@ -10,7 +10,7 @@ use App\Http\Requests\Procurement\VendorQuotations\StoreVendorQuotationRequest;
 use App\Http\Requests\Procurement\VendorQuotations\UpdateVendorQuotationRequest;
 use App\Models\Procurement\Rfqs\Rfq;
 use App\Models\Procurement\VendorQuotations\VendorQuotation;
-use App\Models\Procurement\Vendors\Vendor;
+use App\Services\Procurement\Vendors\VendorSelectOptions;
 use App\Services\Procurement\VendorQuotations\VendorQuotationCodeGenerator;
 use App\Services\Procurement\VendorQuotations\VendorQuotationPersistenceService;
 use Illuminate\Http\RedirectResponse;
@@ -37,7 +37,8 @@ class VendorQuotationController extends Controller
             'rfq' => $rfq,
             'quotation' => null,
             'nextCode' => app(VendorQuotationCodeGenerator::class)->nextForRfq($rfq),
-            'vendors' => Vendor::query()->orderBy('name')->get(['id', 'vendor_code', 'name']),
+            'selectedVendor' => null,
+            'vendorSelectOptions' => VendorSelectOptions::all(),
             'lineItems' => $this->defaultLineItemsFromRfq($rfq),
             'complianceOptions' => QuotationCompliance::cases(),
             'documentTypes' => VendorQuotationDocumentType::cases(),
@@ -99,12 +100,13 @@ class VendorQuotationController extends Controller
         $this->ensureQuotationBelongsToRfq($rfq, $quotation);
 
         $rfq->load(['items.procurementRequestItem.procurementRequest']);
-        $quotation->load(['items.rfqItem.procurementRequestItem']);
+        $quotation->load(['items.rfqItem.procurementRequestItem', 'vendor']);
 
         return view('procurement.vendor-quotations.edit', [
             'rfq' => $rfq,
             'quotation' => $quotation,
-            'vendors' => Vendor::query()->orderBy('name')->get(['id', 'vendor_code', 'name']),
+            'selectedVendor' => $quotation->vendor,
+            'vendorSelectOptions' => VendorSelectOptions::all(),
             'lineItems' => $this->lineItemsForForm($rfq, $quotation),
             'complianceOptions' => QuotationCompliance::cases(),
             'documentTypes' => VendorQuotationDocumentType::cases(),

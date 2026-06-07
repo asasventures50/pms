@@ -1,6 +1,8 @@
+@include('procurement.partials._vendor-search-scripts')
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const vendorSelect = document.getElementById('vendor_id');
+    const vendorSearchRoot = document.querySelector('.vendor-search-select');
     const linesBody = document.getElementById('vq-lines-body');
     const grandTotalEl = document.getElementById('vq-grand-total');
 
@@ -49,38 +51,32 @@ document.addEventListener('DOMContentLoaded', function () {
         recalcGrandTotal();
     }
 
-    if (vendorSelect) {
-        vendorSelect.addEventListener('change', function () {
-            const id = vendorSelect.value;
-            if (!id) {
-                return;
-            }
+    function loadVendorSnapshot(vendorId) {
+        if (!vendorId) {
+            return;
+        }
 
-            const base = vendorSelect.dataset.snapshotUrl || '/vendors';
-            fetch(base + '/' + encodeURIComponent(id) + '/rfq-snapshot', {
-                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-            })
-                .then(function (r) { return r.ok ? r.json() : null; })
-                .then(function (data) {
-                    if (!data) {
-                        return;
+        const base = vendorSearchRoot?.getAttribute('data-snapshot-url') || '/vendors';
+        fetch(base + '/' + encodeURIComponent(vendorId) + '/rfq-snapshot', {
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (data) {
+                if (!data) {
+                    return;
+                }
+                ['vendor_company_name', 'vendor_contact', 'vendor_email', 'vendor_phone', 'vendor_address'].forEach(function (key) {
+                    const el = document.getElementById(key);
+                    if (el && data[key]) {
+                        el.value = data[key];
                     }
-                    const map = {
-                        vendor_company_name: data.vendor_company_name,
-                        vendor_contact: data.vendor_contact,
-                        vendor_email: data.vendor_email,
-                        vendor_phone: data.vendor_phone,
-                        vendor_address: data.vendor_address,
-                    };
-                    Object.keys(map).forEach(function (key) {
-                        const el = document.getElementById(key);
-                        if (el && map[key]) {
-                            el.value = map[key];
-                        }
-                    });
-                })
-                .catch(function () {});
-        });
+                });
+            })
+            .catch(function () {});
+    }
+
+    if (typeof window.initVendorSearchSelect === 'function') {
+        window.initVendorSearchSelect({ onChange: loadVendorSnapshot });
     }
 });
 </script>
