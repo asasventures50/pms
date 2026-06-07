@@ -1,44 +1,41 @@
 @include('procurement.purchase-orders.print._styles')
 
 <style>
-    .pr-items-table col.col-line,
-    .pr-items-table .col-line {
-        width: 9%;
+    .pr-print-compact .po-form-line {
+        min-height: 0;
+        line-height: 1.35;
     }
 
-    .pr-items-table col.col-project,
-    .pr-items-table .col-project {
-        width: 13%;
+    .pr-print-compact .po-form-group {
+        margin-bottom: 4px;
     }
 
-    .pr-items-table col.col-category,
-    .pr-items-table .col-category {
-        width: 12%;
+    .pr-print-compact .po-grid-2 {
+        margin-bottom: 10px;
     }
 
-    .pr-items-table col.col-scope,
-    .pr-items-table .col-scope {
-        width: 11%;
+    .pr-print-compact .po-field-value {
+        min-height: 0;
+        padding: 2px 6px 4px;
     }
 
-    .pr-items-table col.col-desc,
-    .pr-items-table .col-desc {
-        width: 15%;
+    .pr-items-table {
+        table-layout: auto;
+        width: 100%;
     }
 
-    .pr-items-table col.col-sow,
-    .pr-items-table .col-sow {
-        width: 30%;
+    .pr-items-table th,
+    .pr-items-table td {
+        min-height: 0;
+        height: auto;
+        padding: 3px 4px;
+        vertical-align: top;
     }
 
-    .pr-items-table col.col-unit,
-    .pr-items-table .col-unit {
-        width: 5%;
-    }
-
-    .pr-items-table col.col-qty,
-    .pr-items-table .col-qty {
-        width: 5%;
+    .pr-items-table .pr-empty-table {
+        text-align: center;
+        padding: 8px;
+        color: #64748b;
     }
 
     .pr-cell-stack,
@@ -48,54 +45,40 @@
         overflow-wrap: normal;
     }
 
+    .pr-cell-wrap {
+        text-align: left;
+        white-space: pre-wrap;
+        word-break: normal;
+        overflow-wrap: break-word;
+    }
+
     .pr-cell-scope {
         text-align: center;
-        vertical-align: middle;
     }
 
-    .pr-line-details {
-        margin-top: 10px;
-        margin-bottom: 12px;
-        padding: 0 2px;
+    .pr-cell-delivery {
+        white-space: nowrap;
     }
 
-    .pr-line-details-title {
-        font-weight: bold;
-        font-size: 11px;
-        margin-bottom: 6px;
+    .pr-cell-documents {
+        text-align: left;
     }
 
-    .pr-line-details .po-field-block {
-        margin-bottom: 8px;
+    .pr-doc-link {
+        color: #1d4ed8;
+        text-decoration: underline;
+        word-break: break-word;
     }
 
-    .pr-line-details .po-field-label {
-        font-size: 10px;
+    .pr-doc-link:hover {
+        color: #1e3a8a;
     }
 
-    .pr-line-details .po-field-value {
-        font-size: 10px;
-        min-height: 18px;
-    }
-
-    .pr-line-delivery-meta {
-        font-size: 10px;
-        line-height: 1.5;
-        padding: 2px 0;
-    }
-
-    .pr-line-meta-label {
-        font-weight: bold;
-    }
-
-    .pr-line-meta-sep {
-        margin: 0 6px;
-        color: #64748b;
-    }
-
-    .pr-line-meta-note {
-        margin-left: 4px;
-        color: #475569;
+    @media print {
+        .pr-doc-link {
+            color: #000;
+            text-decoration: underline;
+        }
     }
 
     .pr-signatures-procurement {
@@ -103,9 +86,10 @@
     }
 
     @media print {
-        .pr-line-details {
-            break-inside: avoid-page;
-            page-break-inside: avoid;
+        .pr-items-table th,
+        .pr-items-table td {
+            font-size: 9px;
+            padding: 2px 3px;
         }
     }
 </style>

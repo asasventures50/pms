@@ -3,7 +3,6 @@
     use Illuminate\Support\Facades\Storage;
 
     $buyer = $buyerCompany ?? BuyerCompany::forDisplay();
-    $minItemRows = 1;
     $poLogoPublicPath = public_path('images/po/logo.png');
     $poLogoExists = is_file($poLogoPublicPath)
         || Storage::disk('public')->exists('logo.png');
@@ -14,16 +13,14 @@
 
 @include('procurement.procurement-requests.print._page-setup', ['buyer' => $buyer])
 
-<div class="po-wrapper">
+<div class="po-wrapper pr-print-compact">
     @include('procurement.procurement-requests.print._header', [
         'buyer' => $buyer,
         'poLogoUrl' => $poLogoUrl,
         'poLogoExists' => $poLogoExists,
     ])
     @include('procurement.procurement-requests.print._request-info')
-    @include('procurement.procurement-requests.print._items', [
-        'minItemRows' => $minItemRows,
-    ])
+    @include('procurement.procurement-requests.print._items')
     @include('procurement.procurement-requests.print._signatures')
 </div>
 
