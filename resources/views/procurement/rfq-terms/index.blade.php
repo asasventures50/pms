@@ -106,9 +106,15 @@
                                 <span class="text-slate-500">No</span>
                             @endif
                         </td>
-                        <td class="px-3 py-3 text-right">
+                        <td class="px-3 py-3 text-right text-xs whitespace-nowrap">
                             @if (auth()->user()->hasPermission('rfq-terms.manage'))
                                 <a href="{{ route('rfq-terms.edit', $term) }}" class="font-medium text-slate-900 hover:underline">Edit</a>
+                                <span class="mx-1 text-slate-300">|</span>
+                                <form action="{{ route('rfq-terms.destroy', $term) }}" method="post" class="inline" onsubmit="return confirm('Delete this term?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="font-medium text-red-700 hover:text-red-900">Delete</button>
+                                </form>
                             @endif
                         </td>
                     </tr>
