@@ -20,6 +20,7 @@ class ProcurementRequestItem extends Model
         'procurement_request_id',
         'sort_order',
         'line_number',
+        'item_name',
         'project_id',
         'zone_id',
         'category',
@@ -28,6 +29,8 @@ class ProcurementRequestItem extends Model
         'description',
         'unit',
         'quantity',
+        'unit_price',
+        'total_price',
         'justification',
         'scope_of_work',
         'required_delivery_date',
@@ -39,6 +42,8 @@ class ProcurementRequestItem extends Model
     {
         return [
             'quantity' => 'decimal:3',
+            'unit_price' => 'decimal:4',
+            'total_price' => 'decimal:4',
             'required_delivery_date' => 'date',
             'flexible_delivery_date' => 'boolean',
         ];

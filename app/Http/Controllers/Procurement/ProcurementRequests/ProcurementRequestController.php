@@ -3,13 +3,17 @@
 namespace App\Http\Controllers\Procurement\ProcurementRequests;
 
 use App\Enums\Procurement\BuyerCompany;
+use App\Enums\Procurement\ProcurementRequests\ProcurementApprovalRole;
 use App\Enums\Procurement\ProcurementRequests\ProcurementRequestStatus;
+use App\Enums\Procurement\ProcurementRequests\ProcurementTimelineActivity;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Procurement\ProcurementRequests\StoreProcurementRequestRequest;
 use App\Http\Requests\Procurement\ProcurementRequests\UpdateProcurementRequestRequest;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
 use App\Models\Procurement\Projects\Project;
+use App\Models\Procurement\Vendors\Category;
 use App\Services\Procurement\ProcurementRequests\ProcurementRequestCodeGenerator;
+use App\Services\Procurement\ProcurementRequests\ProcurementRequestFormDataResolver;
 use App\Services\Procurement\ProcurementRequests\ProcurementRequestPayloadResolver;
 use App\Services\Procurement\ProcurementRequests\ProcurementRequestPersistenceService;
 use App\Services\Procurement\ProcurementRequests\ProcurementRequestRequestorResolver;
@@ -24,6 +28,7 @@ class ProcurementRequestController extends Controller
     public function __construct(
         private readonly ProcurementRequestPersistenceService $persistence,
         private readonly ProcurementRequestSupportingDocumentStorage $documents,
+        private readonly ProcurementRequestFormDataResolver $formData,
     ) {}
 
     public function index(Request $request): View
@@ -31,7 +36,7 @@ class ProcurementRequestController extends Controller
         $perPage = max(1, min(100, (int) $request->query('per_page', 15)));
 
         $query = ProcurementRequest::query()
-            ->with(['creator', 'items:id,procurement_request_id,required_delivery_date'])
+            ->with(['creator', 'items:id,procurement_request_id,required_delivery_date', 'project:id,code,name'])
             ->latest();
 
         if ($request->filled('q')) {
@@ -58,8 +63,9 @@ class ProcurementRequestController extends Controller
     {
         return view('procurement.procurement-requests.create', [
             'nextCode' => app(ProcurementRequestCodeGenerator::class)->next(),
-            'defaultItems' => $this->emptyLineItems(1),
+            'formDefaults' => $this->defaultFormData(),
             'projects' => $this->activeProjects(),
+            'categories' => $this->activeCategories(),
         ]);
     }
 
@@ -67,19 +73,27 @@ class ProcurementRequestController extends Controller
     {
         $validated = $request->validated();
         $items = ProcurementRequestPersistenceService::normalizeItems($validated['items'] ?? []);
-        unset($validated['items']);
 
         if ($items === []) {
-            return back()->withInput()->withErrors(['items' => 'Add at least one line with an item description.']);
+            return back()->withInput()->withErrors(['items' => 'Add at least one BOQ line with a description.']);
         }
 
-        ProcurementRequestRequestorResolver::applyForCreate($validated, $request->user());
-        ProcurementRequestPayloadResolver::finalizeForStore($validated);
-        $validated['created_by'] = $request->user()->id;
-        $validated['status'] ??= ProcurementRequestStatus::Draft->value;
+        $header = ProcurementRequestPersistenceService::normalizeHeader($validated);
+        ProcurementRequestRequestorResolver::applyForCreate($header, $request->user());
+        ProcurementRequestPayloadResolver::finalizeForStore($header);
+        $header['created_by'] = $request->user()->id;
+        $header['status'] ??= ProcurementRequestStatus::Draft->value;
 
-        $procurementRequest = $this->persistence->create($validated, $items);
-        $this->syncItemSupportingDocuments($request, $procurementRequest->fresh(['items']));
+        $procurementRequest = $this->persistence->create(
+            $header,
+            $items,
+            ProcurementRequestPersistenceService::normalizePaymentTerms($validated['payment_terms'] ?? []),
+            ProcurementRequestPersistenceService::normalizeRetentions($validated['retentions'] ?? []),
+            $validated['timeline'] ?? [],
+            $validated['approvals'] ?? [],
+        );
+
+        $this->syncHeaderSupportingDocuments($request, $procurementRequest->fresh());
 
         return redirect()
             ->route('procurement-requests.show', $procurementRequest)
@@ -88,54 +102,74 @@ class ProcurementRequestController extends Controller
 
     public function show(ProcurementRequest $procurementRequest): View
     {
-        $procurementRequest->load(['creator', 'items.project', 'items.zone', 'items.documents']);
+        $procurementRequest->load([
+            'creator',
+            'project',
+            'zone',
+            'category',
+            'subcategory',
+            'items.project',
+            'items.zone',
+            'items.documents',
+            'headerDocuments',
+            'paymentTerms',
+            'retentions',
+            'timelineEntries',
+            'approvals',
+        ]);
 
         return view('procurement.procurement-requests.show', [
             'procurementRequest' => $procurementRequest,
+            'formData' => $this->formData->resolve($procurementRequest),
         ]);
     }
 
     public function print(ProcurementRequest $procurementRequest): View
     {
-        $procurementRequest->load(['creator', 'items.project', 'items.zone', 'items.documents']);
+        $procurementRequest->load([
+            'creator',
+            'project',
+            'zone',
+            'category',
+            'subcategory',
+            'items.project',
+            'items.zone',
+            'items.documents',
+            'headerDocuments',
+            'paymentTerms',
+            'retentions',
+            'timelineEntries',
+            'approvals',
+        ]);
 
         return view('procurement.procurement-requests.print', [
             'procurementRequest' => $procurementRequest,
             'buyerCompany' => BuyerCompany::forDisplay(),
+            'formData' => $this->formData->resolve($procurementRequest),
         ]);
     }
 
     public function edit(ProcurementRequest $procurementRequest): View
     {
-        $procurementRequest->load(['items.project', 'items.zone', 'items.documents', 'creator']);
-
-        $defaultItems = $procurementRequest->items->map(fn ($row) => [
-            'id' => $row->id,
-            'line_number' => $row->line_number,
-            'project_id' => $row->project_id,
-            'zone_id' => $row->zone_id,
-            'category' => $row->category,
-            'subcategory' => $row->subcategory,
-            'scope_type' => $row->scope_type,
-            'description' => $row->description,
-            'unit' => $row->unit,
-            'quantity' => $row->quantity,
-            'justification' => $row->justification,
-            'scope_of_work' => $row->scope_of_work,
-            'required_delivery_date' => $row->required_delivery_date?->format('Y-m-d'),
-            'flexible_delivery_date' => $row->flexible_delivery_date,
-            'delivery_location' => $row->delivery_location,
-            'documents' => $row->documents,
-        ])->all();
-
-        if ($defaultItems === []) {
-            $defaultItems = $this->emptyLineItems(1);
-        }
+        $procurementRequest->load([
+            'items.documents',
+            'creator',
+            'headerDocuments',
+            'paymentTerms',
+            'retentions',
+            'timelineEntries',
+            'approvals',
+            'project',
+            'zone',
+            'category',
+            'subcategory',
+        ]);
 
         return view('procurement.procurement-requests.edit', [
             'procurementRequest' => $procurementRequest,
-            'defaultItems' => $defaultItems,
+            'formDefaults' => $this->formData->resolve($procurementRequest),
             'projects' => $this->activeProjects(),
+            'categories' => $this->activeCategories(),
         ]);
     }
 
@@ -143,21 +177,30 @@ class ProcurementRequestController extends Controller
     {
         $validated = $request->validated();
         $items = ProcurementRequestPersistenceService::normalizeItems($validated['items'] ?? []);
-        unset($validated['items']);
 
         if ($items === []) {
-            return back()->withInput()->withErrors(['items' => 'Add at least one line with an item description.']);
+            return back()->withInput()->withErrors(['items' => 'Add at least one BOQ line with a description.']);
         }
 
-        ProcurementRequestPayloadResolver::finalizeForUpdate($validated);
+        $header = ProcurementRequestPersistenceService::normalizeHeader($validated);
+        ProcurementRequestPayloadResolver::finalizeForUpdate($header);
 
         $this->documents->removeByIds(
             $procurementRequest,
-            $this->collectRemoveSupportingDocumentIds($request)
+            array_map('intval', $validated['remove_supporting_document_ids'] ?? [])
         );
 
-        $this->persistence->update($procurementRequest, $validated, $items);
-        $this->syncItemSupportingDocuments($request, $procurementRequest->fresh(['items']));
+        $this->persistence->update(
+            $procurementRequest,
+            $header,
+            $items,
+            ProcurementRequestPersistenceService::normalizePaymentTerms($validated['payment_terms'] ?? []),
+            ProcurementRequestPersistenceService::normalizeRetentions($validated['retentions'] ?? []),
+            $validated['timeline'] ?? [],
+            $validated['approvals'] ?? [],
+        );
+
+        $this->syncHeaderSupportingDocuments($request, $procurementRequest->fresh());
 
         return redirect()
             ->route('procurement-requests.show', $procurementRequest)
@@ -173,80 +216,112 @@ class ProcurementRequestController extends Controller
             ->with('success', 'Procurement request deleted successfully.');
     }
 
-    private function syncItemSupportingDocuments(Request $request, ProcurementRequest $procurementRequest): void
+    private function syncHeaderSupportingDocuments(Request $request, ProcurementRequest $procurementRequest): void
     {
-        foreach ($procurementRequest->items as $index => $item) {
-            $files = $request->file("items.$index.supporting_documents");
+        $rows = $request->input('supporting_document_rows', []);
 
-            if (! is_array($files)) {
-                continue;
-            }
-
-            $uploads = array_values(array_filter(
-                $files,
-                static fn ($file) => $file instanceof UploadedFile && $file->isValid()
-            ));
-
-            if ($uploads !== []) {
-                $this->documents->append($item, $uploads);
-            }
-
-            $links = $request->input("items.$index.supporting_document_links", []);
-
-            if (is_array($links) && $links !== []) {
-                $this->documents->appendLinks($item, $links);
-            }
-        }
-    }
-
-    /**
-     * @return list<int>
-     */
-    private function collectRemoveSupportingDocumentIds(Request $request): array
-    {
-        $ids = [];
-        $items = $request->input('items', []);
-
-        if (! is_array($items)) {
-            return [];
+        if (! is_array($rows)) {
+            return;
         }
 
-        foreach ($items as $row) {
+        $links = [];
+
+        foreach (array_values($rows) as $index => $row) {
             if (! is_array($row)) {
                 continue;
             }
 
-            $rowIds = $row['remove_supporting_document_ids'] ?? [];
+            $file = $request->file("supporting_document_rows.$index.file");
 
-            if (is_array($rowIds)) {
-                foreach ($rowIds as $id) {
-                    $ids[] = (int) $id;
-                }
+            if ($file instanceof UploadedFile && $file->isValid()) {
+                $this->documents->appendToRequest(
+                    $procurementRequest,
+                    [$file],
+                    isset($row['document_type']) ? trim((string) $row['document_type']) : null,
+                    isset($row['file_description']) ? trim((string) $row['file_description']) : null,
+                );
+            }
+
+            $url = trim((string) ($row['url'] ?? ''));
+
+            if ($url !== '') {
+                $links[] = [
+                    'url' => $url,
+                    'name' => isset($row['name']) ? trim((string) $row['name']) : null,
+                    'document_type' => isset($row['document_type']) ? trim((string) $row['document_type']) : null,
+                    'file_description' => isset($row['file_description']) ? trim((string) $row['file_description']) : null,
+                ];
             }
         }
 
-        return $ids;
+        if ($links !== []) {
+            $this->documents->appendLinksToRequest($procurementRequest, $links);
+        }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function defaultFormData(): array
+    {
+        return [
+            'project_id' => '',
+            'zone_id' => '',
+            'category_id' => '',
+            'subcategory_id' => '',
+            'procurement_types' => [],
+            'geographic_scopes' => [],
+            'vendor_types' => [],
+            'justification' => '',
+            'delivery_lead_time_days' => '',
+            'delivery_location' => '',
+            'flexible_delivery_date' => true,
+            'currency_code' => '',
+            'samples_required' => null,
+            'scope_of_work' => '',
+            'nda_required' => null,
+            'primary_insurance_applicable' => null,
+            'final_insurance_applicable' => null,
+            'warranty_years' => '',
+            'warranty_coverage' => '',
+            'items' => $this->emptyBoqLines(1),
+            'payment_terms' => [['milestone' => '', 'amount' => '', 'percentage' => '', 'due_upon' => '']],
+            'retentions' => [['retention_percent' => '', 'release_period' => '']],
+            'timeline' => array_map(
+                static fn (ProcurementTimelineActivity $activity) => [
+                    'activity' => $activity->value,
+                    'label' => $activity->label(),
+                    'duration_days' => '',
+                ],
+                ProcurementTimelineActivity::cases()
+            ),
+            'approvals' => array_map(
+                static fn (ProcurementApprovalRole $role) => [
+                    'role' => $role->value,
+                    'label' => $role->label(),
+                    'name' => '',
+                    'signature' => '',
+                    'signed_at' => '',
+                ],
+                ProcurementApprovalRole::cases()
+            ),
+            'header_documents' => collect(),
+            'legacy_item_documents' => collect(),
+        ];
     }
 
     /**
      * @return list<array<string, mixed>>
      */
-    private function emptyLineItems(int $count): array
+    private function emptyBoqLines(int $count): array
     {
         return array_fill(0, $count, [
-            'project_id' => '',
-            'zone_id' => '',
-            'category' => '',
-            'subcategory' => '',
-            'scope_type' => [],
+            'item_name' => '',
             'description' => '',
             'unit' => '',
             'quantity' => 1,
-            'justification' => '',
-            'scope_of_work' => '',
-            'required_delivery_date' => '',
-            'flexible_delivery_date' => true,
-            'delivery_location' => '',
+            'unit_price' => 0,
+            'total_price' => 0,
         ]);
     }
 
@@ -259,6 +334,17 @@ class ProcurementRequestController extends Controller
             ->active()
             ->with(['zones' => fn ($query) => $query->active()->orderBy('name')])
             ->orderBy('name')
+            ->get();
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection<int, Category>
+     */
+    private function activeCategories()
+    {
+        return Category::query()
+            ->with(['subcategories' => fn ($q) => $q->orderBy('name_en')])
+            ->orderBy('name_en')
             ->get();
     }
 }

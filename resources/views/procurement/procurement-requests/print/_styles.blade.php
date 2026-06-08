@@ -81,11 +81,97 @@
         }
     }
 
-    .pr-signatures-procurement {
+    .pr-print-closing-block {
         margin-top: 4px;
     }
 
+    .pr-closing-nda {
+        margin: 0 0 6px;
+        font-size: 12px;
+    }
+
+    .pr-approvals-table {
+        margin-bottom: 0;
+    }
+
+    .pr-approvals-table col.pr-approvals-col-role {
+        width: 22%;
+    }
+
+    .pr-approvals-table col.pr-approvals-col-name {
+        width: 28%;
+    }
+
+    .pr-approvals-table col.pr-approvals-col-signature {
+        width: 32%;
+    }
+
+    .pr-approvals-table col.pr-approvals-col-date {
+        width: 18%;
+    }
+
+    .pr-approvals-table .pr-approvals-role {
+        font-weight: bold;
+        text-align: left;
+    }
+
+    .pr-approvals-table .pr-approvals-name,
+    .pr-approvals-table .pr-approvals-date {
+        text-align: left;
+    }
+
+    .pr-approvals-table .pr-approvals-signature {
+        min-height: 32px;
+        text-align: left;
+    }
+
+    .pr-approvals-table .pr-approvals-row td {
+        vertical-align: middle;
+    }
+
+    .pr-project-group-heading {
+        font-weight: 700;
+        background: #f1f5f9;
+        text-align: left;
+    }
+
+    .pr-print-list {
+        margin: 0 0 10px;
+        padding-left: 18px;
+        font-size: 12px;
+    }
+
+    .pr-print-muted {
+        color: #64748b;
+    }
+
+    .pr-compact-table th,
+    .pr-compact-table td {
+        font-size: 10px;
+    }
+
     @media print {
+        .pr-print-compact.po-wrapper,
+        .po-wrapper.pr-print-compact {
+            -webkit-box-decoration-break: clone;
+            box-decoration-break: clone;
+        }
+
+        .pr-print-closing-block {
+            break-inside: avoid-page;
+            page-break-inside: avoid;
+        }
+
+        .pr-approvals-table {
+            break-inside: avoid-page;
+            page-break-inside: avoid;
+        }
+
+        .pr-approvals-table .pr-approvals-row {
+            break-inside: avoid-page;
+            page-break-inside: avoid;
+        }
+
         .pr-items-table th,
         .pr-items-table td {
             font-size: 9px;

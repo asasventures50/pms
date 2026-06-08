@@ -1,52 +1,44 @@
 @php
-    $requestorName = $procurementRequest->requestor_name ?? $procurementRequest->creator?->name ?? '';
+    $formData = $formData ?? [];
 @endphp
 
-<div class="po-signatures">
-    <div class="po-signature-col">
-        <div class="po-signature-row">
-            <span class="po-form-label">Requestor:</span>
-            <span class="po-form-line">{{ $requestorName }}</span>
-        </div>
-        <div class="po-signature-row">
-            <span class="po-form-label">Signature:</span>
-            <span class="po-form-line"></span>
-        </div>
-        <div class="po-signature-row">
-            <span class="po-form-label">Date:</span>
-            <span class="po-form-line">{{ $procurementRequest->requested_at?->format('d-m-Y') ?? '' }}</span>
-        </div>
-    </div>
-    <div class="po-signature-col">
-        <div class="po-signature-row">
-            <span class="po-form-label">Received by:</span>
-            <span class="po-form-line">{{ $procurementRequest->received_by ?? '' }}</span>
-        </div>
-        <div class="po-signature-row">
-            <span class="po-form-label">Signature:</span>
-            <span class="po-form-line"></span>
-        </div>
-        <div class="po-signature-row">
-            <span class="po-form-label">Date:</span>
-            <span class="po-form-line"></span>
-        </div>
-    </div>
-</div>
+<div class="pr-print-closing-block">
+    <div class="po-section-title">Compliance &amp; approvals</div>
+    <p class="pr-closing-nda">
+        <strong>NDA required:</strong>
+        @if ($procurementRequest->nda_required === null)—@elseif ($procurementRequest->nda_required)Yes@else No @endif
+    </p>
 
-<div class="po-signatures pr-signatures-procurement">
-    <div class="po-signature-col">
-        <div class="po-signature-row">
-            <span class="po-form-label">Procurement:</span>
-            <span class="po-form-line"></span>
-        </div>
-        <div class="po-signature-row">
-            <span class="po-form-label">Signature:</span>
-            <span class="po-form-line"></span>
-        </div>
-        <div class="po-signature-row">
-            <span class="po-form-label">Date:</span>
-            <span class="po-form-line"></span>
-        </div>
-    </div>
-    <div class="po-signature-col" aria-hidden="true"></div>
+    <table class="po-items-table pr-items-table pr-approvals-table">
+        <colgroup>
+            <col class="pr-approvals-col-role">
+            <col class="pr-approvals-col-name">
+            <col class="pr-approvals-col-signature">
+            <col class="pr-approvals-col-date">
+        </colgroup>
+        <thead>
+        <tr>
+            <th>Role</th>
+            <th>Name</th>
+            <th>Signature</th>
+            <th>Date</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach ($formData['approvals'] ?? [] as $row)
+            <tr class="pr-approvals-row">
+                <td class="pr-approvals-role">{{ $row['label'] ?? '' }}</td>
+                <td class="pr-approvals-name">{{ filled($row['name'] ?? null) ? $row['name'] : '—' }}</td>
+                <td class="pr-approvals-signature">{{ filled($row['signature'] ?? null) ? $row['signature'] : '' }}</td>
+                <td class="pr-approvals-date">
+                    @if (filled($row['signed_at'] ?? null))
+                        {{ \Illuminate\Support\Carbon::parse($row['signed_at'])->format('d-m-Y') }}
+                    @else
+                        —
+                    @endif
+                </td>
+            </tr>
+        @endforeach
+        </tbody>
+    </table>
 </div>

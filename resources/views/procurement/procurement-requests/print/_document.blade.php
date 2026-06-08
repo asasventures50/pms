@@ -19,9 +19,10 @@
         'poLogoUrl' => $poLogoUrl,
         'poLogoExists' => $poLogoExists,
     ])
-    @include('procurement.procurement-requests.print._request-info')
-    @include('procurement.procurement-requests.print._items')
-    @include('procurement.procurement-requests.print._signatures')
+    @include('procurement.procurement-requests.print._request-info', ['formData' => $formData ?? []])
+    @include('procurement.procurement-requests.print._items', ['formData' => $formData ?? []])
+    @include('procurement.procurement-requests.print._sections', ['formData' => $formData ?? []])
+    @include('procurement.procurement-requests.print._signatures', ['formData' => $formData ?? []])
 </div>
 
 @include('procurement.procurement-requests.print._footer', ['buyer' => $buyer])

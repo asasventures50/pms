@@ -2,7 +2,7 @@
     use App\Support\Access\UserDepartment;
 
     $procurementRequest = $procurementRequest ?? null;
-    $lineItems = old('items', $defaultItems ?? []);
+    $formDefaults = $formDefaults ?? [];
     $authUser = auth()->user();
     $requestorName = $procurementRequest?->requestor_name ?? $authUser->name;
     $requestedAt = $procurementRequest?->requested_at?->format('Y-m-d') ?? now()->format('Y-m-d');
@@ -10,13 +10,13 @@
         ?? UserDepartment::label($authUser->department ?? UserDepartment::DEFAULT);
 @endphp
 
-<article class="pr-document mx-auto max-w-4xl space-y-6">
+<article class="pr-document mx-auto max-w-5xl space-y-6">
     <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
         @include('procurement.procurement-requests._document-header')
     </section>
 
     <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h3 class="text-sm font-semibold text-slate-900">Requestor information</h3>
+        <h3 class="text-sm font-semibold text-slate-900">Requester information</h3>
         <input type="hidden" name="request_number" id="request_number"
                value="{{ old('request_number', $procurementRequest?->request_number ?? '') }}">
         <dl class="mt-4 grid gap-4 sm:grid-cols-2">
@@ -35,14 +35,39 @@
         </div>
     </section>
 
-    <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        @include('procurement.procurement-requests._line-items', [
-            'lineItems' => $lineItems,
-            'projects' => $projects ?? collect(),
-        ])
-    </section>
+    @include('procurement.procurement-requests._pr-information', [
+        'formDefaults' => $formDefaults,
+        'projects' => $projects ?? collect(),
+        'categories' => $categories ?? collect(),
+    ])
 
+    @include('procurement.procurement-requests._boq', [
+        'formDefaults' => $formDefaults,
+    ])
 
+    @include('procurement.procurement-requests._justification-delivery', [
+        'formDefaults' => $formDefaults,
+    ])
+
+    @include('procurement.procurement-requests._supporting-documents', [
+        'formDefaults' => $formDefaults,
+    ])
+
+    @include('procurement.procurement-requests._payment-terms', [
+        'formDefaults' => $formDefaults,
+    ])
+
+    @include('procurement.procurement-requests._retentions', [
+        'formDefaults' => $formDefaults,
+    ])
+
+    @include('procurement.procurement-requests._insurance', [
+        'formDefaults' => $formDefaults,
+    ])
+
+    @include('procurement.procurement-requests._internal-sections', [
+        'formDefaults' => $formDefaults,
+    ])
 
     @if ($procurementRequest?->exists)
         <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm print:hidden">
@@ -59,5 +84,7 @@
 </article>
 
 @push('scripts')
-    @include('procurement.procurement-requests._form-scripts')
+    @include('procurement.procurement-requests._form-scripts', [
+        'categories' => $categories ?? collect(),
+    ])
 @endpush

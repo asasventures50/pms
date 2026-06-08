@@ -16,9 +16,12 @@ class ProcurementRequestDocument extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'procurement_request_id',
         'procurement_request_item_id',
+        'document_type',
         'file_name',
         'file_path',
+        'file_description',
     ];
 
     /**
@@ -51,6 +54,11 @@ class ProcurementRequestDocument extends Model
                 return $disk->url($this->file_path);
             },
         );
+    }
+
+    public function procurementRequest(): BelongsTo
+    {
+        return $this->belongsTo(ProcurementRequest::class);
     }
 
     public function item(): BelongsTo

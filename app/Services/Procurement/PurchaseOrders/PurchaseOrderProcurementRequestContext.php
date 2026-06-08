@@ -2,8 +2,11 @@
 
 namespace App\Services\Procurement\PurchaseOrders;
 
+use App\Enums\Procurement\ProcurementRequests\ProcurementVendorType;
+use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequestItem;
 use App\Models\Procurement\PurchaseOrders\PurchaseOrder;
+use App\Support\Procurement\ProcurementCheckboxGroup;
 use App\Support\Procurement\ProcurementScopeType;
 use Illuminate\Support\Collection;
 
@@ -57,9 +60,97 @@ class PurchaseOrderProcurementRequestContext
         }
 
         return [
-            ...self::aggregateFromItems($items),
+            ...self::aggregateFromRequest($request, $items),
             'pr_items_by_line' => $byLine,
         ];
+    }
+
+    /**
+     * @param  Collection<int, ProcurementRequestItem>  $items
+     * @return array{category: string, scope_type: string, project: string}
+     */
+    public static function aggregateFromRequest(ProcurementRequest $request, Collection $items): array
+    {
+        $fromItems = self::aggregateFromItems($items);
+
+        if ($request->relationLoaded('project') || $request->project_id) {
+            $request->loadMissing(['project', 'category', 'subcategory']);
+        }
+
+        $projectLabel = '';
+        if ($request->project) {
+            $projectLabel = trim(($request->project->code ? $request->project->code.' — ' : '').($request->project->name ?? ''));
+        }
+
+        $categoryLabel = '';
+        if ($request->category) {
+            $category = $request->category->name_en ?? $request->category->name_ar ?? '';
+            $subcategory = $request->subcategory?->name_en ?? $request->subcategory?->name_ar ?? '';
+            $categoryLabel = match (true) {
+                $category !== '' && $subcategory !== '' => $category.' / '.$subcategory,
+                $category !== '' => $category,
+                $subcategory !== '' => $subcategory,
+                default => '',
+            };
+        }
+
+        $scopeType = self::scopeTypeDisplayFromRequest($request, $items);
+
+        return [
+            'category' => $categoryLabel !== '' ? $categoryLabel : $fromItems['category'],
+            'scope_type' => $scopeType !== '' ? $scopeType : $fromItems['scope_type'],
+            'project' => $projectLabel !== '' ? $projectLabel : $fromItems['project'],
+        ];
+    }
+
+    /**
+     * @param  Collection<int, ProcurementRequestItem>  $items
+     * @return list<string>
+     */
+    public static function scopeTypeKeysFromRequest(ProcurementRequest $request, Collection $items): array
+    {
+        $fromItems = self::scopeTypeKeys($items);
+        if ($fromItems !== []) {
+            return $fromItems;
+        }
+
+        $vendorTypes = ProcurementCheckboxGroup::selectedValues(
+            $request->vendor_types,
+            ProcurementVendorType::values()
+        );
+
+        $map = [
+            'contractor' => ProcurementScopeType::Contractor,
+            'supplier' => ProcurementScopeType::Supplier,
+            'studies' => ProcurementScopeType::Studies,
+        ];
+
+        $keys = [];
+        foreach ($vendorTypes as $value) {
+            if (isset($map[$value])) {
+                $keys[] = $map[$value];
+            }
+        }
+
+        return $keys;
+    }
+
+    /**
+     * @param  Collection<int, ProcurementRequestItem>  $items
+     */
+    private static function scopeTypeDisplayFromRequest(ProcurementRequest $request, Collection $items): string
+    {
+        $fromItems = self::aggregateScopeTypes($items);
+        if ($fromItems !== '') {
+            return $fromItems;
+        }
+
+        $keys = self::scopeTypeKeysFromRequest($request, $items);
+
+        return implode(', ', array_map(
+            static fn (string $scope): string => ProcurementScopeType::label($scope),
+            $keys
+        ));
     }
 
     /**
