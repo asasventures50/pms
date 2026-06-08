@@ -5,11 +5,13 @@ namespace App\Http\Requests\Procurement\PurchaseOrders;
 use App\Enums\Procurement\PurchaseOrders\PaymentStatus;
 use App\Enums\Procurement\PurchaseOrders\PurchaseOrderStatus;
 use App\Enums\Procurement\Rfqs\RfqTermsLocale;
+use App\Http\Requests\Procurement\PurchaseOrders\Concerns\ValidatesPurchaseOrderVendorFields;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdatePurchaseOrderRequest extends FormRequest
 {
+    use ValidatesPurchaseOrderVendorFields;
     public function authorize(): bool
     {
         return $this->user()?->hasPermission('purchase-orders.update') ?? false;
@@ -26,11 +28,7 @@ class UpdatePurchaseOrderRequest extends FormRequest
             'ordered_at' => ['sometimes', 'nullable', 'date'],
             'vendor_id' => ['sometimes', 'nullable', 'integer', Rule::exists('vendors', 'id')->whereNull('deleted_at')],
             'procurement_request_id' => ['sometimes', 'nullable', 'integer', Rule::exists('procurement_requests', 'id')->whereNull('deleted_at')],
-            'vendor_company_name' => ['sometimes', 'nullable', 'string', 'max:255'],
-            'vendor_contact' => ['sometimes', 'nullable', 'string', 'max:255'],
-            'vendor_email' => ['sometimes', 'nullable', 'string', 'email', 'max:255'],
-            'vendor_phone' => ['sometimes', 'nullable', 'string', 'max:50'],
-            'vendor_address' => ['sometimes', 'nullable', 'string', 'max:2000'],
+            ...$this->vendorFieldRules(sometimes: true),
             'delivery_contact_name' => ['sometimes', 'nullable', 'string', 'max:255'],
             'delivery_contact_phone' => ['sometimes', 'nullable', 'string', 'max:50'],
             'delivery_contact_email' => ['sometimes', 'nullable', 'string', 'email', 'max:255'],

@@ -10,7 +10,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const totalPriceEl = document.getElementById('po-total-price');
     const deliveryFeeInput = document.getElementById('delivery_fee');
     const discountInput = document.getElementById('discount');
-    const vendorSearchRoot = document.querySelector('.vendor-search-select');
     const procurementRequestSelect = document.getElementById('procurement_request_id');
     const currencyInput = document.getElementById('currency_code');
     const userDefaultCurrency = (currencyInput?.dataset.userDefaultCurrency || '').trim().toUpperCase();
@@ -50,49 +49,67 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    const poVendorSnapshotFields = [
+        'vendor_company_name',
+        'vendor_email',
+        'vendor_phone',
+        'vendor_whatsapp',
+        'vendor_primary_contact_position',
+        'vendor_classification',
+        'payment_terms',
+        'currency_code',
+    ];
+
     async function loadVendorSnapshot(vendorId) {
         if (!vendorId) {
-            if (currencyInput && userDefaultCurrency) {
-                currencyInput.value = userDefaultCurrency;
-                updateCurrencyLabels();
+            if (typeof window.applyVendorSnapshotFields === 'function') {
+                window.applyVendorSnapshotFields({}, {
+                    fields: poVendorSnapshotFields,
+                    resolveCurrency: function () {
+                        return userDefaultCurrency || '';
+                    },
+                    applyBilingualDirection: applyBilingualDirection,
+                    onApplied: updateCurrencyLabels,
+                });
             }
             return;
         }
-        const base = vendorSearchRoot?.getAttribute('data-snapshot-url');
-        if (!base) {
+
+        const data = typeof window.fetchVendorSnapshot === 'function'
+            ? await window.fetchVendorSnapshot(vendorId, 'purchase-order-snapshot')
+            : null;
+
+        if (!data || typeof window.applyVendorSnapshotFields !== 'function') {
             return;
         }
-        try {
-            const response = await fetch(base + '/' + vendorId + '/purchase-order-snapshot', {
-                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-            });
-            if (!response.ok) {
-                return;
-            }
-            const data = await response.json();
-            const fields = ['vendor_company_name', 'vendor_contact', 'vendor_email', 'vendor_phone', 'vendor_address', 'payment_terms', 'currency_code'];
-            fields.forEach(function (key) {
-                const el = document.getElementById(key);
-                if (!el) {
-                    return;
-                }
-                if (key === 'currency_code') {
-                    el.value = currencyFromVendor(data.currency_code);
-                } else if (data[key]) {
-                    el.value = data[key];
-                    if (el.classList.contains('po-bilingual-text')) {
-                        applyBilingualDirection(el);
-                    }
-                }
-            });
-            updateCurrencyLabels();
-        } catch (e) {
-            console.error(e);
-        }
+
+        window.applyVendorSnapshotFields(data, {
+            fields: poVendorSnapshotFields,
+            resolveCurrency: currencyFromVendor,
+            applyBilingualDirection: applyBilingualDirection,
+            onApplied: updateCurrencyLabels,
+        });
     }
 
     if (typeof window.initVendorSearchSelect === 'function') {
         window.initVendorSearchSelect({ onChange: loadVendorSnapshot });
+
+        const preselectedVendorId = document.getElementById('vendor_id')?.value;
+        if (preselectedVendorId && typeof window.fetchVendorSnapshot === 'function') {
+            window.fetchVendorSnapshot(preselectedVendorId, 'purchase-order-snapshot').then(function (data) {
+                if (!data || typeof window.applyVendorSnapshotFields !== 'function') {
+                    return;
+                }
+
+                window.applyVendorSnapshotFields(data, {
+                    fields: poVendorSnapshotFields,
+                    onlyIfEmpty: true,
+                    resolveCurrency: currencyFromVendor,
+                    applyBilingualDirection: applyBilingualDirection,
+                    onApplied: updateCurrencyLabels,
+                });
+            });
+        }
     }
 
     if (!linesBody || !template) {

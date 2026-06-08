@@ -31,6 +31,8 @@ use App\Services\Procurement\PurchaseOrders\PurchaseOrderPayloadResolver;
 
 use App\Services\Procurement\PurchaseOrders\PurchaseOrderPersistenceService;
 
+use App\Services\Procurement\PurchaseOrders\PurchaseOrderVendorPayloadResolver;
+
 use App\Services\Procurement\PurchaseOrders\VendorPurchaseOrderSnapshot;
 
 use App\Services\Procurement\Rfqs\RfqGeneralTermsService;
@@ -185,6 +187,8 @@ class PurchaseOrderController extends Controller
 
         PurchaseOrderPayloadResolver::normalizeCurrency($validated, $request->user());
 
+        $validated = PurchaseOrderVendorPayloadResolver::mergeMissingFromVendor($validated);
+
         $validated['created_by'] = $request->user()->id;
 
         $validated['status'] ??= PurchaseOrderStatus::Draft->value;
@@ -213,7 +217,15 @@ class PurchaseOrderController extends Controller
 
     {
 
-        $purchaseOrder->load(['vendor', 'creator', 'items', 'procurementRequest.items.project']);
+        $purchaseOrder->load([
+            'vendor.primaryLocation',
+            'vendor.businessTypes',
+            'vendor.vendorCategories.category',
+            'vendor.vendorCategories.subcategory',
+            'creator',
+            'items',
+            'procurementRequest.items.project',
+        ]);
 
         $prContext = PurchaseOrderProcurementRequestContext::resolve($purchaseOrder);
 
@@ -238,7 +250,10 @@ class PurchaseOrderController extends Controller
     {
 
         $purchaseOrder->load([
-            'vendor',
+            'vendor.primaryLocation',
+            'vendor.businessTypes',
+            'vendor.vendorCategories.category',
+            'vendor.vendorCategories.subcategory',
             'creator',
             'items',
             'procurementRequest.items.project',
@@ -347,7 +362,7 @@ class PurchaseOrderController extends Controller
 
         PurchaseOrderPayloadResolver::normalizeCurrency($validated, $request->user());
 
-
+        $validated = PurchaseOrderVendorPayloadResolver::mergeMissingFromVendor($validated);
 
         $this->persistence->update($purchaseOrder, $validated, $items);
 

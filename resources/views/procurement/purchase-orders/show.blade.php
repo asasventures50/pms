@@ -72,13 +72,12 @@
 
         <section class="mt-8">
             <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-700">Vendor</h2>
-            <dl class="mt-4 grid gap-3 sm:grid-cols-2 text-sm">
-                <div><dt class="text-xs text-slate-500">Company name</dt><dd class="text-slate-900">{{ $purchaseOrder->vendor_company_name ?? $purchaseOrder->vendor?->name ?? '—' }}</dd></div>
-                <div><dt class="text-xs text-slate-500">Contact person</dt><dd class="text-slate-900">{{ $purchaseOrder->vendor_contact ?? '—' }}</dd></div>
-                <div><dt class="text-xs text-slate-500">Email</dt><dd class="text-slate-900">{{ $purchaseOrder->vendor_email ?? '—' }}</dd></div>
-                <div><dt class="text-xs text-slate-500">Phone</dt><dd class="text-slate-900">{{ $purchaseOrder->vendor_phone ?? '—' }}</dd></div>
-                <div class="sm:col-span-2"><dt class="text-xs text-slate-500">Address</dt><dd class="whitespace-pre-wrap text-slate-900">{{ $purchaseOrder->vendor_address ?? '—' }}</dd></div>
-            </dl>
+            <div class="mt-4">
+                @include('procurement.purchase-orders._vendor-section-display', [
+                    'purchaseOrder' => $purchaseOrder,
+                    'variant' => 'show',
+                ])
+            </div>
         </section>
 
         @if ($purchaseOrder->delivery_contact_name || $purchaseOrder->delivery_contact_phone || $purchaseOrder->delivery_contact_email || $purchaseOrder->delivery_location)

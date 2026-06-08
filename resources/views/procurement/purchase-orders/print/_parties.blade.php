@@ -1,44 +1,28 @@
-<div class="po-grid-2 po-parties">
-    <div class="po-grid-col">
-        <div class="po-section-title">Vendor Details:</div>
-        <div class="po-form-group">
-            <span class="po-form-label">Company name:</span>
-            <span class="po-form-line">{{ $purchaseOrder->vendor_company_name ?? $purchaseOrder->vendor?->name ?? '' }}</span>
-        </div>
-        <div class="po-form-group">
-            <span class="po-form-label">Office Address:</span>
-            <span class="po-form-line">{{ $purchaseOrder->vendor_address ?? '' }}</span>
-        </div>
-        <div class="po-form-group">
-            <span class="po-form-label">Contact persone:</span>
-            <span class="po-form-line">{{ $purchaseOrder->vendor_contact ?? '' }}</span>
-        </div>
-        <div class="po-form-group">
-            <span class="po-form-label">Email:</span>
-            <span class="po-form-line">{{ $purchaseOrder->vendor_email ?? '' }}</span>
-        </div>
-        <div class="po-form-group">
-            <span class="po-form-label">Phone:</span>
-            <span class="po-form-line">{{ $purchaseOrder->vendor_phone ?? '' }}</span>
-        </div>
+@php
+    $deliveryRows = array_filter([
+        'Delivery location' => trim((string) ($purchaseOrder->delivery_location ?? '')),
+        'Contact person' => trim((string) ($purchaseOrder->delivery_contact_name ?? '')),
+        'Phone' => trim((string) ($purchaseOrder->delivery_contact_phone ?? '')),
+        'Email' => trim((string) ($purchaseOrder->delivery_contact_email ?? '')),
+    ], static fn (string $value) => $value !== '');
+@endphp
+
+<div class="po-parties-layout">
+    <div class="po-parties-vendor">
+        @include('procurement.purchase-orders._vendor-section-display', [
+            'purchaseOrder' => $purchaseOrder,
+            'variant' => 'print',
+        ])
     </div>
-    <div class="po-grid-col">
-        <div class="po-section-title">Delivery Details</div>
-        <div class="po-form-group">
-            <span class="po-form-label">Delivery location:</span>
-            <span class="po-form-line">{{ $purchaseOrder->delivery_location ?? '' }}</span>
+    @if ($deliveryRows !== [])
+        <div class="po-parties-delivery">
+            <div class="po-section-title">Delivery Details</div>
+            @foreach ($deliveryRows as $label => $value)
+                <div class="po-form-group">
+                    <span class="po-form-label">{{ $label }}:</span>
+                    <span class="po-form-line">{{ $value }}</span>
+                </div>
+            @endforeach
         </div>
-        <div class="po-form-group">
-            <span class="po-form-label">Contact person:</span>
-            <span class="po-form-line">{{ $purchaseOrder->delivery_contact_name ?? '' }}</span>
-        </div>
-        <div class="po-form-group">
-            <span class="po-form-label">Phone:</span>
-            <span class="po-form-line">{{ $purchaseOrder->delivery_contact_phone ?? '' }}</span>
-        </div>
-        <div class="po-form-group">
-            <span class="po-form-label">Email:</span>
-            <span class="po-form-line">{{ $purchaseOrder->delivery_contact_email ?? '' }}</span>
-        </div>
-    </div>
+    @endif
 </div>

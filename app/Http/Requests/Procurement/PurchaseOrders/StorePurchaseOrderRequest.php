@@ -5,11 +5,13 @@ namespace App\Http\Requests\Procurement\PurchaseOrders;
 use App\Enums\Procurement\PurchaseOrders\PaymentStatus;
 use App\Enums\Procurement\PurchaseOrders\PurchaseOrderStatus;
 use App\Enums\Procurement\Rfqs\RfqTermsLocale;
+use App\Http\Requests\Procurement\PurchaseOrders\Concerns\ValidatesPurchaseOrderVendorFields;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StorePurchaseOrderRequest extends FormRequest
 {
+    use ValidatesPurchaseOrderVendorFields;
     public function authorize(): bool
     {
         return $this->user()?->hasPermission('purchase-orders.create') ?? false;
@@ -40,11 +42,7 @@ class StorePurchaseOrderRequest extends FormRequest
             'ordered_at' => ['nullable', 'date'],
             'vendor_id' => ['nullable', 'integer', Rule::exists('vendors', 'id')->whereNull('deleted_at')],
             'procurement_request_id' => ['nullable', 'integer', Rule::exists('procurement_requests', 'id')->whereNull('deleted_at')],
-            'vendor_company_name' => ['nullable', 'string', 'max:255'],
-            'vendor_contact' => ['nullable', 'string', 'max:255'],
-            'vendor_email' => ['nullable', 'string', 'email', 'max:255'],
-            'vendor_phone' => ['nullable', 'string', 'max:50'],
-            'vendor_address' => ['nullable', 'string', 'max:2000'],
+            ...$this->vendorFieldRules(),
             'delivery_contact_name' => ['nullable', 'string', 'max:255'],
             'delivery_contact_phone' => ['nullable', 'string', 'max:50'],
             'delivery_contact_email' => ['nullable', 'string', 'email', 'max:255'],

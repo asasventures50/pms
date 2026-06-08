@@ -2,7 +2,6 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const vendorSearchRoot = document.querySelector('.vendor-search-select');
     const linesBody = document.getElementById('vq-lines-body');
     const grandTotalEl = document.getElementById('vq-grand-total');
 
@@ -51,28 +50,23 @@ document.addEventListener('DOMContentLoaded', function () {
         recalcGrandTotal();
     }
 
-    function loadVendorSnapshot(vendorId) {
+    async function loadVendorSnapshot(vendorId) {
         if (!vendorId) {
+            if (typeof window.applyVendorSnapshotFields === 'function') {
+                window.applyVendorSnapshotFields({});
+            }
             return;
         }
 
-        const base = vendorSearchRoot?.getAttribute('data-snapshot-url') || '/vendors';
-        fetch(base + '/' + encodeURIComponent(vendorId) + '/rfq-snapshot', {
-            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-        })
-            .then(function (r) { return r.ok ? r.json() : null; })
-            .then(function (data) {
-                if (!data) {
-                    return;
-                }
-                ['vendor_company_name', 'vendor_contact', 'vendor_email', 'vendor_phone', 'vendor_address'].forEach(function (key) {
-                    const el = document.getElementById(key);
-                    if (el && data[key]) {
-                        el.value = data[key];
-                    }
-                });
-            })
-            .catch(function () {});
+        const data = typeof window.fetchVendorSnapshot === 'function'
+            ? await window.fetchVendorSnapshot(vendorId, 'rfq-snapshot')
+            : null;
+
+        if (!data || typeof window.applyVendorSnapshotFields !== 'function') {
+            return;
+        }
+
+        window.applyVendorSnapshotFields(data);
     }
 
     if (typeof window.initVendorSearchSelect === 'function') {

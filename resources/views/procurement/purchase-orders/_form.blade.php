@@ -74,47 +74,10 @@
         'variant' => 'admin-form',
     ])
 
-    <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 class="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">Vendor</h2>
-        <div class="mt-4 grid gap-4 md:grid-cols-2">
-            <div class="md:col-span-2">
-                <label for="vendor_search_input" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Vendor (from system)</label>
-                @include('procurement.partials._vendor-search-select', [
-                    'selectedVendor' => $selectedVendor ?? null,
-                ])
-                @error('vendor_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-            </div>
-            <div>
-                <label for="vendor_company_name" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Company name</label>
-                <input type="text" name="vendor_company_name" id="vendor_company_name"
-                       value="{{ old('vendor_company_name', $po?->vendor_company_name ?? '') }}"
-                       class="admin-filter-control @error('vendor_company_name') border-red-500 @enderror">
-            </div>
-            <div>
-                <label for="vendor_contact" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Contact person</label>
-                <input type="text" name="vendor_contact" id="vendor_contact"
-                       value="{{ old('vendor_contact', $po?->vendor_contact ?? '') }}"
-                       class="admin-filter-control @error('vendor_contact') border-red-500 @enderror">
-            </div>
-            <div>
-                <label for="vendor_email" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Email</label>
-                <input type="email" name="vendor_email" id="vendor_email"
-                       value="{{ old('vendor_email', $po?->vendor_email ?? '') }}"
-                       class="admin-filter-control @error('vendor_email') border-red-500 @enderror">
-            </div>
-            <div>
-                <label for="vendor_phone" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Phone</label>
-                <input type="text" name="vendor_phone" id="vendor_phone"
-                       value="{{ old('vendor_phone', $po?->vendor_phone ?? '') }}"
-                       class="admin-filter-control @error('vendor_phone') border-red-500 @enderror">
-            </div>
-            <div class="md:col-span-2">
-                <label for="vendor_address" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Address</label>
-                <textarea name="vendor_address" id="vendor_address" rows="2"
-                          class="admin-form-textarea @error('vendor_address') border-red-500 @enderror">{{ old('vendor_address', $po?->vendor_address ?? '') }}</textarea>
-            </div>
-        </div>
-    </section>
+    @include('procurement.purchase-orders._vendor-section', [
+        'po' => $po,
+        'selectedVendor' => $selectedVendor ?? null,
+    ])
 
     <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 class="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">Delivery</h2>

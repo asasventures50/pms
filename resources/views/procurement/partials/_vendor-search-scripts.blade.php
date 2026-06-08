@@ -1,5 +1,71 @@
 <script>
 (function () {
+    const defaultSnapshotFields = [
+        'vendor_company_name',
+        'vendor_contact',
+        'vendor_email',
+        'vendor_phone',
+        'vendor_address',
+    ];
+
+    window.applyVendorSnapshotFields = function (data, options) {
+        options = options || {};
+        const fields = options.fields || defaultSnapshotFields;
+        const payload = data || {};
+
+        fields.forEach(function (key) {
+            const el = document.getElementById(key);
+            if (!el) {
+                return;
+            }
+
+            if (key === 'currency_code' && typeof options.resolveCurrency === 'function') {
+                el.value = options.resolveCurrency(payload.currency_code);
+                return;
+            }
+
+            const incoming = payload[key] ?? '';
+            if (options.onlyIfEmpty && (el.value || '').trim() !== '') {
+                return;
+            }
+
+            el.value = incoming;
+
+            if (el.classList.contains('po-bilingual-text') && typeof options.applyBilingualDirection === 'function') {
+                options.applyBilingualDirection(el);
+            }
+        });
+
+        if (typeof options.onApplied === 'function') {
+            options.onApplied(payload);
+        }
+    };
+
+    window.fetchVendorSnapshot = async function (vendorId, snapshotPath) {
+        if (!vendorId) {
+            return null;
+        }
+
+        const vendorSearchRoot = document.querySelector('.vendor-search-select');
+        const base = vendorSearchRoot?.getAttribute('data-snapshot-url') || '/vendors';
+
+        try {
+            const response = await fetch(
+                base + '/' + encodeURIComponent(vendorId) + '/' + snapshotPath,
+                { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } },
+            );
+
+            if (!response.ok) {
+                return null;
+            }
+
+            return await response.json();
+        } catch (e) {
+            console.error(e);
+            return null;
+        }
+    };
+
     window.initVendorSearchSelect = function (options) {
         options = options || {};
         const onChange = typeof options.onChange === 'function' ? options.onChange : function () {};

@@ -142,7 +142,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('vendors.search-for-select');
 
     Route::get('/vendors/{vendor}/purchase-order-snapshot', [PurchaseOrderController::class, 'vendorSnapshot'])
-        ->middleware('permission:purchase-orders.create')
+        ->middleware('permission:purchase-orders.create|purchase-orders.update')
         ->name('vendors.purchase-order-snapshot');
 
     Route::get('/procurement-requests/{procurementRequest}/purchase-order-lines', [PurchaseOrderController::class, 'procurementRequestLines'])
@@ -150,7 +150,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('procurement-requests.purchase-order-lines');
 
     Route::get('/vendors/{vendor}/rfq-snapshot', [RfqController::class, 'vendorSnapshot'])
-        ->middleware('permission:rfqs.create')
+        ->middleware('permission:rfqs.create|rfqs.update|vendor-quotations.create|vendor-quotations.update')
         ->name('vendors.rfq-snapshot');
 
     Route::get('/vendors/import', [VendorWebController::class, 'importForm'])

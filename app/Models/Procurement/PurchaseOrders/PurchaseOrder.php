@@ -8,6 +8,7 @@ use App\Models\Concerns\LogsActivity;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
 use App\Models\Procurement\Vendors\Vendor;
 use App\Models\User;
+use App\Services\Procurement\PurchaseOrders\VendorPurchaseOrderSnapshot;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -40,11 +41,30 @@ class PurchaseOrder extends Model
         'status',
         'vendor_id',
         'procurement_request_id',
+        'vendor_code',
+        'vendor_language',
+        'vendor_description',
+        'vendor_profile_notes',
         'vendor_company_name',
         'vendor_contact',
+        'vendor_primary_contact_position',
+        'vendor_primary_contact_phone',
+        'vendor_primary_contact_email',
         'vendor_email',
         'vendor_phone',
+        'vendor_whatsapp',
+        'vendor_telegram',
+        'vendor_company_email',
+        'vendor_website',
         'vendor_address',
+        'vendor_company_type',
+        'vendor_coverage_type',
+        'vendor_tax_number',
+        'vendor_registration_number',
+        'vendor_license_number',
+        'vendor_business_types',
+        'vendor_categories_summary',
+        'vendor_classification',
         'delivery_contact_name',
         'delivery_contact_phone',
         'delivery_contact_email',
@@ -127,5 +147,90 @@ class PurchaseOrder extends Model
         $currency = $this->displayCurrency();
 
         return $currency ? "{$formatted} {$currency}" : $formatted;
+    }
+
+    /**
+     * Vendor lines for show/print — only fields with values; empty fields are omitted.
+     *
+     * @return array<string, string>
+     */
+    public function vendorDisplayRows(): array
+    {
+        $snapshot = $this->vendorSnapshotFallback();
+
+        $name = $this->vendorFieldValue('vendor_company_name', $snapshot);
+        if ($name === '') {
+            $name = trim((string) ($this->vendor?->name ?? ''));
+        }
+
+        $classification = $this->vendorFieldValue('vendor_classification', $snapshot);
+        if ($classification === '') {
+            $classification = $this->legacyClassificationSummary();
+        }
+        if ($classification === '' && $snapshot !== []) {
+            $classification = trim((string) ($snapshot['vendor_classification'] ?? ''));
+        }
+
+        $candidates = [
+            'Name' => $name,
+            'Email' => $this->vendorFieldValue('vendor_email', $snapshot),
+            'Phone' => $this->vendorFieldValue('vendor_phone', $snapshot),
+            'WhatsApp' => $this->vendorFieldValue('vendor_whatsapp', $snapshot),
+            'Position' => $this->vendorFieldValue('vendor_primary_contact_position', $snapshot),
+            'Classification' => $classification,
+        ];
+
+        return array_filter(
+            $candidates,
+            static fn (string $value) => $value !== '',
+        );
+    }
+
+    /**
+     * @return array<string, string|null>
+     */
+    private function vendorSnapshotFallback(): array
+    {
+        if (! $this->vendor_id) {
+            return [];
+        }
+
+        $this->loadMissing([
+            'vendor.primaryLocation',
+            'vendor.businessTypes',
+            'vendor.vendorCategories.category',
+            'vendor.vendorCategories.subcategory',
+        ]);
+
+        if (! $this->vendor) {
+            return [];
+        }
+
+        return VendorPurchaseOrderSnapshot::fromVendor($this->vendor);
+    }
+
+    /**
+     * @param  array<string, string|null>  $snapshot
+     */
+    private function vendorFieldValue(string $attribute, array $snapshot): string
+    {
+        $stored = trim((string) ($this->{$attribute} ?? ''));
+        if ($stored !== '') {
+            return $stored;
+        }
+
+        return trim((string) ($snapshot[$attribute] ?? ''));
+    }
+
+    private function legacyClassificationSummary(): string
+    {
+        $parts = array_filter([
+            trim((string) ($this->vendor_company_type ?? '')),
+            trim((string) ($this->vendor_coverage_type ?? '')),
+            trim((string) ($this->vendor_business_types ?? '')),
+            trim((string) ($this->vendor_categories_summary ?? '')),
+        ]);
+
+        return implode(' · ', $parts);
     }
 }

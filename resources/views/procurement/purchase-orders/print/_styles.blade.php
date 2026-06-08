@@ -224,12 +224,60 @@
         margin-bottom: 6px;
     }
 
-    .po-parties .po-form-label {
+    .po-parties-layout {
+        display: table;
+        width: 100%;
+        margin-bottom: 14px;
+        table-layout: fixed;
+    }
+
+    .po-parties-vendor,
+    .po-parties-delivery {
+        display: table-cell;
+        width: 58%;
+        vertical-align: top;
+        padding-right: 10px;
+    }
+
+    .po-parties-delivery {
+        width: 42%;
+        padding-right: 0;
+        padding-left: 10px;
+    }
+
+    .po-vendor-details .po-form-label,
+    .po-parties-delivery .po-form-label {
         width: 118px;
     }
 
-    .po-parties .po-form-line {
+    .po-vendor-details .po-form-line,
+    .po-parties-delivery .po-form-line {
         width: calc(100% - 124px);
+    }
+
+    .po-subsection-title {
+        font-weight: bold;
+        font-size: 11px;
+        margin: 8px 0 4px;
+        text-decoration: underline;
+    }
+
+    .po-vendor-details .po-subsection-title:first-of-type {
+        margin-top: 0;
+    }
+
+    .po-form-line--multiline {
+        display: block;
+        width: 100%;
+        min-height: 14px;
+        white-space: pre-wrap;
+        margin-top: 2px;
+    }
+
+    .po-vendor-details .po-form-group:has(.po-form-line--multiline) .po-form-label {
+        display: block;
+        width: auto;
+        margin-bottom: 2px;
     }
 
     .po-items-table {
