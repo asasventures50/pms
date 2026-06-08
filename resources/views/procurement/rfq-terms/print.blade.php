@@ -73,14 +73,14 @@
                             <span class="rfq-terms-print__order">{{ $term->sort_order }}</span>
                             <div class="rfq-terms-print__body">
                                 @if ($showAr && $term->body_ar)
-                                    <p class="rfq-terms-print__text rfq-terms-print__text--ar" dir="rtl" lang="ar">{{ $term->body_ar }}</p>
+                                    <p class="rfq-terms-print__text rfq-terms-print__text--ar" dir="rtl" lang="ar">{{ \App\Services\Procurement\Rfqs\RfqGeneralTermsService::formatStoredBodyForDisplay($term->body_ar) }}</p>
                                 @endif
                                 @if ($showEn && $term->body_en)
                                     <p @class([
                                         'rfq-terms-print__text',
                                         'rfq-terms-print__text--en',
                                         'rfq-terms-print__text--secondary' => $showAr && $term->body_ar,
-                                    ])>{{ $term->body_en }}</p>
+                                    ])>{{ \App\Services\Procurement\Rfqs\RfqGeneralTermsService::formatStoredBodyForDisplay($term->body_en) }}</p>
                                 @endif
                                 @if ((! $showAr || ! $term->body_ar) && (! $showEn || ! $term->body_en))
                                     <p class="rfq-terms-print__text rfq-terms-print__text--empty">—</p>

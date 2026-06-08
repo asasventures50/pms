@@ -482,6 +482,23 @@ class RfqGeneralTermsService
             : implode(', ', $values);
     }
 
+    public static function formatStoredBodyForDisplay(?string $text): string
+    {
+        $parts = (new self)->splitKeyValueText($text);
+        $key = $parts['key'];
+        $value = $parts['value'];
+
+        if ($key !== '' && $value !== '') {
+            return $key.': '.$value;
+        }
+
+        if ($key !== '') {
+            return $key;
+        }
+
+        return $value;
+    }
+
     /**
      * @deprecated Use scopeTypesLabel()
      */

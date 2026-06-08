@@ -29,7 +29,7 @@ trait NormalizesRfqGeneralTermScopeTypes
         if ($valueInput !== null || $key !== '') {
             $value = trim((string) ($valueInput ?? ''));
             if ($value === '') {
-                return null;
+                return $key !== '' ? $key.':' : null;
             }
 
             return $key !== '' ? $key.': '.$value : $value;

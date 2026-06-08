@@ -76,7 +76,7 @@
         <div>
             @error('body_ar')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
             @error('body_en')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-            <p class="mt-1 text-xs text-slate-500">Provide at least one value (Arabic or English). Existing legacy terms are loaded into Value automatically.</p>
+            <p class="mt-1 text-xs text-slate-500">Existing legacy terms are loaded into Value automatically.</p>
         </div>
         <div class="grid gap-4 sm:grid-cols-2">
             <div>

@@ -90,10 +90,10 @@
                         <td class="px-3 py-3 text-slate-700">{{ \App\Services\Procurement\Rfqs\RfqGeneralTermsService::scopeTypesLabel($term->scope_types) }}</td>
                         <td class="px-3 py-3 text-slate-900">
                             @if ($term->body_ar)
-                                <p class="text-sm" dir="rtl">{{ $term->body_ar }}</p>
+                                <p class="text-sm" dir="rtl">{{ \App\Services\Procurement\Rfqs\RfqGeneralTermsService::formatStoredBodyForDisplay($term->body_ar) }}</p>
                             @endif
                             @if ($term->body_en)
-                                <p class="mt-1 text-sm {{ $term->body_ar ? 'text-slate-600' : '' }}">{{ $term->body_en }}</p>
+                                <p class="mt-1 text-sm {{ $term->body_ar ? 'text-slate-600' : '' }}">{{ \App\Services\Procurement\Rfqs\RfqGeneralTermsService::formatStoredBodyForDisplay($term->body_en) }}</p>
                             @endif
                             @if (! $term->body_ar && ! $term->body_en)
                                 <span class="text-slate-500">—</span>
