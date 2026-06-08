@@ -33,7 +33,9 @@ return new class extends Migration
 
                 $table->boolean('nda_required')->nullable()->after('scope_of_work');
                 $table->boolean('primary_insurance_applicable')->nullable()->after('nda_required');
-                $table->boolean('final_insurance_applicable')->nullable()->after('primary_insurance_applicable');
+                $table->text('primary_insurance_requirements')->nullable()->after('primary_insurance_applicable');
+                $table->boolean('final_insurance_applicable')->nullable()->after('primary_insurance_requirements');
+                $table->text('final_insurance_requirements')->nullable()->after('final_insurance_applicable');
                 $table->decimal('warranty_years', 4, 1)->nullable()->after('final_insurance_applicable');
                 $table->text('warranty_coverage')->nullable()->after('warranty_years');
             });
@@ -155,7 +157,9 @@ return new class extends Migration
                 'scope_of_work',
                 'nda_required',
                 'primary_insurance_applicable',
+                'primary_insurance_requirements',
                 'final_insurance_applicable',
+                'final_insurance_requirements',
                 'warranty_years',
                 'warranty_coverage',
             ]);

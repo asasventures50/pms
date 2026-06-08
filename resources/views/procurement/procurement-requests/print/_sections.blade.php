@@ -56,7 +56,13 @@
 <div class="po-grid-2">
     <div class="po-grid-col">
         <div class="po-form-group"><span class="po-form-label">Primary insurance:</span><span class="po-form-line">@if ($procurementRequest->primary_insurance_applicable === null)—@elseif ($procurementRequest->primary_insurance_applicable)Yes@else No @endif</span></div>
+        @if ($procurementRequest->primary_insurance_requirements)
+            <div class="po-form-group"><span class="po-form-label">Primary requirements:</span><span class="po-form-line">{{ $procurementRequest->primary_insurance_requirements }}</span></div>
+        @endif
         <div class="po-form-group"><span class="po-form-label">Final insurance:</span><span class="po-form-line">@if ($procurementRequest->final_insurance_applicable === null)—@elseif ($procurementRequest->final_insurance_applicable)Yes@else No @endif</span></div>
+        @if ($procurementRequest->final_insurance_requirements)
+            <div class="po-form-group"><span class="po-form-label">Final requirements:</span><span class="po-form-line">{{ $procurementRequest->final_insurance_requirements }}</span></div>
+        @endif
     </div>
     <div class="po-grid-col">
         <div class="po-form-group"><span class="po-form-label">Warranty (years):</span><span class="po-form-line">{{ $procurementRequest->warranty_years ?? '—' }}</span></div>

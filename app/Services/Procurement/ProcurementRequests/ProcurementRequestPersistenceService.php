@@ -371,6 +371,7 @@ class ProcurementRequestPersistenceService
             'request_number', 'classification', 'status', 'project_id', 'zone_id',
             'category_id', 'subcategory_id', 'justification', 'delivery_lead_time_days',
             'delivery_location', 'currency_code', 'scope_of_work', 'warranty_coverage',
+            'primary_insurance_requirements', 'final_insurance_requirements',
         ] as $key) {
             if (array_key_exists($key, $validated)) {
                 $header[$key] = $validated[$key];

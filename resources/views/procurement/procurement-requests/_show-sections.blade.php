@@ -38,7 +38,13 @@
     <h3 class="font-semibold text-slate-900">Insurance & warranty</h3>
     <dl class="mt-3 grid gap-3 sm:grid-cols-2">
         <div><dt class="text-xs uppercase text-slate-500">Primary insurance</dt><dd>@if ($procurementRequest->primary_insurance_applicable === null)—@elseif ($procurementRequest->primary_insurance_applicable)Yes@else No @endif</dd></div>
+        @if ($procurementRequest->primary_insurance_requirements)
+            <div class="sm:col-span-2"><dt class="text-xs uppercase text-slate-500">Primary requirements</dt><dd class="mt-1 whitespace-pre-wrap">{{ $procurementRequest->primary_insurance_requirements }}</dd></div>
+        @endif
         <div><dt class="text-xs uppercase text-slate-500">Final insurance</dt><dd>@if ($procurementRequest->final_insurance_applicable === null)—@elseif ($procurementRequest->final_insurance_applicable)Yes@else No @endif</dd></div>
+        @if ($procurementRequest->final_insurance_requirements)
+            <div class="sm:col-span-2"><dt class="text-xs uppercase text-slate-500">Final requirements</dt><dd class="mt-1 whitespace-pre-wrap">{{ $procurementRequest->final_insurance_requirements }}</dd></div>
+        @endif
         <div><dt class="text-xs uppercase text-slate-500">Warranty (years)</dt><dd>{{ $procurementRequest->warranty_years ?? '—' }}</dd></div>
         <div><dt class="text-xs uppercase text-slate-500">Coverage</dt><dd>{{ $procurementRequest->warranty_coverage ?: '—' }}</dd></div>
     </dl>

@@ -13,6 +13,9 @@
                 <label class="inline-flex items-center gap-2 text-sm"><input type="radio" name="primary_insurance_applicable" value="1" @checked($primaryInsurance === true || $primaryInsurance === '1')> Yes</label>
                 <label class="inline-flex items-center gap-2 text-sm"><input type="radio" name="primary_insurance_applicable" value="0" @checked($primaryInsurance === false || $primaryInsurance === '0')> No</label>
             </div>
+            <label for="primary_insurance_requirements" class="mt-3 block text-xs font-medium uppercase tracking-wide text-slate-500">Requirements</label>
+            <textarea name="primary_insurance_requirements" id="primary_insurance_requirements" rows="3"
+                      class="admin-filter-control mt-1 w-full resize-y">{{ old('primary_insurance_requirements', $formDefaults['primary_insurance_requirements'] ?? '') }}</textarea>
         </div>
         <div>
             <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Final insurance requirements applicable</p>
@@ -20,6 +23,9 @@
                 <label class="inline-flex items-center gap-2 text-sm"><input type="radio" name="final_insurance_applicable" value="1" @checked($finalInsurance === true || $finalInsurance === '1')> Yes</label>
                 <label class="inline-flex items-center gap-2 text-sm"><input type="radio" name="final_insurance_applicable" value="0" @checked($finalInsurance === false || $finalInsurance === '0')> No</label>
             </div>
+            <label for="final_insurance_requirements" class="mt-3 block text-xs font-medium uppercase tracking-wide text-slate-500">Requirements</label>
+            <textarea name="final_insurance_requirements" id="final_insurance_requirements" rows="3"
+                      class="admin-filter-control mt-1 w-full resize-y">{{ old('final_insurance_requirements', $formDefaults['final_insurance_requirements'] ?? '') }}</textarea>
         </div>
     </div>
 
