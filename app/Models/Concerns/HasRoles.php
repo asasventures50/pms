@@ -18,7 +18,7 @@ trait HasRoles
     public function hasRole(string $roleName): bool
     {
         if ($this->relationLoaded('roles')) {
-            return $this->roles->contains('name', $roleName);
+            return $this->getRelation('roles')->contains('name', $roleName);
         }
 
         return $this->roles()->where('name', $roleName)->exists();
@@ -59,7 +59,7 @@ trait HasRoles
     protected function resolvePermissionNames(): Collection
     {
         if ($this->relationLoaded('roles')) {
-            $roles = $this->roles;
+            $roles = $this->getRelation('roles');
         } else {
             $roles = $this->roles()->with('permissions')->get();
         }
