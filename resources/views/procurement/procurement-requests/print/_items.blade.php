@@ -1,5 +1,7 @@
 @php
     $formData = $formData ?? [];
+    $currency = strtoupper(trim((string) ($procurementRequest->currency_code ?? '')));
+    $currencySuffix = $currency !== '' ? ' ('.$currency.')' : '';
 @endphp
 
 <div class="po-section-title">BOQ</div>
@@ -19,8 +21,8 @@
         <th>Description</th>
         <th>Qty</th>
         <th>Unit</th>
-        <th>Unit price</th>
-        <th>Total</th>
+        <th>Unit price{{ $currencySuffix }}</th>
+        <th>Total{{ $currencySuffix }}</th>
     </tr>
     </thead>
     <tbody>
