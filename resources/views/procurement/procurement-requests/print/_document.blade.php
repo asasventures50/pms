@@ -19,7 +19,6 @@
     @include('procurement.procurement-requests.print._request-info', ['formData' => $formData ?? []])
     @include('procurement.procurement-requests.print._items', ['formData' => $formData ?? []])
     @include('procurement.procurement-requests.print._sections', ['formData' => $formData ?? []])
-    @include('procurement.procurement-requests.print._timeline', ['formData' => $formData ?? []])
 </div>
 
 @include('procurement.procurement-requests.print._footer', ['buyer' => $buyer])

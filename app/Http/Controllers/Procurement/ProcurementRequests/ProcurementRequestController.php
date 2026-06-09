@@ -141,7 +141,6 @@ class ProcurementRequestController extends Controller
             'headerDocuments',
             'paymentTerms',
             'retentions',
-            'timelineEntries',
             'approvals',
         ]);
 

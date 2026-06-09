@@ -200,32 +200,6 @@
         text-align: right;
     }
 
-    .pr-timeline-table {
-        margin-bottom: 10px;
-    }
-
-    .pr-timeline-final-row {
-        background: #f8fafc;
-    }
-
-    .pr-timeline-final-label {
-        font-weight: 700;
-    }
-
-    .pr-timeline-days-suffix {
-        margin-inline-start: 2px;
-        font-size: 10px;
-        color: #64748b;
-    }
-
-    .pr-timeline-final-note {
-        margin-top: 2px;
-        font-size: 9px;
-        color: #64748b;
-        font-weight: 400;
-        white-space: normal;
-    }
-
     .pr-compact-table th,
     .pr-compact-table td {
         font-size: 10px;

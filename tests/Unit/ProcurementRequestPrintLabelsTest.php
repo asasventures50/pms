@@ -73,15 +73,6 @@ class ProcurementRequestPrintLabelsTest extends TestCase
     }
 
     #[Test]
-    public function arabic_labels_translate_timeline_activities(): void
-    {
-        $labels = ProcurementRequestPrintLabels::resolve('ar');
-
-        $this->assertSame('إصدار طلب عروض الأسعار', $labels->timelineActivityLabel('rfq_issuance'));
-        $this->assertSame('تاريخ التسليم النهائي', $labels->t('timeline_final_delivery_date'));
-    }
-
-    #[Test]
     public function invalid_locale_falls_back_to_english(): void
     {
         $labels = ProcurementRequestPrintLabels::resolve('fr');

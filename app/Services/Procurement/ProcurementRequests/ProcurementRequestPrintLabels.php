@@ -3,7 +3,6 @@
 namespace App\Services\Procurement\ProcurementRequests;
 
 use App\Enums\Procurement\ProcurementRequests\GeographicScope;
-use App\Enums\Procurement\ProcurementRequests\ProcurementTimelineActivity;
 use App\Enums\Procurement\ProcurementRequests\ProcurementType;
 use App\Enums\Procurement\ProcurementRequests\ProcurementVendorType;
 use App\Enums\Procurement\Rfqs\RfqTermsLocale;
@@ -46,12 +45,6 @@ class ProcurementRequestPrintLabels
         'delivery_location' => 'Delivery location:',
         'scope_of_work' => 'Scope of work:',
         'supporting_documents' => 'Supporting documents',
-        'procurement_timeline' => 'Procurement timeline',
-        'timeline_activity' => 'Activity',
-        'timeline_duration_days' => 'Duration (days)',
-        'timeline_final_delivery_date' => 'Final delivery date',
-        'timeline_days' => 'days',
-        'timeline_final_delivery_note' => 'Same as required delivery lead time (from PO issuance).',
         'form_pr' => 'Form PR',
         'print_preview' => 'print preview',
         'print' => 'Print',
@@ -97,12 +90,6 @@ class ProcurementRequestPrintLabels
         'delivery_location' => 'موقع التسليم:',
         'scope_of_work' => 'نطاق العمل:',
         'supporting_documents' => 'المستندات الداعمة',
-        'procurement_timeline' => 'الجدول الزمني للمشتريات',
-        'timeline_activity' => 'النشاط',
-        'timeline_duration_days' => 'المدة (أيام)',
-        'timeline_final_delivery_date' => 'تاريخ التسليم النهائي',
-        'timeline_days' => 'أيام',
-        'timeline_final_delivery_note' => 'نفس مدة التسليم المطلوبة (من إصدار أمر الشراء).',
         'form_pr' => 'نموذج طلب شراء',
         'print_preview' => 'معاينة الطباعة',
         'print' => 'طباعة',
@@ -278,24 +265,5 @@ class ProcurementRequestPrintLabels
             ],
             $allowed
         );
-    }
-
-    public function timelineActivityLabel(string $activity): string
-    {
-        if ($this->locale !== RfqTermsLocale::Ar->value) {
-            return ProcurementTimelineActivity::from($activity)->label();
-        }
-
-        return match ($activity) {
-            ProcurementTimelineActivity::RfqIssuance->value => 'إصدار طلب عروض الأسعار',
-            ProcurementTimelineActivity::QuotationSubmission->value => 'تقديم العروض',
-            ProcurementTimelineActivity::TechnicalEvaluation->value => 'التقييم الفني',
-            ProcurementTimelineActivity::CommercialEvaluation->value => 'التقييم التجاري',
-            ProcurementTimelineActivity::Negotiation->value => 'التفاوض',
-            ProcurementTimelineActivity::ApprovalProcess->value => 'عملية الموافقة',
-            ProcurementTimelineActivity::ContractAward->value => 'ترسية العقد',
-            ProcurementTimelineActivity::PoIssuance->value => 'إصدار أمر الشراء',
-            default => ProcurementTimelineActivity::from($activity)->label(),
-        };
     }
 }
