@@ -476,7 +476,10 @@ class PurchaseOrderController extends Controller
 
     private function resolvedTermsForPurchaseOrder(PurchaseOrder $purchaseOrder): array
     {
-        $resolved = $this->termsService->resolveLiveTermsForPurchaseOrder($purchaseOrder);
+        $resolved = $this->termsService->resolveStoredTermsForLocale(
+            $purchaseOrder->terms,
+            $purchaseOrder->terms_locale,
+        );
         if ($resolved !== []) {
             return $resolved;
         }
