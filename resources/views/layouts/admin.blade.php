@@ -12,7 +12,7 @@
         <header class="border-b border-slate-200 bg-white">
             <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
                 <nav class="flex flex-wrap items-center gap-4 text-sm" aria-label="Main">
-                    @if (request()->routeIs('dashboard', 'procurement-requests.*', 'purchase-orders.*', 'projects.*'))
+                    @if (request()->routeIs('dashboard'))
                         <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Dashboard</span>
                     @else
                         <a href="{{ route('dashboard') }}"
@@ -21,7 +21,7 @@
                         </a>
                     @endif
                     @if (auth()->user()->hasPermission('vendors.view'))
-                        @if (request()->routeIs('vendors.*'))
+                        @if (request()->routeIs('vendors.index'))
                             <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Vendors</span>
                         @else
                             <a href="{{ route('vendors.index') }}"
@@ -31,7 +31,7 @@
                         @endif
                     @endif
                     @if (auth()->user()->hasPermission('categories.view'))
-                        @if (request()->routeIs('categories.*'))
+                        @if (request()->routeIs('categories.index'))
                             <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Categories</span>
                         @else
                             <a href="{{ route('categories.index') }}"
@@ -41,7 +41,7 @@
                         @endif
                     @endif
                     @if (auth()->user()->hasPermission('rfqs.view') || auth()->user()->hasPermission('rfq-terms.view'))
-                        @if (request()->routeIs('rfqs.*', 'rfq-terms.*', 'rfqs.quotations.*'))
+                        @if (request()->routeIs('rfqs.index'))
                             <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">RFQs</span>
                         @else
                             <a href="{{ route('rfqs.index') }}"
@@ -50,16 +50,18 @@
                             </a>
                         @endif
                     @endif
-                    @if (request()->routeIs('locations.*') || request()->routeIs('countries.*') || request()->routeIs('cities.*'))
-                        <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Locations</span>
-                    @elseif (auth()->user()->hasPermission('locations.view'))
-                        <a href="{{ route(\Illuminate\Support\Facades\Route::has('locations.index') ? 'locations.index' : (\Illuminate\Support\Facades\Route::has('countries.index') ? 'countries.index' : 'dashboard')) }}"
-                           class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
-                            Locations
-                        </a>
+                    @if (auth()->user()->hasPermission('locations.view'))
+                        @if (request()->routeIs('locations.index'))
+                            <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Locations</span>
+                        @else
+                            <a href="{{ route(\Illuminate\Support\Facades\Route::has('locations.index') ? 'locations.index' : (\Illuminate\Support\Facades\Route::has('countries.index') ? 'countries.index' : 'dashboard')) }}"
+                               class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
+                                Locations
+                            </a>
+                        @endif
                     @endif
                     @if (auth()->user()->hasPermission('users.view'))
-                        @if (request()->routeIs('users.*'))
+                        @if (request()->routeIs('users.index'))
                             <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Users</span>
                         @else
                             <a href="{{ route('users.index') }}"
@@ -69,7 +71,7 @@
                         @endif
                     @endif
                     @if (auth()->user()->hasPermission('roles.view'))
-                        @if (request()->routeIs('roles.*'))
+                        @if (request()->routeIs('roles.index'))
                             <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Roles</span>
                         @else
                             <a href="{{ route('roles.index') }}"
@@ -79,7 +81,7 @@
                         @endif
                     @endif
                     @if (auth()->user()->hasPermission('activity-logs.view'))
-                        @if (request()->routeIs('activity-logs.*'))
+                        @if (request()->routeIs('activity-logs.index'))
                             <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Activity Log</span>
                         @else
                             <a href="{{ route('activity-logs.index') }}"

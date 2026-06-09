@@ -35,7 +35,13 @@ trait HasRoles
             return true;
         }
 
-        return $this->resolvePermissionNames()->contains($permission);
+        $granted = $this->resolvePermissionNames();
+
+        if ($granted->contains($permission)) {
+            return true;
+        }
+
+        return self::permissionImpliedByGrant($granted, $permission);
     }
 
     public function syncRoles(array $roleNames): void
@@ -60,7 +66,33 @@ trait HasRoles
 
         return $roles
             ->flatMap(fn (Role $role) => $role->permissions->pluck('name'))
+            ->map(fn (string $name) => PermissionCatalog::canonicalName($name))
+            ->filter()
             ->unique()
             ->values();
+    }
+
+    /**
+     * Higher actions imply lower ones on the same resource (update → create → view).
+     *
+     * @param  Collection<int, string>  $granted
+     */
+    private static function permissionImpliedByGrant(Collection $granted, string $required): bool
+    {
+        if (! preg_match('/^(.+)\.(view|create|update)$/', $required, $matches)) {
+            return false;
+        }
+
+        [, $resource, $action] = $matches;
+        $levels = ['view' => 1, 'create' => 2, 'update' => 3];
+        $requiredLevel = $levels[$action];
+
+        foreach ($levels as $grantedAction => $grantedLevel) {
+            if ($grantedLevel >= $requiredLevel && $granted->contains("{$resource}.{$grantedAction}")) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

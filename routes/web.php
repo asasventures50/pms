@@ -33,25 +33,17 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('users', UserController::class)
         ->except(['show'])
-        ->middleware([
-            'index' => 'permission:users.view',
-            'create' => 'permission:users.create',
-            'store' => 'permission:users.create',
-            'edit' => 'permission:users.update',
-            'update' => 'permission:users.update',
-            'destroy' => 'permission:users.delete',
-        ]);
+        ->middlewareFor('index', 'permission:users.view')
+        ->middlewareFor(['create', 'store'], 'permission:users.create')
+        ->middlewareFor(['edit', 'update'], 'permission:users.update')
+        ->middlewareFor('destroy', 'permission:users.delete');
 
     Route::resource('roles', RoleController::class)
         ->except(['show'])
-        ->middleware([
-            'index' => 'permission:roles.view',
-            'create' => 'permission:roles.create',
-            'store' => 'permission:roles.create',
-            'edit' => 'permission:roles.update',
-            'update' => 'permission:roles.update',
-            'destroy' => 'permission:roles.delete',
-        ]);
+        ->middlewareFor('index', 'permission:roles.view')
+        ->middlewareFor(['create', 'store'], 'permission:roles.create')
+        ->middlewareFor(['edit', 'update'], 'permission:roles.update')
+        ->middlewareFor('destroy', 'permission:roles.delete');
 
     Route::get('activity-logs', [ActivityLogController::class, 'index'])
         ->middleware('permission:activity-logs.view')
@@ -78,15 +70,9 @@ Route::middleware(['auth'])->group(function () {
         ->name('categories.import');
 
     Route::resource('categories', CategoryController::class)
-        ->middleware([
-            'index' => 'permission:categories.view',
-            'show' => 'permission:categories.view',
-            'create' => 'permission:categories.create',
-            'store' => 'permission:categories.create',
-            'edit' => 'permission:categories.update',
-            'update' => 'permission:categories.update',
-            'destroy' => 'permission:categories.update',
-        ]);
+        ->middlewareFor(['index', 'show'], 'permission:categories.view')
+        ->middlewareFor(['create', 'store'], 'permission:categories.create')
+        ->middlewareFor(['edit', 'update', 'destroy'], 'permission:categories.update');
 
     Route::post('/subcategories/quick-store', [SubcategoryQuickStoreController::class, 'quickStore'])
         ->middleware('permission:categories.create')
@@ -101,15 +87,9 @@ Route::middleware(['auth'])->group(function () {
         ->name('zones.quick-store');
 
     Route::resource('projects', ProjectController::class)
-        ->middleware([
-            'index' => 'permission:projects.view',
-            'show' => 'permission:projects.view',
-            'create' => 'permission:projects.create',
-            'store' => 'permission:projects.create',
-            'edit' => 'permission:projects.update',
-            'update' => 'permission:projects.update',
-            'destroy' => 'permission:projects.update',
-        ]);
+        ->middlewareFor(['index', 'show'], 'permission:projects.view')
+        ->middlewareFor(['create', 'store'], 'permission:projects.create')
+        ->middlewareFor(['edit', 'update', 'destroy'], 'permission:projects.update');
 
     Route::get('/locations', [CountryController::class, 'index'])
         ->middleware('permission:locations.view')
@@ -117,25 +97,11 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('countries', CountryController::class)
         ->except(['show'])
-        ->middleware([
-            'index' => 'permission:locations.manage',
-            'create' => 'permission:locations.manage',
-            'store' => 'permission:locations.manage',
-            'edit' => 'permission:locations.manage',
-            'update' => 'permission:locations.manage',
-            'destroy' => 'permission:locations.manage',
-        ]);
+        ->middleware('permission:locations.manage');
 
     Route::resource('cities', CityController::class)
         ->except(['show'])
-        ->middleware([
-            'index' => 'permission:locations.manage',
-            'create' => 'permission:locations.manage',
-            'store' => 'permission:locations.manage',
-            'edit' => 'permission:locations.manage',
-            'update' => 'permission:locations.manage',
-            'destroy' => 'permission:locations.manage',
-        ]);
+        ->middleware('permission:locations.manage');
 
     Route::get('/vendors/search-for-select', [VendorWebController::class, 'searchForSelect'])
         ->middleware('permission:purchase-orders.create|purchase-orders.update|rfqs.create|rfqs.update')
@@ -163,29 +129,18 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('vendors', VendorWebController::class)
         ->except(['destroy'])
-        ->middleware([
-            'index' => 'permission:vendors.view',
-            'show' => 'permission:vendors.view',
-            'create' => 'permission:vendors.create',
-            'store' => 'permission:vendors.create',
-            'edit' => 'permission:vendors.update',
-            'update' => 'permission:vendors.update',
-        ]);
+        ->middlewareFor(['index', 'show'], 'permission:vendors.view')
+        ->middlewareFor(['create', 'store'], 'permission:vendors.create')
+        ->middlewareFor(['edit', 'update'], 'permission:vendors.update');
 
     Route::get('purchase-orders/{purchase_order}/print', [PurchaseOrderController::class, 'print'])
         ->middleware('permission:purchase-orders.view')
         ->name('purchase-orders.print');
 
     Route::resource('purchase-orders', PurchaseOrderController::class)
-        ->middleware([
-            'index' => 'permission:purchase-orders.view',
-            'show' => 'permission:purchase-orders.view',
-            'create' => 'permission:purchase-orders.create',
-            'store' => 'permission:purchase-orders.create',
-            'edit' => 'permission:purchase-orders.update',
-            'update' => 'permission:purchase-orders.update',
-            'destroy' => 'permission:purchase-orders.update',
-        ]);
+        ->middlewareFor(['index', 'show'], 'permission:purchase-orders.view')
+        ->middlewareFor(['create', 'store'], 'permission:purchase-orders.create')
+        ->middlewareFor(['edit', 'update', 'destroy'], 'permission:purchase-orders.update');
 
     Route::get('rfq-terms/print', [RfqGeneralTermController::class, 'print'])
         ->middleware('permission:rfq-terms.view')
@@ -194,50 +149,27 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('rfq-terms', RfqGeneralTermController::class)
         ->except(['show'])
         ->parameters(['rfq-terms' => 'rfq_term'])
-        ->middleware([
-            'index' => 'permission:rfq-terms.view',
-            'create' => 'permission:rfq-terms.manage',
-            'store' => 'permission:rfq-terms.manage',
-            'edit' => 'permission:rfq-terms.manage',
-            'update' => 'permission:rfq-terms.manage',
-            'destroy' => 'permission:rfq-terms.manage',
-        ]);
+        ->middlewareFor('index', 'permission:rfq-terms.view')
+        ->middlewareFor(['create', 'store', 'edit', 'update', 'destroy'], 'permission:rfq-terms.manage');
 
     Route::resource('rfqs', RfqController::class)
-        ->middleware([
-            'index' => 'permission:rfqs.view',
-            'show' => 'permission:rfqs.view',
-            'create' => 'permission:rfqs.create',
-            'store' => 'permission:rfqs.create',
-            'edit' => 'permission:rfqs.update',
-            'update' => 'permission:rfqs.update',
-            'destroy' => 'permission:rfqs.update',
-        ]);
+        ->middlewareFor(['index', 'show'], 'permission:rfqs.view')
+        ->middlewareFor(['create', 'store'], 'permission:rfqs.create')
+        ->middlewareFor(['edit', 'update', 'destroy'], 'permission:rfqs.update');
 
     Route::resource('rfqs.quotations', VendorQuotationController::class)
         ->parameters(['quotations' => 'quotation'])
         ->except(['index'])
-        ->middleware([
-            'create' => 'permission:vendor-quotations.create|rfqs.update',
-            'store' => 'permission:vendor-quotations.create|rfqs.update',
-            'show' => 'permission:vendor-quotations.view|rfqs.view',
-            'edit' => 'permission:vendor-quotations.update|rfqs.update',
-            'update' => 'permission:vendor-quotations.update|rfqs.update',
-            'destroy' => 'permission:vendor-quotations.update|rfqs.update',
-        ]);
+        ->middlewareFor(['create', 'store'], 'permission:vendor-quotations.create|rfqs.update')
+        ->middlewareFor('show', 'permission:vendor-quotations.view|rfqs.view')
+        ->middlewareFor(['edit', 'update', 'destroy'], 'permission:vendor-quotations.update|rfqs.update');
 
     Route::get('procurement-requests/{procurement_request}/print', [ProcurementRequestController::class, 'print'])
         ->middleware('permission:procurement-requests.view')
         ->name('procurement-requests.print');
 
     Route::resource('procurement-requests', ProcurementRequestController::class)
-        ->middleware([
-            'index' => 'permission:procurement-requests.view',
-            'show' => 'permission:procurement-requests.view',
-            'create' => 'permission:procurement-requests.create',
-            'store' => 'permission:procurement-requests.create',
-            'edit' => 'permission:procurement-requests.update',
-            'update' => 'permission:procurement-requests.update',
-            'destroy' => 'permission:procurement-requests.update',
-        ]);
+        ->middlewareFor(['index', 'show'], 'permission:procurement-requests.view')
+        ->middlewareFor(['create', 'store'], 'permission:procurement-requests.create')
+        ->middlewareFor(['edit', 'update', 'destroy'], 'permission:procurement-requests.update');
 });

@@ -102,4 +102,40 @@ final class PermissionCatalog
 
         return $groups;
     }
+
+    /**
+     * Map a stored permission name to its canonical catalog name.
+     */
+    public static function canonicalName(string $name): ?string
+    {
+        $definitions = self::definitions();
+
+        if (array_key_exists($name, $definitions)) {
+            return $name;
+        }
+
+        if (! preg_match('/^(.+)\.(view|update|manage|delete)-(all|own)$/', $name, $matches)) {
+            return null;
+        }
+
+        [, $prefix, $action] = $matches;
+
+        if ($action === 'delete') {
+            $delete = $prefix.'.delete';
+            if (array_key_exists($delete, $definitions)) {
+                return $delete;
+            }
+
+            $update = $prefix.'.update';
+            if (array_key_exists($update, $definitions)) {
+                return $update;
+            }
+
+            return null;
+        }
+
+        $canonical = $prefix.'.'.$action;
+
+        return array_key_exists($canonical, $definitions) ? $canonical : null;
+    }
 }
