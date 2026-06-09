@@ -73,6 +73,13 @@ class PurchaseOrder extends Model
         'delivery_fee',
         'discount',
         'payment_terms',
+        'retentions',
+        'show_retention',
+        'primary_insurance_applicable',
+        'primary_insurance_requirements',
+        'final_insurance_applicable',
+        'final_insurance_requirements',
+        'show_insurance',
         'delivery_time',
         'delivery_location',
         'handover_at',
@@ -107,6 +114,11 @@ class PurchaseOrder extends Model
             'delivery_fee' => 'decimal:2',
             'discount' => 'decimal:2',
             'terms' => 'array',
+            'retentions' => 'array',
+            'show_retention' => 'boolean',
+            'primary_insurance_applicable' => 'boolean',
+            'final_insurance_applicable' => 'boolean',
+            'show_insurance' => 'boolean',
         ];
     }
 

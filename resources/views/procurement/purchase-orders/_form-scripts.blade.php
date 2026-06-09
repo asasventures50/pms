@@ -497,6 +497,136 @@ document.addEventListener('DOMContentLoaded', function () {
         importBtn.disabled = !procurementRequestSelect.value;
     }
 
+    const paymentTermsInput = document.getElementById('payment_terms');
+    const showRetentionInput = document.getElementById('show_retention');
+    const showInsuranceInput = document.getElementById('show_insurance');
+    const retentionBody = document.getElementById('po-retentions-body');
+    const retentionTemplate = document.getElementById('po-retention-template');
+    const primaryInsuranceYes = document.querySelector('input[name="primary_insurance_applicable"][value="1"]');
+    const primaryInsuranceNo = document.querySelector('input[name="primary_insurance_applicable"][value="0"]');
+    const finalInsuranceYes = document.querySelector('input[name="final_insurance_applicable"][value="1"]');
+    const finalInsuranceNo = document.querySelector('input[name="final_insurance_applicable"][value="0"]');
+    const primaryInsuranceRequirements = document.getElementById('primary_insurance_requirements');
+    const finalInsuranceRequirements = document.getElementById('final_insurance_requirements');
+
+    function reindexRetentionRows() {
+        if (!retentionBody) {
+            return;
+        }
+
+        retentionBody.querySelectorAll('.po-retention-row').forEach(function (row, index) {
+            row.querySelectorAll('[data-name]').forEach(function (input) {
+                const field = input.getAttribute('data-name');
+                input.setAttribute('name', 'retentions[' + index + '][' + field + ']');
+            });
+        });
+    }
+
+    function bindRetentionRow(row) {
+        row.querySelector('.po-remove-retention')?.addEventListener('click', function () {
+            const rows = retentionBody?.querySelectorAll('.po-retention-row') || [];
+            if (rows.length <= 1) {
+                row.querySelector('[data-name="retention_percent"]').value = '';
+                row.querySelector('[data-name="release_period"]').value = '';
+                return;
+            }
+            row.remove();
+            reindexRetentionRows();
+        });
+    }
+
+    function replaceRetentionRows(rows) {
+        if (!retentionBody) {
+            return;
+        }
+
+        retentionBody.innerHTML = '';
+        const sourceRows = Array.isArray(rows) && rows.length > 0
+            ? rows
+            : [{ retention_percent: '', release_period: '' }];
+
+        sourceRows.forEach(function (rowData, index) {
+            const clone = retentionTemplate?.content?.cloneNode(true);
+            const row = clone?.querySelector('tr');
+            if (!row) {
+                return;
+            }
+
+            row.querySelector('[data-name="retention_percent"]').value = rowData.retention_percent ?? '';
+            row.querySelector('[data-name="release_period"]').value = rowData.release_period ?? '';
+            retentionBody.appendChild(row);
+            bindRetentionRow(row);
+        });
+
+        reindexRetentionRows();
+    }
+
+    function setInsuranceApplicable(yesInput, noInput, value) {
+        if (value === true || value === 1 || value === '1') {
+            if (yesInput) {
+                yesInput.checked = true;
+            }
+            return;
+        }
+        if (value === false || value === 0 || value === '0') {
+            if (noInput) {
+                noInput.checked = true;
+            }
+        }
+    }
+
+    function applyCommercialTermsFromPr(commercialTerms) {
+        if (!commercialTerms || typeof commercialTerms !== 'object') {
+            return;
+        }
+
+        if (paymentTermsInput && typeof commercialTerms.payment_terms === 'string') {
+            paymentTermsInput.value = commercialTerms.payment_terms;
+            applyBilingualDirection(paymentTermsInput);
+        }
+
+        replaceRetentionRows(commercialTerms.retentions || []);
+
+        if (showRetentionInput) {
+            showRetentionInput.checked = Boolean(commercialTerms.has_retention);
+        }
+
+        setInsuranceApplicable(
+            primaryInsuranceYes,
+            primaryInsuranceNo,
+            commercialTerms.primary_insurance_applicable
+        );
+        if (primaryInsuranceRequirements) {
+            primaryInsuranceRequirements.value = commercialTerms.primary_insurance_requirements || '';
+        }
+
+        setInsuranceApplicable(
+            finalInsuranceYes,
+            finalInsuranceNo,
+            commercialTerms.final_insurance_applicable
+        );
+        if (finalInsuranceRequirements) {
+            finalInsuranceRequirements.value = commercialTerms.final_insurance_requirements || '';
+        }
+
+        if (showInsuranceInput) {
+            showInsuranceInput.checked = Boolean(commercialTerms.has_insurance);
+        }
+    }
+
+    document.getElementById('po-add-retention')?.addEventListener('click', function () {
+        if (!retentionBody || !retentionTemplate) {
+            return;
+        }
+        const clone = retentionTemplate.content.cloneNode(true);
+        const row = clone.querySelector('tr');
+        retentionBody.appendChild(row);
+        bindRetentionRow(row);
+        reindexRetentionRows();
+    });
+
+    retentionBody?.querySelectorAll('.po-retention-row').forEach(bindRetentionRow);
+
     async function fetchProcurementRequestLines(requestId) {
         const urlTemplate = procurementRequestSelect?.getAttribute('data-lines-url-template');
         if (!urlTemplate || !requestId) {
@@ -528,6 +658,7 @@ document.addEventListener('DOMContentLoaded', function () {
             openPrImportModal(data.request_number || '', data.items || [], function (selectedRows, mode) {
                 const aggregated = aggregateContextFromLines(selectedRows);
                 updatePoPrContextPanel(data.request_number || '', aggregated);
+                applyCommercialTermsFromPr(data.commercial_terms || null);
                 if (opts.onImported) {
                     opts.onImported();
                 }

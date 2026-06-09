@@ -11,8 +11,18 @@ use Illuminate\Support\Str;
 
 class ProcurementRequestLinesForPurchaseOrderPresenter
 {
+    public function __construct(
+        private readonly ProcurementRequestCommercialTermsForPurchaseOrder $commercialTerms,
+    ) {}
+
     /**
-     * @return array{request_number: string, items: list<array<string, mixed>>}
+     * @return array{
+     *     request_number: string,
+     *     context: array<string, mixed>,
+     *     scope_type_keys: list<string>,
+     *     items: list<array<string, mixed>>,
+     *     commercial_terms: array<string, mixed>,
+     * }
      */
     public function present(ProcurementRequest $procurementRequest): array
     {
@@ -32,6 +42,7 @@ class ProcurementRequestLinesForPurchaseOrderPresenter
             'context' => PurchaseOrderProcurementRequestContext::aggregateFromRequest($procurementRequest, $items),
             'scope_type_keys' => PurchaseOrderProcurementRequestContext::scopeTypeKeysFromRequest($procurementRequest, $items),
             'items' => $items->map(fn (ProcurementRequestItem $line) => $this->toLine($procurementRequest, $line))->all(),
+            'commercial_terms' => $this->commercialTerms->snapshot($procurementRequest),
         ];
     }
 

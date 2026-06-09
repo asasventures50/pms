@@ -181,6 +181,7 @@
                     <dt class="text-xs text-slate-500">Payment terms</dt>
                     <dd class="whitespace-pre-wrap text-slate-900" @if($paymentTermsDisplay !== '' && \App\Support\TextDirection::isRtl($paymentTermsDisplay)) dir="rtl" lang="ar" @endif>{{ $paymentTermsDisplay !== '' ? $paymentTermsDisplay : '—' }}</dd>
                 </div>
+                @include('procurement.purchase-orders._commercial-terms-display', ['purchaseOrder' => $purchaseOrder])
                 <div>
                     <dt class="text-xs text-slate-500">Notes</dt>
                     <dd class="whitespace-pre-wrap text-slate-900" @if($notesDisplay !== '' && \App\Support\TextDirection::isRtl($notesDisplay)) dir="rtl" lang="ar" @endif>{{ $notesDisplay !== '' ? $notesDisplay : '—' }}</dd>

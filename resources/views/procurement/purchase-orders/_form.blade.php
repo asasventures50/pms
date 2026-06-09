@@ -142,11 +142,13 @@
             @endphp
             <div class="md:col-span-2">
                 <label for="payment_terms" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Payment terms</label>
-                <p class="mt-0.5 text-xs text-slate-500">Supports Arabic and English — text direction adjusts automatically while typing.</p>
+                <p class="mt-0.5 text-xs text-slate-500">Imported from the linked P.R. when you import lines. Always shown on the purchase order.</p>
                 <textarea name="payment_terms" id="payment_terms" rows="3"
                           class="po-bilingual-text admin-form-textarea @error('payment_terms') border-red-500 @enderror"
                           @if ($paymentTermsRtl) dir="rtl" lang="ar" @endif>{{ $paymentTermsValue }}</textarea>
             </div>
+
+            @include('procurement.purchase-orders._commercial-terms', ['po' => $po])
             <div class="md:col-span-2">
                 <label for="notes" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Notes</label>
                 <textarea name="notes" id="notes" rows="3"

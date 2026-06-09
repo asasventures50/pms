@@ -21,6 +21,7 @@ use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
 
 use App\Models\Procurement\Vendors\Vendor;
 
+use App\Services\Procurement\PurchaseOrders\ProcurementRequestCommercialTermsForPurchaseOrder;
 use App\Services\Procurement\PurchaseOrders\ProcurementRequestLinesForPurchaseOrderPresenter;
 use App\Services\Procurement\PurchaseOrders\ProcurementRequestOptionsForPurchaseOrderQuery;
 use App\Services\Procurement\PurchaseOrders\PurchaseOrderProcurementRequestContext;
@@ -186,6 +187,8 @@ class PurchaseOrderController extends Controller
         PurchaseOrderPayloadResolver::finalizeForStore($validated);
 
         PurchaseOrderPayloadResolver::normalizeCurrency($validated, $request->user());
+
+        ProcurementRequestCommercialTermsForPurchaseOrder::normalizeHeader($validated);
 
         $validated = PurchaseOrderVendorPayloadResolver::mergeMissingFromVendor($validated);
 
@@ -361,6 +364,8 @@ class PurchaseOrderController extends Controller
         PurchaseOrderPayloadResolver::finalizeForUpdate($validated);
 
         PurchaseOrderPayloadResolver::normalizeCurrency($validated, $request->user());
+
+        ProcurementRequestCommercialTermsForPurchaseOrder::normalizeHeader($validated);
 
         $validated = PurchaseOrderVendorPayloadResolver::mergeMissingFromVendor($validated);
 

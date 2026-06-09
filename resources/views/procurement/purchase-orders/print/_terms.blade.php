@@ -28,6 +28,8 @@
     <div class="po-field-value" @if ($paymentTermsRtl) dir="rtl" lang="ar" @endif>{{ $paymentTermsText }}</div>
 </div>
 
+@include('procurement.purchase-orders.print._commercial-terms', ['purchaseOrder' => $purchaseOrder])
+
 <div class="po-field-block">
     <div class="po-field-label">Notes:</div>
     <div class="po-field-value" @if ($notesRtl) dir="rtl" lang="ar" @endif>{{ $notesText }}</div>
