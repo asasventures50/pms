@@ -63,9 +63,23 @@ enum GeographicScope: string
             return '';
         }
 
+        if (count(array_intersect(self::values(), $selected)) === count(self::values())) {
+            return 'Both';
+        }
+
         return implode(', ', array_map(
             static fn (string $value) => self::from($value)->label(),
             $selected
         ));
+    }
+
+    /**
+     * Values to pre-check on the PR form (local + international when both apply).
+     *
+     * @return list<string>
+     */
+    public static function formSelectedValues(mixed $stored): array
+    {
+        return self::selectedValues($stored);
     }
 }

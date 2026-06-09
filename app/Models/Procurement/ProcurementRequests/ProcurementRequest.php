@@ -2,6 +2,7 @@
 
 namespace App\Models\Procurement\ProcurementRequests;
 
+use App\Enums\Procurement\ProcurementRequests\CompliancePrequalificationLevel;
 use App\Enums\Procurement\ProcurementRequests\ProcurementRequestStatus;
 use App\Models\Procurement\Projects\Project;
 use App\Models\Procurement\Projects\Zone;
@@ -29,6 +30,7 @@ class ProcurementRequest extends Model
         'requestor_name',
         'requested_at',
         'requestor_department',
+        'company_key',
         'project_id',
         'zone_id',
         'category_id',
@@ -44,6 +46,12 @@ class ProcurementRequest extends Model
         'samples_required',
         'scope_of_work',
         'nda_required',
+        'after_sale_service_applicable',
+        'compliance_verification_required',
+        'compliance_prequalification_required',
+        'compliance_prequalification_level',
+        'conflict_of_interest_required',
+        'commitment_compliance_required',
         'primary_insurance_applicable',
         'primary_insurance_requirements',
         'final_insurance_applicable',
@@ -67,6 +75,12 @@ class ProcurementRequest extends Model
             'flexible_delivery_date' => 'boolean',
             'samples_required' => 'boolean',
             'nda_required' => 'boolean',
+            'after_sale_service_applicable' => 'boolean',
+            'compliance_verification_required' => 'boolean',
+            'compliance_prequalification_required' => 'boolean',
+            'compliance_prequalification_level' => CompliancePrequalificationLevel::class,
+            'conflict_of_interest_required' => 'boolean',
+            'commitment_compliance_required' => 'boolean',
             'primary_insurance_applicable' => 'boolean',
             'final_insurance_applicable' => 'boolean',
             'warranty_years' => 'decimal:1',

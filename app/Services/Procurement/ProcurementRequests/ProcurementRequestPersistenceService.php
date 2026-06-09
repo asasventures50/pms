@@ -368,9 +368,10 @@ class ProcurementRequestPersistenceService
         $header = [];
 
         foreach ([
-            'request_number', 'classification', 'status', 'project_id', 'zone_id',
+            'request_number', 'classification', 'status', 'company_key', 'project_id', 'zone_id',
             'category_id', 'subcategory_id', 'justification', 'delivery_lead_time_days',
             'delivery_location', 'currency_code', 'scope_of_work', 'warranty_coverage',
+            'compliance_prequalification_level',
             'primary_insurance_requirements', 'final_insurance_requirements',
         ] as $key) {
             if (array_key_exists($key, $validated)) {
@@ -378,7 +379,18 @@ class ProcurementRequestPersistenceService
             }
         }
 
-        foreach (['flexible_delivery_date', 'samples_required', 'nda_required', 'primary_insurance_applicable', 'final_insurance_applicable'] as $boolKey) {
+        foreach ([
+            'flexible_delivery_date',
+            'samples_required',
+            'nda_required',
+            'after_sale_service_applicable',
+            'compliance_verification_required',
+            'compliance_prequalification_required',
+            'conflict_of_interest_required',
+            'commitment_compliance_required',
+            'primary_insurance_applicable',
+            'final_insurance_applicable',
+        ] as $boolKey) {
             if (array_key_exists($boolKey, $validated)) {
                 $header[$boolKey] = filter_var($validated[$boolKey], FILTER_VALIDATE_BOOLEAN);
             }
@@ -398,6 +410,15 @@ class ProcurementRequestPersistenceService
 
         if (array_key_exists('geographic_scopes', $validated)) {
             $header['geographic_scopes'] = GeographicScope::encode($validated['geographic_scopes']);
+        }
+
+        if (array_key_exists('compliance_prequalification_level', $validated)) {
+            $level = trim((string) ($validated['compliance_prequalification_level'] ?? ''));
+            $prequalRequired = filter_var(
+                $validated['compliance_prequalification_required'] ?? false,
+                FILTER_VALIDATE_BOOLEAN
+            );
+            $header['compliance_prequalification_level'] = ($prequalRequired && $level !== '') ? $level : null;
         }
 
         if (array_key_exists('vendor_types', $validated)) {

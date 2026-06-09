@@ -1,4 +1,5 @@
 @php
+    use App\Enums\Procurement\PrCompany;
     use App\Enums\Procurement\ProcurementRequests\GeographicScope;
     use App\Enums\Procurement\ProcurementRequests\ProcurementType;
     use App\Enums\Procurement\ProcurementRequests\ProcurementVendorType;
@@ -22,8 +23,10 @@
                 <a href="{{ route('procurement-requests.edit', $procurementRequest) }}" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">Edit</a>
             @endif
             <a href="{{ route('procurement-requests.index') }}" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">Back</a>
-            <a href="{{ route('procurement-requests.print', $procurementRequest) }}" target="_blank" rel="noopener"
-               class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">Print</a>
+            <a href="{{ route('procurement-requests.print', ['procurement_request' => $procurementRequest, 'locale' => 'en']) }}" target="_blank" rel="noopener"
+               class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">Print (EN)</a>
+            <a href="{{ route('procurement-requests.print', ['procurement_request' => $procurementRequest, 'locale' => 'ar']) }}" target="_blank" rel="noopener"
+               class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">Print (AR)</a>
         </div>
     </div>
 
@@ -44,6 +47,7 @@
         <section class="rounded-xl border border-slate-200 bg-white p-6 text-sm shadow-sm">
             <h3 class="font-semibold text-slate-900">PR information</h3>
             <dl class="mt-4 grid gap-4 sm:grid-cols-2">
+                <div><dt class="text-xs uppercase text-slate-500">Company</dt><dd class="mt-0.5">{{ PrCompany::resolve($procurementRequest->company_key)->label() }}</dd></div>
                 <div><dt class="text-xs uppercase text-slate-500">Project</dt><dd class="mt-0.5">@if ($procurementRequest->project){{ $procurementRequest->project->code }} — {{ $procurementRequest->project->name }}@else — @endif</dd></div>
                 <div><dt class="text-xs uppercase text-slate-500">Zone</dt><dd class="mt-0.5">@if ($procurementRequest->zone){{ $procurementRequest->zone->code }} — {{ $procurementRequest->zone->name }}@else — @endif</dd></div>
                 <div><dt class="text-xs uppercase text-slate-500">Category</dt><dd class="mt-0.5">{{ $procurementRequest->category?->name_en ?? $formData['legacy_category'] ?? '—' }}</dd></div>

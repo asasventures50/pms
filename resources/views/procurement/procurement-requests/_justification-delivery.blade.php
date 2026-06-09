@@ -43,9 +43,10 @@
 
     <div class="mt-6 border-t border-slate-100 pt-6">
         <label for="scope_of_work" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
-            Scope of work <span class="normal-case text-slate-400">(not mandatory)</span>
+            Scope of work <span class="normal-case text-red-600">*</span>
         </label>
-        <textarea name="scope_of_work" id="scope_of_work" rows="5"
-                  class="admin-filter-control mt-2 w-full resize-y">{{ old('scope_of_work', $formDefaults['scope_of_work'] ?? '') }}</textarea>
+        <textarea name="scope_of_work" id="scope_of_work" rows="5" required
+                  class="admin-filter-control mt-2 w-full resize-y @error('scope_of_work') border-red-500 @enderror">{{ old('scope_of_work', $formDefaults['scope_of_work'] ?? '') }}</textarea>
+        @error('scope_of_work')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
     </div>
 </section>

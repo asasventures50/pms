@@ -176,6 +176,60 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelector('[data-pr-add-zone]')?.addEventListener('click', function () {
         if (quickStoreUrls.zone) window.prQuickAddZone?.(prSection);
     });
+
+    const companySelect = document.getElementById('company_key');
+    const companyLogo = document.querySelector('[data-pr-company-logo]');
+    const companyLogoFallback = document.querySelector('[data-pr-company-logo-fallback]');
+
+    function syncCompanyLogo() {
+        if (!companySelect || !companyLogo) return;
+        const option = companySelect.options[companySelect.selectedIndex];
+        const logoUrl = option?.dataset.logoUrl;
+        const fallbackHtml = option?.dataset.logoFallback || '';
+        if (logoUrl) {
+            companyLogo.src = logoUrl;
+            companyLogo.style.display = '';
+        }
+        if (companyLogoFallback) {
+            companyLogoFallback.innerHTML = fallbackHtml;
+            companyLogoFallback.style.display = 'none';
+        }
+        companyLogo.onerror = function () {
+            companyLogo.style.display = 'none';
+            if (companyLogoFallback) companyLogoFallback.style.display = 'block';
+        };
+    }
+
+    companySelect?.addEventListener('change', syncCompanyLogo);
+
+    const leadTimeInput = document.getElementById('delivery_lead_time_days');
+    const finalDeliveryDays = document.getElementById('pr-final-delivery-days');
+
+    function syncFinalDeliveryDays() {
+        if (!finalDeliveryDays || !leadTimeInput) return;
+        const value = leadTimeInput.value.trim();
+        finalDeliveryDays.textContent = value !== '' ? value : '—';
+    }
+
+    leadTimeInput?.addEventListener('input', syncFinalDeliveryDays);
+    syncFinalDeliveryDays();
+
+    const prequalLevelWrap = document.getElementById('pr-prequal-level-wrap');
+    const prequalLevelSelect = document.getElementById('compliance_prequalification_level');
+
+    function syncPrequalLevelVisibility() {
+        if (!prequalLevelWrap) return;
+        const yesSelected = document.querySelector('input[name="compliance_prequalification_required"][value="1"]')?.checked;
+        prequalLevelWrap.classList.toggle('hidden', !yesSelected);
+        if (!yesSelected && prequalLevelSelect) {
+            prequalLevelSelect.value = '';
+        }
+    }
+
+    document.querySelectorAll('input[name="compliance_prequalification_required"]').forEach(function (radio) {
+        radio.addEventListener('change', syncPrequalLevelVisibility);
+    });
+    syncPrequalLevelVisibility();
 });
 </script>
 @include('procurement.procurement-requests._form-scripts-quick-add')

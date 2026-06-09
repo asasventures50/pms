@@ -1,14 +1,10 @@
 @php
-    use App\Enums\Procurement\BuyerCompany;
-    use Illuminate\Support\Facades\Storage;
+    use App\Enums\Procurement\PrCompany;
 
-    $buyer = $buyerCompany ?? BuyerCompany::forDisplay();
-    $poLogoPublicPath = public_path('images/po/logo.png');
-    $poLogoExists = is_file($poLogoPublicPath)
-        || Storage::disk('public')->exists('logo.png');
-    $poLogoUrl = is_file($poLogoPublicPath)
-        ? asset('images/po/logo.png')
-        : (Storage::disk('public')->exists('logo.png') ? Storage::disk('public')->url('logo.png') : asset('images/po/logo.png'));
+    $prCompany = $prCompany ?? PrCompany::resolve($procurementRequest->company_key ?? null);
+    $buyer = $buyerCompany ?? PrCompany::forDisplay($procurementRequest->company_key ?? null);
+    $poLogoUrl = $prCompany->logoUrl();
+    $poLogoExists = $prCompany->logoExists();
 @endphp
 
 @include('procurement.procurement-requests.print._page-setup', ['buyer' => $buyer])
@@ -16,13 +12,14 @@
 <div class="po-wrapper pr-print-compact">
     @include('procurement.procurement-requests.print._header', [
         'buyer' => $buyer,
+        'prCompany' => $prCompany,
         'poLogoUrl' => $poLogoUrl,
         'poLogoExists' => $poLogoExists,
     ])
     @include('procurement.procurement-requests.print._request-info', ['formData' => $formData ?? []])
     @include('procurement.procurement-requests.print._items', ['formData' => $formData ?? []])
     @include('procurement.procurement-requests.print._sections', ['formData' => $formData ?? []])
-    @include('procurement.procurement-requests.print._signatures', ['formData' => $formData ?? []])
+    @include('procurement.procurement-requests.print._timeline', ['formData' => $formData ?? []])
 </div>
 
 @include('procurement.procurement-requests.print._footer', ['buyer' => $buyer])

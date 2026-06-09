@@ -2,6 +2,7 @@
 
 namespace App\Services\Procurement\ProcurementRequests;
 
+use App\Enums\Procurement\PrCompany;
 use App\Enums\Procurement\ProcurementRequests\GeographicScope;
 use App\Enums\Procurement\ProcurementRequests\ProcurementApprovalRole;
 use App\Enums\Procurement\ProcurementRequests\ProcurementTimelineActivity;
@@ -39,6 +40,7 @@ class ProcurementRequestFormDataResolver
         $firstItem = $procurementRequest->items->first();
 
         return [
+            'company_key' => $procurementRequest->company_key ?? PrCompany::AsasVentures->value,
             'project_id' => $procurementRequest->project_id ?? $firstItem?->project_id,
             'zone_id' => $procurementRequest->zone_id ?? $firstItem?->zone_id,
             'category_id' => $procurementRequest->category_id,
@@ -49,7 +51,7 @@ class ProcurementRequestFormDataResolver
                 $procurementRequest->procurement_types,
                 ProcurementType::values()
             ),
-            'geographic_scopes' => GeographicScope::selectedValues($procurementRequest->geographic_scopes),
+            'geographic_scopes' => GeographicScope::formSelectedValues($procurementRequest->geographic_scopes),
             'vendor_types' => $this->resolveVendorTypes($procurementRequest, $firstItem),
             'justification' => $procurementRequest->justification ?? $firstItem?->justification,
             'delivery_lead_time_days' => $procurementRequest->delivery_lead_time_days,
@@ -61,6 +63,12 @@ class ProcurementRequestFormDataResolver
             'samples_required' => $procurementRequest->samples_required,
             'scope_of_work' => $procurementRequest->scope_of_work ?? $firstItem?->scope_of_work,
             'nda_required' => $procurementRequest->nda_required,
+            'after_sale_service_applicable' => $procurementRequest->after_sale_service_applicable,
+            'compliance_verification_required' => $procurementRequest->compliance_verification_required,
+            'compliance_prequalification_required' => $procurementRequest->compliance_prequalification_required,
+            'compliance_prequalification_level' => $procurementRequest->compliance_prequalification_level?->value,
+            'conflict_of_interest_required' => $procurementRequest->conflict_of_interest_required,
+            'commitment_compliance_required' => $procurementRequest->commitment_compliance_required,
             'primary_insurance_applicable' => $procurementRequest->primary_insurance_applicable,
             'primary_insurance_requirements' => $procurementRequest->primary_insurance_requirements,
             'final_insurance_applicable' => $procurementRequest->final_insurance_applicable,

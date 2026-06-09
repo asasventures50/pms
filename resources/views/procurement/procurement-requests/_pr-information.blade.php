@@ -116,10 +116,11 @@
         ])
         @include('procurement.procurement-requests._pr-checkbox-group', [
             'name' => 'geographic_scopes',
-            'label' => 'Scope',
+            'label' => 'Local / International',
             'options' => GeographicScope::cases(),
             'selected' => $selectedGeographicScopes,
             'required' => true,
+            'hint' => 'Select both for Local & International.',
         ])
         @include('procurement.procurement-requests._pr-checkbox-group', [
             'name' => 'vendor_types',

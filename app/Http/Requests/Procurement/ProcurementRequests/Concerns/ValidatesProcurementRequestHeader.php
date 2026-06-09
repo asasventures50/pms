@@ -55,6 +55,20 @@ trait ValidatesProcurementRequestHeader
                     'Required delivery lead time is needed when flexible delivery date is disabled.'
                 );
             }
+
+            $prequalRequired = filter_var(
+                $this->input('compliance_prequalification_required'),
+                FILTER_VALIDATE_BOOLEAN,
+                FILTER_NULL_ON_FAILURE
+            );
+            $prequalLevel = trim((string) $this->input('compliance_prequalification_level', ''));
+
+            if ($prequalRequired === true && $prequalLevel === '') {
+                $validator->errors()->add(
+                    'compliance_prequalification_level',
+                    'Select a prequalification level when prequalification is required.'
+                );
+            }
         });
     }
 }

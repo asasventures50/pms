@@ -1,6 +1,38 @@
 @include('procurement.purchase-orders.print._styles')
 
 <style>
+    .pr-print--rtl {
+        direction: rtl;
+        text-align: right;
+    }
+
+    .pr-print--rtl .po-header-title,
+    .pr-print--rtl .po-header-dept,
+    .pr-print--rtl .po-section-title,
+    .pr-print--rtl .po-form-label,
+    .pr-print--rtl .po-field-label,
+    .pr-print--rtl .pr-print-list {
+        text-align: right;
+    }
+
+    .pr-print--rtl .pr-print-list {
+        padding-right: 18px;
+        padding-left: 0;
+    }
+
+    .pr-print--rtl .po-items-table th,
+    .pr-print--rtl .po-items-table td {
+        text-align: right;
+    }
+
+    .pr-print--rtl .po-cell-num {
+        text-align: left;
+    }
+
+    .pr-print--rtl .pr-cell-wrap {
+        text-align: right;
+    }
+
     .pr-print-compact .po-form-line {
         min-height: 0;
         line-height: 1.35;
@@ -143,6 +175,55 @@
 
     .pr-print-muted {
         color: #64748b;
+    }
+
+    .pr-form-option-group .po-form-label {
+        font-weight: normal;
+    }
+
+    .pr-form-option-line {
+        white-space: normal;
+    }
+
+    .pr-form-option-required {
+        color: #000;
+    }
+
+    .pr-form-option-hint {
+        margin: -2px 0 6px;
+        font-size: 10px;
+        color: #475569;
+        line-height: 1.35;
+    }
+
+    .pr-print--rtl .pr-form-option-hint {
+        text-align: right;
+    }
+
+    .pr-timeline-table {
+        margin-bottom: 10px;
+    }
+
+    .pr-timeline-final-row {
+        background: #f8fafc;
+    }
+
+    .pr-timeline-final-label {
+        font-weight: 700;
+    }
+
+    .pr-timeline-days-suffix {
+        margin-inline-start: 2px;
+        font-size: 10px;
+        color: #64748b;
+    }
+
+    .pr-timeline-final-note {
+        margin-top: 2px;
+        font-size: 9px;
+        color: #64748b;
+        font-weight: 400;
+        white-space: normal;
     }
 
     .pr-compact-table th,

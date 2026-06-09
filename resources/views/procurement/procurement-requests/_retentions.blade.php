@@ -4,7 +4,7 @@
 
 <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
     <div class="flex items-center justify-between gap-3">
-        <h3 class="text-sm font-semibold text-slate-900">Retention by year</h3>
+        <h3 class="text-sm font-semibold text-slate-900">Retention by year <span class="font-normal text-slate-500">(internal)</span></h3>
         <button type="button" id="pr-add-retention"
                 class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-800 hover:bg-slate-50 print:hidden">
             Add row

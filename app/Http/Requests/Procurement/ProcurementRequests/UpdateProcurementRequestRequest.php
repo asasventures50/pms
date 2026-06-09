@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Procurement\ProcurementRequests;
 
+use App\Enums\Procurement\PrCompany;
+use App\Enums\Procurement\ProcurementRequests\CompliancePrequalificationLevel;
 use App\Enums\Procurement\ProcurementRequests\GeographicScope;
 use App\Enums\Procurement\ProcurementRequests\ProcurementApprovalRole;
 use App\Enums\Procurement\ProcurementRequests\ProcurementRequestStatus;
@@ -49,6 +51,7 @@ class UpdateProcurementRequestRequest extends FormRequest
             ],
             'classification' => ['nullable', 'string', 'max:500'],
             'status' => ['nullable', 'string', Rule::in(ProcurementRequestStatus::values())],
+            'company_key' => ['required', 'string', Rule::in(PrCompany::values())],
             'project_id' => ['required', 'integer', 'exists:projects,id'],
             'zone_id' => ['nullable', 'integer', 'exists:zones,id'],
             'category_id' => ['required', 'integer', 'exists:categories,id'],
@@ -65,12 +68,14 @@ class UpdateProcurementRequestRequest extends FormRequest
             'flexible_delivery_date' => ['nullable', 'boolean'],
             'currency_code' => ['nullable', 'string', 'size:3'],
             'samples_required' => ['nullable', 'boolean'],
-            'scope_of_work' => ['nullable', 'string'],
+            'scope_of_work' => ['required', 'string', 'max:50000'],
             'nda_required' => ['nullable', 'boolean'],
-            'primary_insurance_applicable' => ['nullable', 'boolean'],
-            'primary_insurance_requirements' => ['nullable', 'string'],
-            'final_insurance_applicable' => ['nullable', 'boolean'],
-            'final_insurance_requirements' => ['nullable', 'string'],
+            'after_sale_service_applicable' => ['nullable', 'boolean'],
+            'compliance_verification_required' => ['nullable', 'boolean'],
+            'compliance_prequalification_required' => ['nullable', 'boolean'],
+            'compliance_prequalification_level' => ['nullable', 'string', Rule::in(CompliancePrequalificationLevel::values())],
+            'conflict_of_interest_required' => ['nullable', 'boolean'],
+            'commitment_compliance_required' => ['nullable', 'boolean'],
             'warranty_years' => ['nullable', 'numeric', 'min:0', 'max:999'],
             'warranty_coverage' => ['nullable', 'string', 'max:5000'],
             'items' => ['required', 'array', 'min:1'],

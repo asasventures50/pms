@@ -12,7 +12,10 @@
 
 <article class="pr-document mx-auto max-w-5xl space-y-6">
     <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        @include('procurement.procurement-requests._document-header')
+        @include('procurement.procurement-requests._document-header', [
+            'formDefaults' => $formDefaults,
+            'nextCode' => $nextCode ?? null,
+        ])
     </section>
 
     <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -61,7 +64,7 @@
         'formDefaults' => $formDefaults,
     ])
 
-    @include('procurement.procurement-requests._insurance', [
+    @include('procurement.procurement-requests._maintenance', [
         'formDefaults' => $formDefaults,
     ])
 

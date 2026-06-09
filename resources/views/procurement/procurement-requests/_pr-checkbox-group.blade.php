@@ -4,6 +4,7 @@
     $options = $options ?? [];
     $selected = $selected ?? [];
     $required = $required ?? false;
+    $hint = $hint ?? null;
 @endphp
 
 <div class="rounded-lg border border-slate-200 bg-slate-50/60 p-4">
@@ -11,6 +12,7 @@
         {{ $label }}
         @if ($required)<span class="text-red-600">*</span>@endif
     </p>
+    @if ($hint)<p class="mt-1 text-xs normal-case text-slate-500">{{ $hint }}</p>@endif
     <div @class([
         'mt-3 flex flex-wrap gap-2',
         'rounded-md ring-1 ring-red-500 ring-offset-2' => $errors->has($name) || $errors->has($name.'.*'),

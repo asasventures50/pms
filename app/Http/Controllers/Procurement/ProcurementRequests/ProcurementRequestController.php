@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Procurement\ProcurementRequests;
 
-use App\Enums\Procurement\BuyerCompany;
+use App\Enums\Procurement\PrCompany;
 use App\Enums\Procurement\ProcurementRequests\ProcurementApprovalRole;
 use App\Enums\Procurement\ProcurementRequests\ProcurementRequestStatus;
 use App\Enums\Procurement\ProcurementRequests\ProcurementTimelineActivity;
@@ -16,6 +16,7 @@ use App\Services\Procurement\ProcurementRequests\ProcurementRequestCodeGenerator
 use App\Services\Procurement\ProcurementRequests\ProcurementRequestFormDataResolver;
 use App\Services\Procurement\ProcurementRequests\ProcurementRequestPayloadResolver;
 use App\Services\Procurement\ProcurementRequests\ProcurementRequestPersistenceService;
+use App\Services\Procurement\ProcurementRequests\ProcurementRequestPrintLabels;
 use App\Services\Procurement\ProcurementRequests\ProcurementRequestRequestorResolver;
 use App\Services\Procurement\ProcurementRequests\ProcurementRequestSupportingDocumentStorage;
 use Illuminate\Http\RedirectResponse;
@@ -124,8 +125,10 @@ class ProcurementRequestController extends Controller
         ]);
     }
 
-    public function print(ProcurementRequest $procurementRequest): View
+    public function print(Request $request, ProcurementRequest $procurementRequest): View
     {
+        $printLabels = ProcurementRequestPrintLabels::resolve($request->query('locale'));
+
         $procurementRequest->load([
             'creator',
             'project',
@@ -144,8 +147,10 @@ class ProcurementRequestController extends Controller
 
         return view('procurement.procurement-requests.print', [
             'procurementRequest' => $procurementRequest,
-            'buyerCompany' => BuyerCompany::forDisplay(),
+            'buyerCompany' => PrCompany::forDisplay($procurementRequest->company_key),
+            'prCompany' => PrCompany::resolve($procurementRequest->company_key),
             'formData' => $this->formData->resolve($procurementRequest),
+            'printLabels' => $printLabels,
         ]);
     }
 
@@ -265,6 +270,7 @@ class ProcurementRequestController extends Controller
     private function defaultFormData(): array
     {
         return [
+            'company_key' => PrCompany::AsasVentures->value,
             'project_id' => '',
             'zone_id' => '',
             'category_id' => '',
@@ -280,10 +286,12 @@ class ProcurementRequestController extends Controller
             'samples_required' => null,
             'scope_of_work' => '',
             'nda_required' => null,
-            'primary_insurance_applicable' => null,
-            'primary_insurance_requirements' => '',
-            'final_insurance_applicable' => null,
-            'final_insurance_requirements' => '',
+            'after_sale_service_applicable' => null,
+            'compliance_verification_required' => null,
+            'compliance_prequalification_required' => null,
+            'compliance_prequalification_level' => '',
+            'conflict_of_interest_required' => null,
+            'commitment_compliance_required' => null,
             'warranty_years' => '',
             'warranty_coverage' => '',
             'items' => $this->emptyBoqLines(1),
