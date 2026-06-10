@@ -62,6 +62,7 @@
                             <th class="px-3 py-2 text-left">English Name</th>
                             <th class="px-3 py-2 text-left">Slug</th>
                             <th class="px-3 py-2 text-left">Status</th>
+                            <th class="px-3 py-2 text-left">Vendors</th>
                         </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
@@ -72,6 +73,7 @@
                                 <td class="px-3 py-2">{{ $sub->name_en }}</td>
                                 <td class="px-3 py-2 font-mono text-xs">{{ $sub->slug }}</td>
                                 <td class="px-3 py-2">{{ $sub->status }}</td>
+                                <td class="px-3 py-2 text-slate-700">{{ $sub->vendors_count }}</td>
                             </tr>
                         @endforeach
                         </tbody>

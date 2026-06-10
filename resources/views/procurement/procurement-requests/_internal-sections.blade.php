@@ -4,7 +4,6 @@
 
     $timeline = old('timeline', $formDefaults['timeline'] ?? []);
     $generalTerms = RfqTerms::defaults(app()->getLocale());
-    $deliveryLeadTime = old('delivery_lead_time_days', $formDefaults['delivery_lead_time_days'] ?? '');
     $prequalRequired = old('compliance_prequalification_required', $formDefaults['compliance_prequalification_required'] ?? null);
     $prequalLevel = old('compliance_prequalification_level', $formDefaults['compliance_prequalification_level'] ?? '');
     $showPrequalLevel = $prequalRequired === true || $prequalRequired === '1';
@@ -34,14 +33,6 @@
                     </td>
                 </tr>
             @endforeach
-            <tr class="bg-slate-50/80">
-                <td class="px-2 py-2 font-medium text-slate-800">Final delivery date</td>
-                <td class="px-2 py-2">
-                    <span id="pr-final-delivery-days" class="text-slate-800">{{ filled($deliveryLeadTime) ? $deliveryLeadTime : '—' }}</span>
-                    <span class="ml-1 text-xs text-slate-500">days</span>
-                    <p class="mt-0.5 text-xs text-slate-500">Same as required delivery lead time (from PO issuance).</p>
-                </td>
-            </tr>
             </tbody>
         </table>
     </div>

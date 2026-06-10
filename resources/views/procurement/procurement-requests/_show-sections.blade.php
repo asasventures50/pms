@@ -69,7 +69,17 @@
         @foreach ($formData['timeline'] ?? [] as $row)
             <tr class="border-t border-slate-100"><td class="py-2 pr-3">{{ $row['label'] ?? '' }}</td><td class="py-2">{{ $row['duration_days'] ?? '—' }}</td></tr>
         @endforeach
-        <tr class="border-t border-slate-100 bg-slate-50/60"><td class="py-2 pr-3 font-medium">Final delivery date</td><td class="py-2">{{ $procurementRequest->delivery_lead_time_days ?? '—' }}</td></tr>
+        <tr class="border-t border-slate-100 bg-slate-50/60">
+            <td class="py-2 pr-3 font-medium">Final delivery date</td>
+            <td class="py-2">
+                @if (filled($procurementRequest->delivery_lead_time_days))
+                    {{ $procurementRequest->delivery_lead_time_days }} days
+                    <p class="mt-0.5 text-xs text-slate-500">From PO issuance date</p>
+                @else
+                    —
+                @endif
+            </td>
+        </tr>
     </tbody></table>
 </section>
 

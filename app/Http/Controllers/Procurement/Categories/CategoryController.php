@@ -33,7 +33,10 @@ class CategoryController extends Controller
         $sort = TableSort::resolve($request, $allowedSorts, 'name_ar', 'asc');
 
         $query = Category::query()
-            ->withCount('subcategories');
+            ->withCount('subcategories')
+            ->withCount(['vendors as vendors_count' => function ($q) {
+                $q->select(DB::raw('count(distinct vendors.id)'));
+            }]);
 
         if ($request->filled('q')) {
             $term = '%'.$request->string('q').'%';
@@ -91,7 +94,7 @@ class CategoryController extends Controller
 
     public function show(Category $category): View
     {
-        $category->load(['subcategories' => fn ($q) => $q->orderBy('name_en')]);
+        $category->load(['subcategories' => fn ($q) => $q->orderBy('name_en')->withCount('vendors')]);
 
         return view('procurement.categories.show', [
             'category' => $category,

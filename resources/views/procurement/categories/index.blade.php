@@ -77,6 +77,7 @@
                     <th class="px-3 py-2">Slug</th>
                     <th class="px-3 py-2">Status</th>
                     <th class="px-3 py-2">Subcategories</th>
+                    <th class="px-3 py-2">Vendors</th>
                     <th class="px-3 py-2">
                         @include('partials.table-sort-link', [
                             'route' => 'categories.index',
@@ -100,6 +101,7 @@
                             <span class="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-800">{{ $category->status }}</span>
                         </td>
                         <td class="whitespace-nowrap px-3 py-2 text-slate-700">{{ $category->subcategories_count }}</td>
+                        <td class="whitespace-nowrap px-3 py-2 text-slate-700">{{ $category->vendors_count }}</td>
                         <td class="whitespace-nowrap px-3 py-2 text-xs text-slate-600">{{ $category->created_at?->format('Y-m-d H:i') }}</td>
                         <td class="whitespace-nowrap px-3 py-2 text-right text-xs">
                             <a href="{{ route('categories.show', $category) }}" class="font-medium text-slate-700 hover:text-slate-900">View</a>
@@ -115,7 +117,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="px-3 py-10 text-center text-sm text-slate-500">No categories found.</td>
+                        <td colspan="9" class="px-3 py-10 text-center text-sm text-slate-500">No categories found.</td>
                     </tr>
                 @endforelse
                 </tbody>

@@ -202,18 +202,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     companySelect?.addEventListener('change', syncCompanyLogo);
 
-    const leadTimeInput = document.getElementById('delivery_lead_time_days');
-    const finalDeliveryDays = document.getElementById('pr-final-delivery-days');
-
-    function syncFinalDeliveryDays() {
-        if (!finalDeliveryDays || !leadTimeInput) return;
-        const value = leadTimeInput.value.trim();
-        finalDeliveryDays.textContent = value !== '' ? value : '—';
-    }
-
-    leadTimeInput?.addEventListener('input', syncFinalDeliveryDays);
-    syncFinalDeliveryDays();
-
     const prequalLevelWrap = document.getElementById('pr-prequal-level-wrap');
     const prequalLevelSelect = document.getElementById('compliance_prequalification_level');
 
