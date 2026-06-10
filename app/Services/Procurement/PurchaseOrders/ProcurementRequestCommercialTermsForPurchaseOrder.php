@@ -12,12 +12,11 @@ class ProcurementRequestCommercialTermsForPurchaseOrder
      * @return array{
      *     payment_terms: string,
      *     retentions: list<array{retention_percent: float|string|null, release_period: string|null}>,
-     *     primary_insurance_applicable: bool|null,
-     *     primary_insurance_requirements: string|null,
-     *     final_insurance_applicable: bool|null,
-     *     final_insurance_requirements: string|null,
+     *     after_sale_service_applicable: bool|null,
+     *     warranty_years: float|string|null,
+     *     warranty_coverage: string|null,
      *     has_retention: bool,
-     *     has_insurance: bool,
+     *     has_maintenance: bool,
      * }
      */
     public function snapshot(ProcurementRequest $procurementRequest): array
@@ -33,23 +32,21 @@ class ProcurementRequestCommercialTermsForPurchaseOrder
             ])
             ->all();
 
-        $primaryRequirements = trim((string) ($procurementRequest->primary_insurance_requirements ?? ''));
-        $finalRequirements = trim((string) ($procurementRequest->final_insurance_requirements ?? ''));
+        $warrantyCoverage = trim((string) ($procurementRequest->warranty_coverage ?? ''));
+        $warrantyYears = $procurementRequest->warranty_years;
 
-        $hasInsurance = $procurementRequest->primary_insurance_applicable !== null
-            || $procurementRequest->final_insurance_applicable !== null
-            || $primaryRequirements !== ''
-            || $finalRequirements !== '';
+        $hasMaintenance = $procurementRequest->after_sale_service_applicable !== null
+            || ($warrantyYears !== null && $warrantyYears !== '')
+            || $warrantyCoverage !== '';
 
         return [
             'payment_terms' => $this->formatPaymentTerms($procurementRequest),
             'retentions' => $retentions,
-            'primary_insurance_applicable' => $procurementRequest->primary_insurance_applicable,
-            'primary_insurance_requirements' => $primaryRequirements !== '' ? $primaryRequirements : null,
-            'final_insurance_applicable' => $procurementRequest->final_insurance_applicable,
-            'final_insurance_requirements' => $finalRequirements !== '' ? $finalRequirements : null,
+            'after_sale_service_applicable' => $procurementRequest->after_sale_service_applicable,
+            'warranty_years' => ($warrantyYears === null || $warrantyYears === '') ? null : $warrantyYears,
+            'warranty_coverage' => $warrantyCoverage !== '' ? $warrantyCoverage : null,
             'has_retention' => $this->hasRetentionRows($retentions),
-            'has_insurance' => $hasInsurance,
+            'has_maintenance' => $hasMaintenance,
         ];
     }
 
@@ -121,24 +118,28 @@ class ProcurementRequestCommercialTermsForPurchaseOrder
             FILTER_NULL_ON_FAILURE
         ) ?? true;
 
-        $validated['show_insurance'] = filter_var(
-            $validated['show_insurance'] ?? true,
+        $validated['show_maintenance'] = filter_var(
+            $validated['show_maintenance'] ?? true,
             FILTER_VALIDATE_BOOLEAN,
             FILTER_NULL_ON_FAILURE
         ) ?? true;
 
-        foreach (['primary_insurance_applicable', 'final_insurance_applicable'] as $field) {
-            if (! array_key_exists($field, $validated)) {
-                continue;
-            }
-
-            $raw = $validated[$field];
+        if (array_key_exists('after_sale_service_applicable', $validated)) {
+            $raw = $validated['after_sale_service_applicable'];
             if ($raw === null || $raw === '') {
-                $validated[$field] = null;
-                continue;
+                $validated['after_sale_service_applicable'] = null;
+            } else {
+                $validated['after_sale_service_applicable'] = filter_var(
+                    $raw,
+                    FILTER_VALIDATE_BOOLEAN,
+                    FILTER_NULL_ON_FAILURE
+                );
             }
+        }
 
-            $validated[$field] = filter_var($raw, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+        if (array_key_exists('warranty_years', $validated)) {
+            $raw = $validated['warranty_years'];
+            $validated['warranty_years'] = ($raw === null || $raw === '') ? null : $raw;
         }
 
         $validated['retentions'] = self::normalizeRetentions($validated['retentions'] ?? []);

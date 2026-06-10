@@ -5,9 +5,8 @@
         $retentions = [['retention_percent' => '', 'release_period' => '']];
     }
     $showRetention = filter_var(old('show_retention', $po?->show_retention ?? true), FILTER_VALIDATE_BOOLEAN);
-    $showInsurance = filter_var(old('show_insurance', $po?->show_insurance ?? true), FILTER_VALIDATE_BOOLEAN);
-    $primaryInsurance = old('primary_insurance_applicable', $po?->primary_insurance_applicable);
-    $finalInsurance = old('final_insurance_applicable', $po?->final_insurance_applicable);
+    $showMaintenance = filter_var(old('show_maintenance', $po?->show_maintenance ?? true), FILTER_VALIDATE_BOOLEAN);
+    $afterSaleService = old('after_sale_service_applicable', $po?->after_sale_service_applicable);
 @endphp
 
 <div class="md:col-span-2">
@@ -50,42 +49,37 @@
 
 <div class="md:col-span-2">
     <div class="flex flex-wrap items-center justify-between gap-3">
-        <h4 class="text-xs font-medium uppercase tracking-wide text-slate-500">Insurance requirements</h4>
+        <h4 class="text-xs font-medium uppercase tracking-wide text-slate-500">Maintenance <span class="font-normal normal-case text-slate-500">(internal)</span></h4>
         <label class="inline-flex items-center gap-2 text-sm text-slate-700">
-            <input type="hidden" name="show_insurance" value="0">
-            <input type="checkbox" name="show_insurance" id="show_insurance" value="1" @checked($showInsurance)>
+            <input type="hidden" name="show_maintenance" value="0">
+            <input type="checkbox" name="show_maintenance" id="show_maintenance" value="1" @checked($showMaintenance)>
             Include on purchase order
         </label>
     </div>
     <p class="mt-0.5 text-xs text-slate-500">Imported from the linked P.R. Uncheck to omit from the printed P.O.</p>
+    <div class="mt-4">
+        <p class="text-xs font-medium uppercase tracking-wide text-slate-500">After-sale service applicable</p>
+        <div class="mt-2 flex flex-wrap gap-4">
+            <label class="inline-flex items-center gap-2 text-sm">
+                <input type="radio" name="after_sale_service_applicable" value="1" @checked($afterSaleService === true || $afterSaleService === '1')> Yes
+            </label>
+            <label class="inline-flex items-center gap-2 text-sm">
+                <input type="radio" name="after_sale_service_applicable" value="0" @checked($afterSaleService === false || $afterSaleService === '0')> No
+            </label>
+        </div>
+    </div>
     <div class="mt-4 grid gap-4 md:grid-cols-2">
         <div>
-            <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Primary insurance applicable</p>
-            <div class="mt-2 flex flex-wrap gap-4">
-                <label class="inline-flex items-center gap-2 text-sm">
-                    <input type="radio" name="primary_insurance_applicable" value="1" @checked($primaryInsurance === true || $primaryInsurance === '1')> Yes
-                </label>
-                <label class="inline-flex items-center gap-2 text-sm">
-                    <input type="radio" name="primary_insurance_applicable" value="0" @checked($primaryInsurance === false || $primaryInsurance === '0')> No
-                </label>
-            </div>
-            <label for="primary_insurance_requirements" class="mt-3 block text-xs font-medium uppercase tracking-wide text-slate-500">Requirements</label>
-            <textarea name="primary_insurance_requirements" id="primary_insurance_requirements" rows="3"
-                      class="admin-form-textarea mt-1 w-full resize-y">{{ old('primary_insurance_requirements', $po?->primary_insurance_requirements ?? '') }}</textarea>
+            <label for="warranty_years" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Warranty &amp; guarantee period (years)</label>
+            <input type="number" name="warranty_years" id="warranty_years" step="0.1" min="0"
+                   value="{{ old('warranty_years', $po?->warranty_years ?? '') }}"
+                   class="admin-filter-control mt-1 w-full max-w-xs">
         </div>
         <div>
-            <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Final insurance requirements applicable</p>
-            <div class="mt-2 flex flex-wrap gap-4">
-                <label class="inline-flex items-center gap-2 text-sm">
-                    <input type="radio" name="final_insurance_applicable" value="1" @checked($finalInsurance === true || $finalInsurance === '1')> Yes
-                </label>
-                <label class="inline-flex items-center gap-2 text-sm">
-                    <input type="radio" name="final_insurance_applicable" value="0" @checked($finalInsurance === false || $finalInsurance === '0')> No
-                </label>
-            </div>
-            <label for="final_insurance_requirements" class="mt-3 block text-xs font-medium uppercase tracking-wide text-slate-500">Requirements</label>
-            <textarea name="final_insurance_requirements" id="final_insurance_requirements" rows="3"
-                      class="admin-form-textarea mt-1 w-full resize-y">{{ old('final_insurance_requirements', $po?->final_insurance_requirements ?? '') }}</textarea>
+            <label for="warranty_coverage" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Coverage / scope</label>
+            <input type="text" name="warranty_coverage" id="warranty_coverage"
+                   value="{{ old('warranty_coverage', $po?->warranty_coverage ?? '') }}"
+                   class="admin-filter-control mt-1 w-full">
         </div>
     </div>
 </div>

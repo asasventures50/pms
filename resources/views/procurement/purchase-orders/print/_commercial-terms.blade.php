@@ -4,11 +4,10 @@
     $retentions = is_array($purchaseOrder->retentions) ? $purchaseOrder->retentions : [];
     $hasRetention = app(ProcurementRequestCommercialTermsForPurchaseOrder::class)->hasRetentionRows($retentions);
     $showRetention = $purchaseOrder->show_retention && $hasRetention;
-    $showInsurance = $purchaseOrder->show_insurance && (
-        $purchaseOrder->primary_insurance_applicable !== null
-        || $purchaseOrder->final_insurance_applicable !== null
-        || trim((string) ($purchaseOrder->primary_insurance_requirements ?? '')) !== ''
-        || trim((string) ($purchaseOrder->final_insurance_requirements ?? '')) !== ''
+    $showMaintenance = $purchaseOrder->show_maintenance && (
+        $purchaseOrder->after_sale_service_applicable !== null
+        || $purchaseOrder->warranty_years !== null
+        || trim((string) ($purchaseOrder->warranty_coverage ?? '')) !== ''
     );
 @endphp
 
@@ -29,44 +28,30 @@
     </table>
 @endif
 
-@if ($showInsurance)
-    <div class="po-section-title">Insurance requirements</div>
+@if ($showMaintenance)
+    <div class="po-section-title">Maintenance (internal)</div>
     <div class="po-grid-2">
         <div class="po-grid-col">
             <div class="po-form-group">
-                <span class="po-form-label">Primary insurance:</span>
+                <span class="po-form-label">After-sale service:</span>
                 <span class="po-form-line">
-                    @if ($purchaseOrder->primary_insurance_applicable === null)
+                    @if ($purchaseOrder->after_sale_service_applicable === null)
                         —
-                    @elseif ($purchaseOrder->primary_insurance_applicable)
+                    @elseif ($purchaseOrder->after_sale_service_applicable)
                         Yes
                     @else
                         No
                     @endif
                 </span>
             </div>
-            @if (trim((string) ($purchaseOrder->primary_insurance_requirements ?? '')) !== '')
-                <div class="po-form-group">
-                    <span class="po-form-label">Primary requirements:</span>
-                    <span class="po-form-line">{{ $purchaseOrder->primary_insurance_requirements }}</span>
-                </div>
-            @endif
             <div class="po-form-group">
-                <span class="po-form-label">Final insurance:</span>
-                <span class="po-form-line">
-                    @if ($purchaseOrder->final_insurance_applicable === null)
-                        —
-                    @elseif ($purchaseOrder->final_insurance_applicable)
-                        Yes
-                    @else
-                        No
-                    @endif
-                </span>
+                <span class="po-form-label">Warranty &amp; guarantee period (years):</span>
+                <span class="po-form-line">{{ $purchaseOrder->warranty_years ?? '—' }}</span>
             </div>
-            @if (trim((string) ($purchaseOrder->final_insurance_requirements ?? '')) !== '')
+            @if (trim((string) ($purchaseOrder->warranty_coverage ?? '')) !== '')
                 <div class="po-form-group">
-                    <span class="po-form-label">Final requirements:</span>
-                    <span class="po-form-line">{{ $purchaseOrder->final_insurance_requirements }}</span>
+                    <span class="po-form-label">Coverage / scope:</span>
+                    <span class="po-form-line">{{ $purchaseOrder->warranty_coverage }}</span>
                 </div>
             @endif
         </div>

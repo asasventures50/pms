@@ -499,15 +499,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const paymentTermsInput = document.getElementById('payment_terms');
     const showRetentionInput = document.getElementById('show_retention');
-    const showInsuranceInput = document.getElementById('show_insurance');
+    const showMaintenanceInput = document.getElementById('show_maintenance');
     const retentionBody = document.getElementById('po-retentions-body');
     const retentionTemplate = document.getElementById('po-retention-template');
-    const primaryInsuranceYes = document.querySelector('input[name="primary_insurance_applicable"][value="1"]');
-    const primaryInsuranceNo = document.querySelector('input[name="primary_insurance_applicable"][value="0"]');
-    const finalInsuranceYes = document.querySelector('input[name="final_insurance_applicable"][value="1"]');
-    const finalInsuranceNo = document.querySelector('input[name="final_insurance_applicable"][value="0"]');
-    const primaryInsuranceRequirements = document.getElementById('primary_insurance_requirements');
-    const finalInsuranceRequirements = document.getElementById('final_insurance_requirements');
+    const afterSaleServiceYes = document.querySelector('input[name="after_sale_service_applicable"][value="1"]');
+    const afterSaleServiceNo = document.querySelector('input[name="after_sale_service_applicable"][value="0"]');
+    const warrantyYearsInput = document.getElementById('warranty_years');
+    const warrantyCoverageInput = document.getElementById('warranty_coverage');
 
     function reindexRetentionRows() {
         if (!retentionBody) {
@@ -561,7 +559,7 @@ document.addEventListener('DOMContentLoaded', function () {
         reindexRetentionRows();
     }
 
-    function setInsuranceApplicable(yesInput, noInput, value) {
+    function setYesNoApplicable(yesInput, noInput, value) {
         if (value === true || value === 1 || value === '1') {
             if (yesInput) {
                 yesInput.checked = true;
@@ -591,26 +589,20 @@ document.addEventListener('DOMContentLoaded', function () {
             showRetentionInput.checked = Boolean(commercialTerms.has_retention);
         }
 
-        setInsuranceApplicable(
-            primaryInsuranceYes,
-            primaryInsuranceNo,
-            commercialTerms.primary_insurance_applicable
+        setYesNoApplicable(
+            afterSaleServiceYes,
+            afterSaleServiceNo,
+            commercialTerms.after_sale_service_applicable
         );
-        if (primaryInsuranceRequirements) {
-            primaryInsuranceRequirements.value = commercialTerms.primary_insurance_requirements || '';
+        if (warrantyYearsInput) {
+            warrantyYearsInput.value = commercialTerms.warranty_years ?? '';
+        }
+        if (warrantyCoverageInput) {
+            warrantyCoverageInput.value = commercialTerms.warranty_coverage || '';
         }
 
-        setInsuranceApplicable(
-            finalInsuranceYes,
-            finalInsuranceNo,
-            commercialTerms.final_insurance_applicable
-        );
-        if (finalInsuranceRequirements) {
-            finalInsuranceRequirements.value = commercialTerms.final_insurance_requirements || '';
-        }
-
-        if (showInsuranceInput) {
-            showInsuranceInput.checked = Boolean(commercialTerms.has_insurance);
+        if (showMaintenanceInput) {
+            showMaintenanceInput.checked = Boolean(commercialTerms.has_maintenance);
         }
     }
 

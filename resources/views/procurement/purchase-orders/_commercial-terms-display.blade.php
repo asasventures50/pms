@@ -5,11 +5,10 @@
     $retentions = is_array($purchaseOrder?->retentions) ? $purchaseOrder->retentions : [];
     $hasRetention = app(ProcurementRequestCommercialTermsForPurchaseOrder::class)->hasRetentionRows($retentions);
     $showRetention = $purchaseOrder->show_retention && $hasRetention;
-    $showInsurance = $purchaseOrder->show_insurance && (
-        $purchaseOrder->primary_insurance_applicable !== null
-        || $purchaseOrder->final_insurance_applicable !== null
-        || trim((string) ($purchaseOrder->primary_insurance_requirements ?? '')) !== ''
-        || trim((string) ($purchaseOrder->final_insurance_requirements ?? '')) !== ''
+    $showMaintenance = $purchaseOrder->show_maintenance && (
+        $purchaseOrder->after_sale_service_applicable !== null
+        || $purchaseOrder->warranty_years !== null
+        || trim((string) ($purchaseOrder->warranty_coverage ?? '')) !== ''
     );
 @endphp
 
@@ -37,40 +36,28 @@
     </div>
 @endif
 
-@if ($purchaseOrder && $showInsurance)
+@if ($purchaseOrder && $showMaintenance)
     <div>
-        <dt class="text-xs text-slate-500">Insurance requirements</dt>
+        <dt class="text-xs text-slate-500">Maintenance (internal)</dt>
         <dd class="mt-1 space-y-2 text-slate-900">
             <p>
-                <span class="text-xs text-slate-500">Primary insurance:</span>
-                @if ($purchaseOrder->primary_insurance_applicable === null)
+                <span class="text-xs text-slate-500">After-sale service:</span>
+                @if ($purchaseOrder->after_sale_service_applicable === null)
                     —
-                @elseif ($purchaseOrder->primary_insurance_applicable)
+                @elseif ($purchaseOrder->after_sale_service_applicable)
                     Yes
                 @else
                     No
                 @endif
             </p>
-            @if (trim((string) ($purchaseOrder->primary_insurance_requirements ?? '')) !== '')
-                <p class="whitespace-pre-wrap">
-                    <span class="text-xs text-slate-500">Primary requirements:</span>
-                    {{ $purchaseOrder->primary_insurance_requirements }}
-                </p>
-            @endif
             <p>
-                <span class="text-xs text-slate-500">Final insurance:</span>
-                @if ($purchaseOrder->final_insurance_applicable === null)
-                    —
-                @elseif ($purchaseOrder->final_insurance_applicable)
-                    Yes
-                @else
-                    No
-                @endif
+                <span class="text-xs text-slate-500">Warranty &amp; guarantee period (years):</span>
+                {{ $purchaseOrder->warranty_years ?? '—' }}
             </p>
-            @if (trim((string) ($purchaseOrder->final_insurance_requirements ?? '')) !== '')
-                <p class="whitespace-pre-wrap">
-                    <span class="text-xs text-slate-500">Final requirements:</span>
-                    {{ $purchaseOrder->final_insurance_requirements }}
+            @if (trim((string) ($purchaseOrder->warranty_coverage ?? '')) !== '')
+                <p>
+                    <span class="text-xs text-slate-500">Coverage / scope:</span>
+                    {{ $purchaseOrder->warranty_coverage }}
                 </p>
             @endif
         </dd>
