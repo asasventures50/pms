@@ -89,7 +89,7 @@
     <div class="mt-6 border-t border-slate-100 pt-6">
         <div class="flex items-center justify-between gap-3">
             <h4 class="text-xs font-semibold uppercase tracking-wide text-slate-600">General terms</h4>
-            @if (auth()->user()->hasPermission('rfq-terms.view'))
+            @if (auth()->user()->hasPermission('rfq-terms.manage'))
                 <a href="{{ route('rfq-terms.index') }}" target="_blank" rel="noopener"
                    class="text-xs font-medium text-slate-600 hover:text-slate-900">Manage terms</a>
             @endif
