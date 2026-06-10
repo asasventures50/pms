@@ -13,63 +13,36 @@ class CategoriesExport implements FromCollection, WithHeadings, WithTitle
 {
     public function collection(): Collection
     {
-        $rows = collect();
-
-        $categories = Category::query()
-            ->with(['subcategories' => fn ($q) => $q->orderBy('id')])
+        return Category::query()
+            ->withCount('subcategories')
             ->withCount(['vendors as vendors_count' => function ($q) {
                 $q->select(DB::raw('count(distinct vendors.id)'));
             }])
             ->orderBy('id')
-            ->get();
-
-        foreach ($categories as $category) {
-            if ($category->subcategories->isEmpty()) {
-                $rows->push([
-                    $category->name_ar,
-                    $category->name_en,
-                    $category->slug,
-                    $category->status,
-                    $category->vendors_count,
-                    '',
-                    '',
-                    '',
-                    '',
-                ]);
-
-                continue;
-            }
-
-            foreach ($category->subcategories as $sub) {
-                $rows->push([
-                    $category->name_ar,
-                    $category->name_en,
-                    $category->slug,
-                    $category->status,
-                    $category->vendors_count,
-                    $sub->name_ar,
-                    $sub->name_en,
-                    $sub->slug,
-                    $sub->status,
-                ]);
-            }
-        }
-
-        return $rows;
+            ->get()
+            ->map(fn (Category $category) => [
+                $category->id,
+                $category->name_ar,
+                $category->name_en,
+                $category->slug,
+                $category->status,
+                (int) $category->subcategories_count,
+                (int) $category->vendors_count,
+                $category->created_at?->format('Y-m-d H:i'),
+            ]);
     }
 
     public function headings(): array
     {
         return [
-            'category_name_ar',
-            'category_name_en',
-            'category_slug',
-            'category_status',
-            'category_vendors_count',
-            'subcategory_name_ar',
-            'subcategory_name_en',
-            'subcategory_slug',
-            'subcategory_status',
+            'id',
+            'name_ar',
+            'name_en',
+            'slug',
+            'status',
+            'subcategories_count',
+            'vendors_count',
+            'created_at',
         ];
     }
 

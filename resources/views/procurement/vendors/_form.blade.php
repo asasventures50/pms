@@ -10,6 +10,7 @@
     use App\Enums\Procurement\Vendors\VendorStatus;
 
     $v = $vendor ?? null;
+    $isPublicRegister = $mode === 'public_register';
 
     if ($mode === 'edit' && $v) {
         $bucket = [];
@@ -151,17 +152,19 @@
 <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
     <h2 class="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">Basic Information</h2>
     <div class="mt-4 grid gap-4 md:grid-cols-2">
-        <div>
-            <label for="vendor_code" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Vendor code</label>
-            <input type="text" name="vendor_code" id="vendor_code"
-                   value="{{ old('vendor_code', $mode === 'create' ? $suggestedVendorCode : ($v?->vendor_code ?? '')) }}"
-                   autocomplete="off"
-                   placeholder="e.g. VND-0001"
-                   class="admin-filter-control @error('vendor_code') border-red-500 @enderror">
-            <p class="mt-1 text-xs text-slate-500">Leave blank to auto-generate the next code. You can edit or replace it manually.</p>
-            @error('vendor_code')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-        </div>
-        <div>
+        @unless ($isPublicRegister)
+            <div>
+                <label for="vendor_code" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Vendor code</label>
+                <input type="text" name="vendor_code" id="vendor_code"
+                       value="{{ old('vendor_code', $mode === 'create' ? $suggestedVendorCode : ($v?->vendor_code ?? '')) }}"
+                       autocomplete="off"
+                       placeholder="e.g. VND-0001"
+                       class="admin-filter-control @error('vendor_code') border-red-500 @enderror">
+                <p class="mt-1 text-xs text-slate-500">Leave blank to auto-generate the next code. You can edit or replace it manually.</p>
+                @error('vendor_code')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
+        @endunless
+        <div @class(['md:col-span-2' => $isPublicRegister])>
             <label for="name" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Vendor name <span class="text-red-600">*</span></label>
             <input type="text" name="name" id="name" required
                    value="{{ old('name', $v?->name ?? '') }}"
@@ -178,28 +181,32 @@
             </select>
             @error('language')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
-        <div>
-            <label for="status" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Status <span class="text-red-600">*</span></label>
-            <select name="status" id="status" required
-                    class="admin-filter-control @error('status') border-red-500 @enderror">
-                @foreach (VendorStatus::cases() as $case)
-                    <option value="{{ $case->value }}" @selected(old('status', ($v?->status instanceof \BackedEnum) ? $v->status->value : ($v?->status ?? 'pending_review')) === $case->value)>{{ \Illuminate\Support\Str::headline(str_replace('_', ' ', $case->value)) }}</option>
-                @endforeach
-            </select>
-            @error('status')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-        </div>
+        @unless ($isPublicRegister)
+            <div>
+                <label for="status" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Status <span class="text-red-600">*</span></label>
+                <select name="status" id="status" required
+                        class="admin-filter-control @error('status') border-red-500 @enderror">
+                    @foreach (VendorStatus::cases() as $case)
+                        <option value="{{ $case->value }}" @selected(old('status', ($v?->status instanceof \BackedEnum) ? $v->status->value : ($v?->status ?? 'pending_review')) === $case->value)>{{ \Illuminate\Support\Str::headline(str_replace('_', ' ', $case->value)) }}</option>
+                    @endforeach
+                </select>
+                @error('status')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
+        @endunless
         <div class="md:col-span-2">
             <label for="description" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Description</label>
             <textarea name="description" id="description" rows="3"
                       class="admin-form-textarea @error('description') border-red-500 @enderror">{{ old('description', $v?->description ?? '') }}</textarea>
             @error('description')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
-        <div class="md:col-span-2">
-            <label for="notes" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Notes</label>
-            <textarea name="notes" id="notes" rows="2"
-                      class="admin-form-textarea @error('notes') border-red-500 @enderror">{{ old('notes', $v?->notes ?? '') }}</textarea>
-            @error('notes')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-        </div>
+        @unless ($isPublicRegister)
+            <div class="md:col-span-2">
+                <label for="notes" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Notes</label>
+                <textarea name="notes" id="notes" rows="2"
+                          class="admin-form-textarea @error('notes') border-red-500 @enderror">{{ old('notes', $v?->notes ?? '') }}</textarea>
+                @error('notes')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
+        @endunless
     </div>
 </section>
 
@@ -517,13 +524,15 @@
             </select>
             @error('payment_method')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
-        <div>
-            <label for="rating" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Rating</label>
-            <input type="number" name="rating" id="rating" min="1" max="5" step="1"
-                   value="{{ old('rating', $v?->rating ?? '') }}"
-                   class="admin-filter-control @error('rating') border-red-500 @enderror">
-            @error('rating')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-        </div>
+        @unless ($isPublicRegister)
+            <div>
+                <label for="rating" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Rating</label>
+                <input type="number" name="rating" id="rating" min="1" max="5" step="1"
+                       value="{{ old('rating', $v?->rating ?? '') }}"
+                       class="admin-filter-control @error('rating') border-red-500 @enderror">
+                @error('rating')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
+        @endunless
         @foreach (['payment_terms' => 'Payment terms', 'commercial_terms' => 'Commercial terms', 'technical_capabilities' => 'Technical capabilities'] as $field => $label)
             <div class="md:col-span-2">
                 <label for="{{ $field }}" class="block text-xs font-medium uppercase tracking-wide text-slate-500">{{ $label }}</label>
@@ -631,13 +640,15 @@
                                     <option value="{{ $cat->id }}" title="{{ $cat->name_en }}" @selected((string) $catId === (string) $cat->id)>{{ $cat->name_ar }} — {{ $cat->name_en }}</option>
                                 @endforeach
                             </select>
-                            <div class="mt-2">
-                                <button type="button"
-                                        data-add-category
-                                        class="inline-flex items-center rounded border border-slate-300 px-2 py-0.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50">
-                                    + Add Category
-                                </button>
-                            </div>
+                            @unless ($isPublicRegister)
+                                <div class="mt-2">
+                                    <button type="button"
+                                            data-add-category
+                                            class="inline-flex items-center rounded border border-slate-300 px-2 py-0.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50">
+                                        + Add Category
+                                    </button>
+                                </div>
+                            @endunless
                             @error('categories.'.$index.'.category_id')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                         </td>
                         <td class="px-3 py-2 align-top">
@@ -655,14 +666,16 @@
                                 @endforelse
                             </div>
                             @error('categories.'.$index.'.subcategory_ids')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
-                            <div class="mt-2">
-                                <button type="button"
-                                        data-add-subcategory
-                                        @disabled($catId === '' || $catId === null)
-                                        class="inline-flex items-center rounded border border-slate-300 px-2 py-0.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">
-                                    + Add Subcategory
-                                </button>
-                            </div>
+                            @unless ($isPublicRegister)
+                                <div class="mt-2">
+                                    <button type="button"
+                                            data-add-subcategory
+                                            @disabled($catId === '' || $catId === null)
+                                            class="inline-flex items-center rounded border border-slate-300 px-2 py-0.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">
+                                        + Add Subcategory
+                                    </button>
+                                </div>
+                            @endunless
                         </td>
                         <td class="px-3 py-2 align-top text-right">
                             <button type="button" data-remove-category-row
@@ -696,27 +709,31 @@
                     <option value="{{ $cat->id }}" title="{{ $cat->name_en }}">{{ $cat->name_ar }} — {{ $cat->name_en }}</option>
                 @endforeach
             </select>
-            <div class="mt-2">
-                <button type="button"
-                        data-add-category
-                        class="inline-flex items-center rounded border border-slate-300 px-2 py-0.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50">
-                    + Add Category
-                </button>
-            </div>
+            @unless ($isPublicRegister)
+                <div class="mt-2">
+                    <button type="button"
+                            data-add-category
+                            class="inline-flex items-center rounded border border-slate-300 px-2 py-0.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50">
+                        + Add Category
+                    </button>
+                </div>
+            @endunless
         </td>
         <td class="px-3 py-2 align-top">
             <div data-category-sub-checkboxes
                  class="max-h-44 space-y-2 overflow-y-auto rounded-lg border border-slate-200 bg-white p-2">
                 <p class="text-xs text-slate-500">Choose a category to list subcategories.</p>
             </div>
-            <div class="mt-2">
-                <button type="button"
-                        data-add-subcategory
-                        disabled
-                        class="inline-flex items-center rounded border border-slate-300 px-2 py-0.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">
-                    + Add Subcategory
-                </button>
-            </div>
+            @unless ($isPublicRegister)
+                <div class="mt-2">
+                    <button type="button"
+                            data-add-subcategory
+                            disabled
+                            class="inline-flex items-center rounded border border-slate-300 px-2 py-0.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">
+                        + Add Subcategory
+                    </button>
+                </div>
+            @endunless
         </td>
         <td class="px-3 py-2 align-top text-right">
             <button type="button" data-remove-category-row
@@ -908,8 +925,10 @@
     </div>
 </template>
 
-@include('procurement.vendors.partials.add-subcategory-modal')
-@include('procurement.vendors.partials.add-category-modal')
+@unless ($isPublicRegister)
+    @include('procurement.vendors.partials.add-subcategory-modal')
+    @include('procurement.vendors.partials.add-category-modal')
+@endunless
 
 @php
     $vendorFormConfig = [

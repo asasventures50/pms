@@ -28,6 +28,12 @@
                class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800">
                 Add Vendor
             </a>
+            <button type="button"
+                    id="copy-vendor-registration-link"
+                    data-registration-url="{{ route('vendor-registration.create') }}"
+                    class="inline-flex items-center justify-center rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-900 hover:bg-emerald-100">
+                Copy registration link
+            </button>
             <a href="{{ route('vendors.export', $vendorExportQuery) }}"
                class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">
                 {{ $vendorExportLabel }}
@@ -620,6 +626,30 @@
                 updateCityButtonLabel();
 
                 cntSelect.addEventListener('change', fillCities);
+            }
+
+            const copyRegistrationBtn = document.getElementById('copy-vendor-registration-link');
+            if (copyRegistrationBtn) {
+                copyRegistrationBtn.addEventListener('click', async function () {
+                    const url = copyRegistrationBtn.getAttribute('data-registration-url') || '';
+                    if (!url) {
+                        return;
+                    }
+
+                    const originalLabel = copyRegistrationBtn.textContent;
+                    try {
+                        await navigator.clipboard.writeText(url);
+                        copyRegistrationBtn.textContent = 'Link copied';
+                    } catch (error) {
+                        window.prompt('Copy this registration link:', url);
+                        copyRegistrationBtn.textContent = 'Copy registration link';
+                        return;
+                    }
+
+                    setTimeout(function () {
+                        copyRegistrationBtn.textContent = originalLabel;
+                    }, 2000);
+                });
             }
         });
     </script>

@@ -22,10 +22,21 @@ use App\Http\Controllers\Procurement\PurchaseOrders\PurchaseOrderController;
 use App\Http\Controllers\Procurement\Rfqs\RfqController;
 use App\Http\Controllers\Procurement\Rfqs\RfqGeneralTermController;
 use App\Http\Controllers\Procurement\VendorQuotations\VendorQuotationController;
+use App\Http\Controllers\Procurement\Vendors\VendorRegistrationController;
 use App\Http\Controllers\Procurement\Vendors\VendorWebController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', LandingController::class)->name('landing');
+
+Route::get('vendor-registration', [VendorRegistrationController::class, 'create'])
+    ->name('vendor-registration.create');
+
+Route::post('vendor-registration', [VendorRegistrationController::class, 'store'])
+    ->middleware('throttle:10,1')
+    ->name('vendor-registration.store');
+
+Route::get('vendor-registration/thanks', [VendorRegistrationController::class, 'thanks'])
+    ->name('vendor-registration.thanks');
 
 require __DIR__.'/auth.php';
 
