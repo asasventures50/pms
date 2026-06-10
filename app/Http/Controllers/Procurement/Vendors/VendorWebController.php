@@ -235,7 +235,7 @@ class VendorWebController extends Controller
 
         return view('procurement.vendors.show', [
             'vendor' => $vendor,
-            'listReturnUrl' => $this->vendorListReturnUrl($request->query('return')),
+            'listReturnUrl' => $this->resolveVendorListReturnUrl($request),
         ]);
     }
 
@@ -276,7 +276,7 @@ class VendorWebController extends Controller
             'defaultCountryId' => $syria?->id,
             'defaultCityId' => $damascus?->id,
             'suggestedVendorCode' => null,
-            'listReturnUrl' => $this->vendorListReturnUrl($request->query('return')),
+            'listReturnUrl' => $this->resolveVendorListReturnUrl($request),
         ]);
     }
 
@@ -338,40 +338,25 @@ class VendorWebController extends Controller
             $this->persistence->appendBrochures($vendor, $request);
         });
 
-        $listReturnUrl = $this->vendorListReturnUrl($request->input('return'));
+        $listReturnUrl = $this->resolveVendorListReturnUrl($request);
 
         return redirect()
-            ->to($listReturnUrl ?? route('vendors.show', $vendor))
+            ->to($listReturnUrl ?? route('vendors.index'))
             ->with('success', 'Vendor updated successfully.');
     }
 
-    private function vendorListReturnUrl(mixed $url): ?string
+    private function resolveVendorListReturnUrl(Request $request): ?string
     {
-        if (! is_string($url) || $url === '') {
+        $return = trim((string) ($request->query('return') ?? $request->input('return') ?? ''));
+        if ($return === '') {
             return null;
         }
 
-        $parts = parse_url($url);
-        if ($parts === false) {
+        $path = parse_url($return, PHP_URL_PATH);
+        if ($path !== parse_url(route('vendors.index'), PHP_URL_PATH)) {
             return null;
         }
 
-        $indexPath = parse_url(route('vendors.index'), PHP_URL_PATH);
-        $path = $parts['path'] ?? null;
-
-        if ($path !== $indexPath) {
-            return null;
-        }
-
-        if (isset($parts['host'])) {
-            $appHost = parse_url(config('app.url'), PHP_URL_HOST);
-            if ($appHost && strcasecmp($parts['host'], $appHost) !== 0) {
-                return null;
-            }
-        }
-
-        $query = $parts['query'] ?? '';
-
-        return $query !== '' ? route('vendors.index').'?'.$query : route('vendors.index');
+        return $return;
     }
 }
