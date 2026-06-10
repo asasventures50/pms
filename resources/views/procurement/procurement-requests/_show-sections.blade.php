@@ -99,9 +99,3 @@
         </div>
     @endif
 </section>
-
-<section class="rounded-xl border border-slate-200 bg-white p-6 text-sm shadow-sm">
-    <h3 class="font-semibold text-slate-900">Approvals <span class="font-normal text-slate-500">(internal)</span></h3>
-    <table class="mt-4 min-w-full text-sm"><thead class="text-xs uppercase text-slate-500"><tr><th class="py-1 pr-3">Role</th><th class="py-1 pr-3">Name</th><th class="py-1 pr-3">Signature</th><th class="py-1">Date</th></tr></thead>
-    <tbody>@foreach ($formData['approvals'] ?? [] as $row)<tr class="border-t border-slate-100"><td class="py-2 pr-3">{{ $row['label'] ?? '' }}</td><td class="py-2 pr-3">{{ $row['name'] ?: '—' }}</td><td class="py-2 pr-3">{{ $row['signature'] ?: '—' }}</td><td class="py-2">{{ $row['signed_at'] ?: '—' }}</td></tr>@endforeach</tbody></table>
-</section>
