@@ -3,6 +3,20 @@
 @section('title', 'Vendors')
 
 @section('content')
+    @php
+        $vendorExportQuery = request()->except(['page', 'per_page']);
+        $vendorFiltersActive = request()->filled('q')
+            || request()->filled('status')
+            || request()->filled('language')
+            || request()->filled('category_id')
+            || request()->filled('company_type')
+            || request()->filled('coverage_type')
+            || request()->filled('business_type')
+            || request()->filled('country_id')
+            || collect((array) request('subcategory_ids', []))->contains(fn ($v) => (int) $v > 0)
+            || collect((array) request('city_ids', []))->contains(fn ($v) => (int) $v > 0);
+        $vendorExportLabel = $vendorFiltersActive ? 'Export filtered Excel' : 'Export all Excel';
+    @endphp
     <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Vendors</h1>
@@ -13,9 +27,9 @@
                class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800">
                 Add Vendor
             </a>
-            <a href="{{ route('vendors.export', request()->except(['page', 'per_page'])) }}"
+            <a href="{{ route('vendors.export', $vendorExportQuery) }}"
                class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">
-                Export Excel
+                {{ $vendorExportLabel }}
             </a>
             <a href="{{ route('vendors.import.form') }}"
                class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">
@@ -243,10 +257,6 @@
         </div>
         <div class="flex flex-wrap items-center gap-3">
             <button type="submit" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">Apply filters</button>
-            <a href="{{ route('vendors.export', request()->except(['page', 'per_page'])) }}"
-               class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">
-                Export filtered Excel
-            </a>
             <a href="{{ route('vendors.index') }}" class="text-sm font-medium text-slate-600 hover:text-slate-900">Reset</a>
         </div>
     </form>

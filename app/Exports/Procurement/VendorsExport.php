@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithTitle;
 
-class VendorsExport implements FromCollection, WithHeadings, WithTitle
+class VendorsExport implements FromCollection, ShouldAutoSize, WithHeadings, WithTitle
 {
     /**
      * @param  Builder<Vendor>  $query
@@ -90,20 +91,20 @@ class VendorsExport implements FromCollection, WithHeadings, WithTitle
     public function headings(): array
     {
         return [
-            'vendor_code',
-            'created_by',
-            'vendor_name',
-            'language',
-            'country',
-            'city',
-            'phone',
-            'email',
-            'rfq_methods',
-            'status',
-            'primary_categories_ar',
-            'primary_categories_en',
-            'business_types',
-            'has_brochures',
+            'Vendor Code',
+            'Created By',
+            'Vendor Name',
+            'Language',
+            'Country',
+            'City',
+            'Phone',
+            'Email',
+            'RFQ Methods',
+            'Status',
+            'Primary Categories (AR)',
+            'Primary Categories (EN)',
+            'Business Types',
+            'Brochures',
         ];
     }
 
