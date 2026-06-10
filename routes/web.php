@@ -119,6 +119,10 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('permission:rfqs.create|rfqs.update|vendor-quotations.create|vendor-quotations.update')
         ->name('vendors.rfq-snapshot');
 
+    Route::get('/vendors/export', [VendorWebController::class, 'export'])
+        ->middleware('permission:vendors.view')
+        ->name('vendors.export');
+
     Route::get('/vendors/import', [VendorWebController::class, 'importForm'])
         ->middleware('permission:vendors.create')
         ->name('vendors.import.form');
