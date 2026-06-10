@@ -38,7 +38,15 @@
         </div>
     </div>
 
+    @php
+        $vendorPerPageOptions = [15, 30, 50, 75, 100];
+        $vendorPerPage = (int) request('per_page', 15);
+        if (! in_array($vendorPerPage, $vendorPerPageOptions, true)) {
+            $vendorPerPage = 15;
+        }
+    @endphp
     <form method="get" action="{{ route('vendors.index') }}" class="mb-6 space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <input type="hidden" name="per_page" value="{{ $vendorPerPage }}">
         <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div class="md:col-span-2">
                 <label for="q" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Search</label>
@@ -355,9 +363,9 @@
                 </tbody>
             </table>
         </div>
-        @if ($vendors->hasPages())
+        @if ($vendors->total() > 0)
             <div class="border-t border-slate-200 bg-slate-50 px-4 py-3">
-                {{ $vendors->links() }}
+                {{ $vendors->links('pagination.vendors') }}
             </div>
         @endif
     </div>
@@ -368,6 +376,15 @@
     <script type="application/json" id="vendor-filter-cities-by-country">@json($citiesByCountry)</script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('[data-per-page-auto]').forEach(function (select) {
+                select.addEventListener('change', function () {
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('per_page', select.value);
+                    url.searchParams.delete('page');
+                    window.location.href = url.toString();
+                });
+            });
+
             const subByCat = JSON.parse(document.getElementById('vendor-filter-subcategories-by-category')?.textContent || '{}');
             const catSelect = document.getElementById('vendor_filter_category_id');
             const wrap = document.getElementById('vendor_filter_subcategory_wrap');

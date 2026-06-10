@@ -34,8 +34,11 @@ class VendorWebController extends Controller
 
     public function index(Request $request): View
     {
+        $allowedPerPage = [15, 30, 50, 75, 100];
         $perPage = (int) $request->query('per_page', 15);
-        $perPage = max(1, min($perPage, 100));
+        if (! in_array($perPage, $allowedPerPage, true)) {
+            $perPage = 15;
+        }
 
         $vendors = $this->listQuery->filtered($request)->paginate($perPage)->withQueryString();
 
