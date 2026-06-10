@@ -10,13 +10,16 @@
         </div>
         <div class="flex flex-wrap gap-4 text-sm font-medium">
             <a href="{{ route('vendors.show', $vendor) }}" class="text-slate-600 hover:text-slate-900">View</a>
-            <a href="{{ route('vendors.index') }}" class="text-slate-600 hover:text-slate-900">Back to list</a>
+            <a href="{{ $listReturnUrl ?? route('vendors.index') }}" class="text-slate-600 hover:text-slate-900">Back to list</a>
         </div>
     </div>
 
     <form id="vendor-form" action="{{ route('vendors.update', $vendor) }}" method="post" enctype="multipart/form-data" class="space-y-8">
         @csrf
         @method('PUT')
+        @if ($listReturnUrl)
+            <input type="hidden" name="return" value="{{ $listReturnUrl }}">
+        @endif
         @include('procurement.vendors._form', [
             'vendor' => $vendor,
             'mode' => 'edit',

@@ -220,7 +220,7 @@ class VendorWebController extends Controller
             ->with('success', 'Vendor created successfully.');
     }
 
-    public function show(Vendor $vendor): View
+    public function show(Request $request, Vendor $vendor): View
     {
         $vendor->load([
             'creator',
@@ -235,10 +235,11 @@ class VendorWebController extends Controller
 
         return view('procurement.vendors.show', [
             'vendor' => $vendor,
+            'listReturnUrl' => $this->vendorListReturnUrl($request->query('return')),
         ]);
     }
 
-    public function edit(Vendor $vendor): View
+    public function edit(Request $request, Vendor $vendor): View
     {
         $vendor->load([
             'locations.country',
@@ -275,6 +276,7 @@ class VendorWebController extends Controller
             'defaultCountryId' => $syria?->id,
             'defaultCityId' => $damascus?->id,
             'suggestedVendorCode' => null,
+            'listReturnUrl' => $this->vendorListReturnUrl($request->query('return')),
         ]);
     }
 
@@ -336,8 +338,40 @@ class VendorWebController extends Controller
             $this->persistence->appendBrochures($vendor, $request);
         });
 
+        $listReturnUrl = $this->vendorListReturnUrl($request->input('return'));
+
         return redirect()
-            ->route('vendors.show', $vendor)
+            ->to($listReturnUrl ?? route('vendors.show', $vendor))
             ->with('success', 'Vendor updated successfully.');
+    }
+
+    private function vendorListReturnUrl(mixed $url): ?string
+    {
+        if (! is_string($url) || $url === '') {
+            return null;
+        }
+
+        $parts = parse_url($url);
+        if ($parts === false) {
+            return null;
+        }
+
+        $indexPath = parse_url(route('vendors.index'), PHP_URL_PATH);
+        $path = $parts['path'] ?? null;
+
+        if ($path !== $indexPath) {
+            return null;
+        }
+
+        if (isset($parts['host'])) {
+            $appHost = parse_url(config('app.url'), PHP_URL_HOST);
+            if ($appHost && strcasecmp($parts['host'], $appHost) !== 0) {
+                return null;
+            }
+        }
+
+        $query = $parts['query'] ?? '';
+
+        return $query !== '' ? route('vendors.index').'?'.$query : route('vendors.index');
     }
 }

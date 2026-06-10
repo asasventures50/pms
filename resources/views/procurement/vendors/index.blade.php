@@ -350,9 +350,9 @@
                         <td class="px-3 py-2 text-xs text-slate-700">{{ $btLabels !== '' ? $btLabels : '—' }}</td>
                         <td class="whitespace-nowrap px-3 py-2 text-slate-700">{{ ($vendor->brochures_count ?? 0) > 0 ? 'Yes' : 'No' }}</td>
                         <td class="whitespace-nowrap px-3 py-2 text-right">
-                            <a href="{{ route('vendors.show', $vendor) }}" class="text-sm font-medium text-slate-700 hover:text-slate-900">View</a>
+                            <a href="{{ route('vendors.show', ['vendor' => $vendor, 'return' => request()->fullUrl()]) }}" class="text-sm font-medium text-slate-700 hover:text-slate-900">View</a>
                             <span class="mx-1 text-slate-300">|</span>
-                            <a href="{{ route('vendors.edit', $vendor) }}" class="text-sm font-medium text-slate-700 hover:text-slate-900">Edit</a>
+                            <a href="{{ route('vendors.edit', ['vendor' => $vendor, 'return' => request()->fullUrl()]) }}" class="text-sm font-medium text-slate-700 hover:text-slate-900">Edit</a>
                         </td>
                     </tr>
                 @empty
