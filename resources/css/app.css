@@ -60,4 +60,108 @@
         @apply inline-flex min-h-[2.75rem] cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-slate-500 bg-slate-600 px-8 py-2.5 text-base font-semibold text-white shadow-md;
         @apply transition-colors hover:border-slate-600 hover:bg-slate-700 active:bg-slate-800;
     }
+
+    /**
+     * Public vendor registration — ASAS Ventures brand (images/po/logo.png).
+     */
+    .public-form-page {
+        --activation-primary: #e65100;
+        --activation-accent: #ff9800;
+        --activation-primary-hover: #d84315;
+        --activation-text: #212121;
+        font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+        background:
+            radial-gradient(1200px 600px at 20% 0%, color-mix(in oklab, var(--activation-accent) 16%, white) 0%, transparent 60%),
+            radial-gradient(900px 600px at 85% 5%, color-mix(in oklab, var(--activation-primary) 10%, white) 0%, transparent 65%),
+            #fffaf5;
+    }
+
+    .public-form-header {
+        border-color: color-mix(in oklab, var(--activation-primary) 18%, #e2e8f0);
+    }
+
+    .public-form-logo {
+        display: block;
+        margin-inline: auto;
+    }
+
+    .public-form-page .public-form-title {
+        color: var(--activation-text);
+    }
+
+    .public-form-page section {
+        border-color: color-mix(in oklab, var(--activation-primary) 22%, #e2e8f0);
+        box-shadow: 0 1px 3px color-mix(in oklab, var(--activation-primary) 10%, transparent);
+    }
+
+    .public-form-page section > h2 {
+        color: var(--activation-primary);
+        border-bottom-color: color-mix(in oklab, var(--activation-accent) 45%, #f1f5f9);
+    }
+
+    .public-form-page section h3 {
+        color: color-mix(in oklab, var(--activation-primary) 75%, var(--activation-text));
+    }
+
+    .public-form-page .admin-filter-control:focus,
+    .public-form-page .admin-form-textarea:focus,
+    .public-form-page .admin-filter-dropdown-btn:focus {
+        border-color: var(--activation-primary);
+        --tw-ring-color: var(--activation-primary);
+    }
+
+    .public-form-page .admin-form-file::file-selector-button {
+        background-color: var(--activation-primary);
+    }
+
+    .public-form-page .admin-form-file::file-selector-button:hover {
+        background-color: var(--activation-primary-hover);
+    }
+
+    .public-form-page input[type='checkbox'],
+    .public-form-page input[type='radio'] {
+        accent-color: var(--activation-primary);
+    }
+
+    .public-form-page .vendor-location-row,
+    .public-form-page .brochure-upload-row,
+    .public-form-page .rounded-lg.border.border-slate-200.bg-slate-50\/50 {
+        border-color: color-mix(in oklab, var(--activation-primary) 18%, #e2e8f0);
+        background-color: color-mix(in oklab, var(--activation-accent) 8%, #f8fafc);
+    }
+
+    .public-form-page button.border-slate-300,
+    .public-form-page a.border-slate-300 {
+        border-color: color-mix(in oklab, var(--activation-primary) 30%, #cbd5e1);
+        color: var(--activation-primary);
+    }
+
+    .public-form-page button.border-slate-300:hover,
+    .public-form-page a.border-slate-300:hover {
+        background-color: color-mix(in oklab, var(--activation-accent) 18%, white);
+    }
+
+    .public-form-page .procurement-add-line-bar button {
+        border-color: var(--activation-primary);
+        background-color: var(--activation-primary);
+    }
+
+    .public-form-page .procurement-add-line-bar button:hover {
+        border-color: var(--activation-primary-hover);
+        background-color: var(--activation-primary-hover);
+    }
+
+    .public-form-submit-btn {
+        @apply inline-flex items-center justify-center rounded-lg px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors;
+        background-color: var(--activation-primary);
+    }
+
+    .public-form-submit-btn:hover {
+        background-color: var(--activation-primary-hover);
+    }
+
+    .public-form-page .public-form-success-icon {
+        background-color: color-mix(in oklab, var(--activation-accent) 35%, white);
+        color: var(--activation-primary);
+    }
 }

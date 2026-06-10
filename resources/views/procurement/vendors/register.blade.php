@@ -3,8 +3,8 @@
 @section('title', 'Register as Vendor')
 
 @section('content')
-    <div class="mb-8">
-        <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Register as Vendor</h1>
+    <div class="mb-8 text-center">
+        <h1 class="public-form-title text-2xl font-semibold tracking-tight">Register as Vendor</h1>
         <p class="mt-2 text-sm text-slate-600">
             Complete the form below to submit your company profile for review. No account login is required.
         </p>
@@ -23,8 +23,7 @@
         ])
 
         <div class="flex flex-wrap items-center gap-3">
-            <button type="submit"
-                    class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-slate-800">
+            <button type="submit" class="public-form-submit-btn">
                 Submit registration
             </button>
         </div>
