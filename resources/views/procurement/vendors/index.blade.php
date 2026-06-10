@@ -364,9 +364,11 @@
 @endsection
 
 @push('scripts')
+    <script type="application/json" id="vendor-filter-subcategories-by-category">@json($subcategoriesByCategory)</script>
+    <script type="application/json" id="vendor-filter-cities-by-country">@json($citiesByCountry)</script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const subByCat = @json($subcategoriesByCategory);
+            const subByCat = JSON.parse(document.getElementById('vendor-filter-subcategories-by-category')?.textContent || '{}');
             const catSelect = document.getElementById('vendor_filter_category_id');
             const wrap = document.getElementById('vendor_filter_subcategory_wrap');
             const btn = document.getElementById('vendor_filter_subcategory_btn');
@@ -492,7 +494,7 @@
             catSelect.addEventListener('change', fillSubcategories);
 
             // ── Country / City filter ──────────────────────────────────────
-            const citiesByCnt = @json($citiesByCountry);
+            const citiesByCnt = JSON.parse(document.getElementById('vendor-filter-cities-by-country')?.textContent || '{}');
             const cntSelect   = document.getElementById('vendor_filter_country_id');
             const cityWrap    = document.getElementById('vendor_filter_city_wrap');
             const cityBtn     = document.getElementById('vendor_filter_city_btn');
