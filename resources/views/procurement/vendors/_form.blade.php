@@ -631,6 +631,13 @@
                                     <option value="{{ $cat->id }}" title="{{ $cat->name_en }}" @selected((string) $catId === (string) $cat->id)>{{ $cat->name_ar }} — {{ $cat->name_en }}</option>
                                 @endforeach
                             </select>
+                            <div class="mt-2">
+                                <button type="button"
+                                        data-add-category
+                                        class="inline-flex items-center rounded border border-slate-300 px-2 py-0.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50">
+                                    + Add Category
+                                </button>
+                            </div>
                             @error('categories.'.$index.'.category_id')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                         </td>
                         <td class="px-3 py-2 align-top">
@@ -689,6 +696,13 @@
                     <option value="{{ $cat->id }}" title="{{ $cat->name_en }}">{{ $cat->name_ar }} — {{ $cat->name_en }}</option>
                 @endforeach
             </select>
+            <div class="mt-2">
+                <button type="button"
+                        data-add-category
+                        class="inline-flex items-center rounded border border-slate-300 px-2 py-0.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50">
+                    + Add Category
+                </button>
+            </div>
         </td>
         <td class="px-3 py-2 align-top">
             <div data-category-sub-checkboxes
@@ -895,6 +909,7 @@
 </template>
 
 @include('procurement.vendors.partials.add-subcategory-modal')
+@include('procurement.vendors.partials.add-category-modal')
 
 @php
     $vendorFormConfig = [
@@ -1226,6 +1241,238 @@
                     return;
                 }
                 openQuickAddModal(row);
+            });
+
+            const categoryQuickStoreUrl = "{{ route('categories.quick-store') }}";
+            let categoryQuickAddTargetRow = null;
+
+            const categoryQuickAddModal = document.getElementById('add-category-modal');
+            const categoryQuickAddForm = document.getElementById('add-category-form');
+            const categoryQuickAddNameArInput = document.getElementById('add-category-name-ar');
+            const categoryQuickAddNameEnInput = document.getElementById('add-category-name-en');
+            const categoryQuickAddErrNameAr = document.getElementById('add-category-error-name-ar');
+            const categoryQuickAddErrNameEn = document.getElementById('add-category-error-name-en');
+            const categoryQuickAddErrGeneral = document.getElementById('add-category-error-general');
+            const categoryQuickAddCancelBtn = document.getElementById('add-category-cancel');
+            const categoryQuickAddSaveBtn = document.getElementById('add-category-save');
+
+            function categoryOptionLabel(item) {
+                const ar = item.name_ar || '';
+                const en = item.name_en || '';
+                return en ? (ar + ' — ' + en) : ar;
+            }
+
+            function createCategoryOption(item) {
+                const opt = document.createElement('option');
+                opt.value = String(item.id);
+                opt.textContent = categoryOptionLabel(item);
+                if (item.name_en) {
+                    opt.title = item.name_en;
+                }
+                return opt;
+            }
+
+            function appendCategoryOptionToSelect(selectEl, category) {
+                if (!selectEl) {
+                    return;
+                }
+                const id = String(category.id);
+                if (selectEl.querySelector('option[value="' + CSS.escape(id) + '"]')) {
+                    return;
+                }
+                selectEl.appendChild(createCategoryOption(category));
+            }
+
+            function appendCategoryToAllSelects(category) {
+                document.querySelectorAll('[data-category-select], [data-brochure-category]').forEach(function (selectEl) {
+                    appendCategoryOptionToSelect(selectEl, category);
+                });
+                const rowTemplate = document.getElementById('category-row-template');
+                if (rowTemplate) {
+                    const tplSelect = rowTemplate.content.querySelector('[data-category-select]');
+                    appendCategoryOptionToSelect(tplSelect, category);
+                }
+                const brochureTemplate = document.getElementById('brochure-row-template');
+                if (brochureTemplate) {
+                    const tplSelect = brochureTemplate.content.querySelector('[data-brochure-category]');
+                    appendCategoryOptionToSelect(tplSelect, category);
+                }
+            }
+
+            function clearCategoryQuickAddErrors() {
+                [categoryQuickAddErrNameAr, categoryQuickAddErrNameEn, categoryQuickAddErrGeneral].forEach(function (el) {
+                    if (!el) {
+                        return;
+                    }
+                    el.classList.add('hidden');
+                    el.textContent = '';
+                });
+                [categoryQuickAddNameArInput, categoryQuickAddNameEnInput].forEach(function (el) {
+                    if (!el) {
+                        return;
+                    }
+                    el.classList.remove('border-red-500');
+                });
+            }
+
+            function setCategoryFieldError(inputEl, errEl, message) {
+                if (!inputEl || !errEl) {
+                    return;
+                }
+                errEl.textContent = message;
+                errEl.classList.remove('hidden');
+                inputEl.classList.add('border-red-500');
+            }
+
+            function openCategoryQuickAddModal(row) {
+                if (!categoryQuickAddModal || !categoryQuickAddForm) {
+                    return false;
+                }
+
+                categoryQuickAddTargetRow = row;
+                categoryQuickAddNameArInput.value = '';
+                categoryQuickAddNameEnInput.value = '';
+                clearCategoryQuickAddErrors();
+
+                categoryQuickAddModal.classList.remove('hidden');
+                categoryQuickAddModal.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('overflow-hidden');
+                setTimeout(function () {
+                    categoryQuickAddNameArInput.focus();
+                }, 0);
+
+                return true;
+            }
+
+            function closeCategoryQuickAddModal() {
+                categoryQuickAddTargetRow = null;
+                if (categoryQuickAddModal) {
+                    categoryQuickAddModal.classList.add('hidden');
+                    categoryQuickAddModal.setAttribute('aria-hidden', 'true');
+                }
+                document.body.classList.remove('overflow-hidden');
+                clearCategoryQuickAddErrors();
+            }
+
+            if (categoryQuickAddCancelBtn) {
+                categoryQuickAddCancelBtn.addEventListener('click', function () {
+                    closeCategoryQuickAddModal();
+                });
+            }
+
+            if (categoryQuickAddModal) {
+                const categoryPanel = categoryQuickAddModal.querySelector('.relative');
+                categoryQuickAddModal.addEventListener('click', function (e) {
+                    if (categoryPanel && !categoryPanel.contains(e.target)) {
+                        closeCategoryQuickAddModal();
+                    }
+                });
+            }
+
+            if (categoryQuickAddSaveBtn) {
+                categoryQuickAddSaveBtn.addEventListener('click', async function () {
+                    if (!categoryQuickAddTargetRow) {
+                        return;
+                    }
+
+                    const nameAr = (categoryQuickAddNameArInput.value || '').trim();
+                    const nameEn = (categoryQuickAddNameEnInput.value || '').trim();
+
+                    clearCategoryQuickAddErrors();
+                    if (!nameAr) {
+                        setCategoryFieldError(categoryQuickAddNameArInput, categoryQuickAddErrNameAr, 'Arabic name is required.');
+                        return;
+                    }
+                    if (!nameEn) {
+                        setCategoryFieldError(categoryQuickAddNameEnInput, categoryQuickAddErrNameEn, 'English name is required.');
+                        return;
+                    }
+
+                    categoryQuickAddSaveBtn.disabled = true;
+
+                    const formData = new FormData();
+                    formData.append('name_ar', nameAr);
+                    formData.append('name_en', nameEn);
+
+                    try {
+                        const res = await fetch(categoryQuickStoreUrl, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json',
+                            },
+                            body: formData
+                        });
+
+                        const payload = await res.json().catch(function () {
+                            return null;
+                        });
+
+                        if (!res.ok) {
+                            const errors = payload && payload.errors ? payload.errors : null;
+                            clearCategoryQuickAddErrors();
+                            if (errors) {
+                                if (errors.name_ar && errors.name_ar[0]) {
+                                    setCategoryFieldError(categoryQuickAddNameArInput, categoryQuickAddErrNameAr, errors.name_ar[0]);
+                                }
+                                if (errors.name_en && errors.name_en[0]) {
+                                    setCategoryFieldError(categoryQuickAddNameEnInput, categoryQuickAddErrNameEn, errors.name_en[0]);
+                                }
+                                if ((!errors.name_ar || !errors.name_ar[0]) && (!errors.name_en || !errors.name_en[0])) {
+                                    categoryQuickAddErrGeneral.textContent = 'Please fix the highlighted fields.';
+                                    categoryQuickAddErrGeneral.classList.remove('hidden');
+                                }
+                            } else {
+                                categoryQuickAddErrGeneral.textContent = 'Failed to create category.';
+                                categoryQuickAddErrGeneral.classList.remove('hidden');
+                            }
+                            return;
+                        }
+
+                        const created = payload;
+                        if (!created || !created.id) {
+                            categoryQuickAddErrGeneral.textContent = 'Server did not return the created category.';
+                            categoryQuickAddErrGeneral.classList.remove('hidden');
+                            return;
+                        }
+
+                        const newId = created.id;
+                        const catKey = String(newId);
+
+                        if (!Array.isArray(subData[catKey])) {
+                            subData[catKey] = [];
+                        }
+
+                        appendCategoryToAllSelects(created);
+
+                        const targetRow = categoryQuickAddTargetRow;
+                        closeCategoryQuickAddModal();
+
+                        const catSelect = targetRow ? targetRow.querySelector('[data-category-select]') : null;
+                        if (catSelect) {
+                            catSelect.value = String(newId);
+                            refreshCategorySubCheckboxes(targetRow, []);
+                            const addBtn = targetRow.querySelector('[data-add-subcategory]');
+                            if (addBtn) {
+                                addBtn.disabled = false;
+                            }
+                        }
+                    } finally {
+                        categoryQuickAddSaveBtn.disabled = false;
+                    }
+                });
+            }
+
+            document.addEventListener('click', function (e) {
+                const btn = e.target.closest('[data-add-category]');
+                if (!btn) {
+                    return;
+                }
+                const row = btn.closest('tr.category-row');
+                if (!row) {
+                    return;
+                }
+                openCategoryQuickAddModal(row);
             });
 
             function reindexVendorLocationRows() {

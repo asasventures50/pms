@@ -12,6 +12,7 @@ use App\Http\Controllers\Geo\CityController;
 use App\Http\Controllers\Geo\CountryController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\Procurement\Categories\CategoryController;
+use App\Http\Controllers\Procurement\Catalog\CategoryQuickStoreController;
 use App\Http\Controllers\Procurement\Catalog\SubcategoryQuickStoreController;
 use App\Http\Controllers\Procurement\ProcurementRequests\ProcurementRequestController;
 use App\Http\Controllers\Procurement\Projects\ProjectController;
@@ -73,6 +74,10 @@ Route::middleware(['auth'])->group(function () {
         ->middlewareFor(['index', 'show'], 'permission:categories.view')
         ->middlewareFor(['create', 'store'], 'permission:categories.create')
         ->middlewareFor(['edit', 'update', 'destroy'], 'permission:categories.update');
+
+    Route::post('/categories/quick-store', [CategoryQuickStoreController::class, 'quickStore'])
+        ->middleware('permission:categories.create')
+        ->name('categories.quick-store');
 
     Route::post('/subcategories/quick-store', [SubcategoryQuickStoreController::class, 'quickStore'])
         ->middleware('permission:categories.create')
