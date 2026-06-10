@@ -1,12 +1,12 @@
 @extends('layouts.public-form')
 
-@section('title', 'Register as Vendor')
+@section('title', __('vendor_registration.page_title'))
 
 @section('content')
     <div class="mb-8 text-center">
-        <h1 class="public-form-title text-2xl font-semibold tracking-tight">Register as Vendor</h1>
+        <h1 class="public-form-title text-2xl font-semibold tracking-tight">{{ __('vendor_registration.page_heading') }}</h1>
         <p class="mt-2 text-sm text-slate-600">
-            Complete the form below to submit your company profile for review. No account login is required.
+            {{ __('vendor_registration.page_subtitle') }}
         </p>
     </div>
 
@@ -24,7 +24,7 @@
 
         <div class="flex flex-wrap items-center gap-3">
             <button type="submit" class="public-form-submit-btn">
-                Submit registration
+                {{ __('vendor_registration.submit_registration') }}
             </button>
         </div>
     </form>

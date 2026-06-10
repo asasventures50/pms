@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectUsersTo(fn () => route('dashboard', absolute: false));
         $middleware->alias([
             'permission' => \App\Http\Middleware\EnsurePermission::class,
+            'public-form-locale' => \App\Http\Middleware\SetPublicFormLocale::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

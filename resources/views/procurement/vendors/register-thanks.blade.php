@@ -1,6 +1,6 @@
 @extends('layouts.public-form')
 
-@section('title', 'Registration Submitted')
+@section('title', __('vendor_registration.thanks_title'))
 
 @section('content')
     <div class="mx-auto max-w-lg rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm">
@@ -9,20 +9,20 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
             </svg>
         </div>
-        <h1 class="public-form-title mt-4 text-xl font-semibold">Thank you for registering</h1>
+        <h1 class="public-form-title mt-4 text-xl font-semibold">{{ __('vendor_registration.thanks_heading') }}</h1>
         @if ($vendorName)
             <p class="mt-2 text-sm text-slate-600">
-                We received the registration for <span class="font-medium text-slate-900">{{ $vendorName }}</span>.
+                {{ __('vendor_registration.thanks_with_name', ['name' => $vendorName]) }}
             </p>
         @else
-            <p class="mt-2 text-sm text-slate-600">We received your vendor registration.</p>
+            <p class="mt-2 text-sm text-slate-600">{{ __('vendor_registration.thanks_generic') }}</p>
         @endif
         <p class="mt-3 text-sm text-slate-600">
-            Our procurement team will review your submission and contact you if needed.
+            {{ __('vendor_registration.thanks_review') }}
         </p>
         <a href="{{ route('vendor-registration.create') }}"
            class="public-form-submit-btn mt-6 inline-flex items-center justify-center px-4 py-2">
-            Back to registration
+            {{ __('vendor_registration.back_to_registration') }}
         </a>
     </div>
 @endsection

@@ -82,7 +82,6 @@
 
     .public-form-logo {
         display: block;
-        margin-inline: auto;
     }
 
     .public-form-page .public-form-title {
@@ -163,5 +162,186 @@
     .public-form-page .public-form-success-icon {
         background-color: color-mix(in oklab, var(--activation-accent) 35%, white);
         color: var(--activation-primary);
+    }
+
+    .public-form-lang-toggle {
+        position: absolute;
+        top: 50%;
+        inset-inline-end: 1rem;
+        display: inline-flex;
+        height: 2.5rem;
+        align-items: center;
+        gap: 0.5rem;
+        border-radius: 9999px;
+        border: 1px solid color-mix(in oklab, var(--activation-primary) 20%, #e2e8f0);
+        background-color: #fff;
+        padding-inline: 0.75rem 0.875rem;
+        color: var(--activation-primary);
+        text-decoration: none;
+        transform: translateY(-50%);
+        box-shadow:
+            0 1px 2px color-mix(in oklab, var(--activation-primary) 8%, transparent),
+            0 0 0 0 color-mix(in oklab, var(--activation-accent) 30%, transparent);
+        transition:
+            border-color 0.2s ease,
+            background-color 0.2s ease,
+            box-shadow 0.2s ease,
+            transform 0.15s ease;
+    }
+
+    @media (min-width: 640px) {
+        .public-form-lang-toggle {
+            inset-inline-end: 1.5rem;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .public-form-lang-toggle {
+            inset-inline-end: 2rem;
+        }
+    }
+
+    .public-form-lang-toggle:hover {
+        border-color: color-mix(in oklab, var(--activation-primary) 45%, #e2e8f0);
+        background-color: color-mix(in oklab, var(--activation-accent) 10%, white);
+        box-shadow:
+            0 4px 12px color-mix(in oklab, var(--activation-primary) 14%, transparent),
+            0 0 0 3px color-mix(in oklab, var(--activation-accent) 18%, transparent);
+        transform: translateY(calc(-50% - 1px));
+    }
+
+    .public-form-lang-toggle:active {
+        transform: translateY(-50%);
+    }
+
+    .public-form-lang-toggle-icon {
+        width: 1.125rem;
+        height: 1.125rem;
+        flex-shrink: 0;
+        opacity: 0.9;
+        transition: transform 0.25s ease;
+    }
+
+    .public-form-lang-toggle:hover .public-form-lang-toggle-icon {
+        transform: rotate(-12deg);
+    }
+
+    .public-form-lang-toggle-divider {
+        width: 1px;
+        height: 1rem;
+        background-color: color-mix(in oklab, var(--activation-primary) 22%, #e2e8f0);
+    }
+
+    .public-form-lang-toggle-label {
+        min-width: 1.25rem;
+        font-size: 0.6875rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        line-height: 1;
+        text-align: center;
+    }
+
+    html.public-form-rtl .public-form-page {
+        font-family: 'Noto Sans Arabic', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+    }
+
+    html.public-form-rtl select.admin-filter-control {
+        background-position: left 0.625rem center;
+        padding-left: 2.25rem;
+        padding-right: 0.75rem;
+    }
+
+    @media (max-width: 767px) {
+        .category-rows-wrap {
+            overflow-x: visible;
+            border: none;
+            border-radius: 0;
+            background: transparent;
+        }
+
+        .category-rows-table {
+            display: block;
+            min-width: 0;
+        }
+
+        .category-rows-thead {
+            display: none;
+        }
+
+        .category-rows-tbody {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            background: transparent;
+        }
+
+        .category-rows-table tr.category-row {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+            background-color: rgb(248 250 252 / 0.5);
+            padding: 1rem;
+        }
+
+        .category-rows-table tr.category-row td {
+            display: block;
+            width: 100%;
+            padding: 0;
+            text-align: start;
+        }
+
+        .category-rows-table tr.category-row td.category-row-cell-actions {
+            order: -1;
+            padding: 0;
+        }
+
+        .category-rows-table tr.category-row td.category-row-cell-actions .category-row-mobile-header {
+            margin-bottom: 0.25rem;
+        }
+
+        .category-rows-table tr.category-row td.category-row-cell-category::before,
+        .category-rows-table tr.category-row td.category-row-cell-subcategories::before {
+            content: attr(data-label);
+            display: block;
+            margin-bottom: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: #64748b;
+        }
+
+        .category-rows-table tr.category-row td.category-row-cell-primary {
+            padding-top: 0.25rem;
+        }
+
+        .public-form-page .category-rows-table tr.category-row {
+            border-color: color-mix(in oklab, var(--activation-primary) 18%, #e2e8f0);
+            background-color: color-mix(in oklab, var(--activation-accent) 8%, #f8fafc);
+        }
+
+        .category-rows-table select[data-category-select],
+        .category-rows-table [data-category-sub-checkboxes] {
+            box-sizing: border-box;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .category-rows-table select[data-category-select] {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .category-rows-table [data-category-sub-checkboxes] label {
+            max-width: 100%;
+        }
+
+        .category-rows-table [data-category-sub-checkboxes] label span {
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
     }
 }

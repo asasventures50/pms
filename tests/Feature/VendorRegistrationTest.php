@@ -20,6 +20,16 @@ class VendorRegistrationTest extends TestCase
         $response->assertSee('Submit registration', false);
     }
 
+    public function test_guest_can_switch_vendor_registration_form_to_arabic(): void
+    {
+        $response = $this->get(route('vendor-registration.create', ['lang' => 'ar']));
+
+        $response->assertOk();
+        $response->assertSee('تسجيل مورد', false);
+        $response->assertSee('إرسال التسجيل', false);
+        $response->assertSee('dir="rtl"', false);
+    }
+
     public function test_guest_can_submit_vendor_registration(): void
     {
         $response = $this->post(route('vendor-registration.store'), [

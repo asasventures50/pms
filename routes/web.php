@@ -28,15 +28,17 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', LandingController::class)->name('landing');
 
-Route::get('vendor-registration', [VendorRegistrationController::class, 'create'])
-    ->name('vendor-registration.create');
+Route::middleware('public-form-locale')->group(function () {
+    Route::get('vendor-registration', [VendorRegistrationController::class, 'create'])
+        ->name('vendor-registration.create');
 
-Route::post('vendor-registration', [VendorRegistrationController::class, 'store'])
-    ->middleware('throttle:10,1')
-    ->name('vendor-registration.store');
+    Route::post('vendor-registration', [VendorRegistrationController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('vendor-registration.store');
 
-Route::get('vendor-registration/thanks', [VendorRegistrationController::class, 'thanks'])
-    ->name('vendor-registration.thanks');
+    Route::get('vendor-registration/thanks', [VendorRegistrationController::class, 'thanks'])
+        ->name('vendor-registration.thanks');
+});
 
 require __DIR__.'/auth.php';
 
