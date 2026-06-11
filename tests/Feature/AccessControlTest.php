@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Access\Permission;
 use App\Models\Access\Role;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
+use App\Models\Procurement\PurchaseOrders\PurchaseOrder;
 use App\Models\User;
 use App\Support\Access\PermissionCatalog;
 use Database\Seeders\Access\RolePermissionSeeder;
@@ -148,6 +149,63 @@ class AccessControlTest extends TestCase
         $index = $this->actingAs($viewer)->get(route('procurement-requests.index'));
         $index->assertOk();
         $index->assertSee('PR-VIEWER-001');
+    }
+
+    public function test_view_own_role_sees_only_own_purchase_orders(): void
+    {
+        $role = Role::query()->create(['name' => 'po-view-own', 'label' => 'PO View Own']);
+        $role->syncPermissions(['purchase-orders.view-own']);
+
+        $owner = User::factory()->create();
+        $owner->syncRoles(['po-view-own']);
+
+        $otherUser = User::factory()->create();
+
+        $ownOrder = PurchaseOrder::query()->create([
+            'po_number' => 'PO-OWN-001',
+            'created_by' => $owner->id,
+        ]);
+
+        $otherOrder = PurchaseOrder::query()->create([
+            'po_number' => 'PO-OTHER-001',
+            'created_by' => $otherUser->id,
+        ]);
+
+        $this->assertTrue($owner->hasPermission('purchase-orders.view-own'));
+        $this->assertTrue($owner->hasPermission('purchase-orders.view'));
+        $this->assertFalse($owner->canViewAllPurchaseOrders());
+        $this->assertTrue($owner->scopesPurchaseOrdersToOwn());
+
+        $index = $this->actingAs($owner)->get(route('purchase-orders.index'));
+        $index->assertOk();
+        $index->assertSee('PO-OWN-001');
+        $index->assertDontSee('PO-OTHER-001');
+
+        $this->actingAs($owner)->get(route('purchase-orders.show', $ownOrder))->assertOk();
+        $this->actingAs($owner)->get(route('purchase-orders.show', $otherOrder))->assertForbidden();
+    }
+
+    public function test_view_all_role_sees_every_purchase_order(): void
+    {
+        $role = Role::query()->create(['name' => 'po-view-all-role', 'label' => 'PO View All']);
+        $role->syncPermissions(['purchase-orders.view']);
+
+        $viewer = User::factory()->create();
+        $viewer->syncRoles(['po-view-all-role']);
+
+        $creator = User::factory()->create();
+
+        PurchaseOrder::query()->create([
+            'po_number' => 'PO-VIEWER-001',
+            'created_by' => $creator->id,
+        ]);
+
+        $this->assertTrue($viewer->canViewAllPurchaseOrders());
+        $this->assertFalse($viewer->scopesPurchaseOrdersToOwn());
+
+        $index = $this->actingAs($viewer)->get(route('purchase-orders.index'));
+        $index->assertOk();
+        $index->assertSee('PO-VIEWER-001');
     }
 
     public function test_legacy_view_all_permission_is_recognized_as_view(): void

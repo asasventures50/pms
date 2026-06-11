@@ -5,6 +5,7 @@ namespace App\Models\Concerns;
 use App\Models\Access\Permission;
 use App\Models\Access\Role;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
+use App\Models\Procurement\PurchaseOrders\PurchaseOrder;
 use App\Support\Access\PermissionCatalog;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Collection;
@@ -82,6 +83,45 @@ trait HasRoles
 
         return $this->hasPermission('procurement-requests.view')
             || $this->hasPermission('procurement-requests.view-own');
+    }
+
+    public function canViewAllPurchaseOrders(): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        return $this->resolvePermissionNames()->contains('purchase-orders.view');
+    }
+
+    public function scopesPurchaseOrdersToOwn(): bool
+    {
+        if ($this->canViewAllPurchaseOrders()) {
+            return false;
+        }
+
+        $granted = $this->resolvePermissionNames();
+
+        return $granted->contains('purchase-orders.view-own')
+            || $granted->contains('purchase-orders.create');
+    }
+
+    public function canViewPurchaseOrder(PurchaseOrder $purchaseOrder): bool
+    {
+        if ($this->isSuperAdmin() || $this->canViewAllPurchaseOrders()) {
+            return true;
+        }
+
+        if ($this->resolvePermissionNames()->contains('purchase-orders.update')) {
+            return true;
+        }
+
+        if ($this->scopesPurchaseOrdersToOwn()) {
+            return (int) $purchaseOrder->created_by === (int) $this->id;
+        }
+
+        return $this->hasPermission('purchase-orders.view')
+            || $this->hasPermission('purchase-orders.view-own');
     }
 
     public function syncRoles(array $roleNames): void

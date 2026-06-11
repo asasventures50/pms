@@ -156,11 +156,11 @@ Route::middleware(['auth'])->group(function () {
         ->middlewareFor(['edit', 'update'], 'permission:vendors.update');
 
     Route::get('purchase-orders/{purchase_order}/print', [PurchaseOrderController::class, 'print'])
-        ->middleware('permission:purchase-orders.view')
+        ->middleware('permission:purchase-orders.view|purchase-orders.view-own')
         ->name('purchase-orders.print');
 
     Route::resource('purchase-orders', PurchaseOrderController::class)
-        ->middlewareFor(['index', 'show'], 'permission:purchase-orders.view')
+        ->middlewareFor(['index', 'show'], 'permission:purchase-orders.view|purchase-orders.view-own')
         ->middlewareFor(['create', 'store'], 'permission:purchase-orders.create')
         ->middlewareFor(['edit', 'update', 'destroy'], 'permission:purchase-orders.update');
 

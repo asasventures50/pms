@@ -18,8 +18,8 @@ use App\Http\Requests\Procurement\PurchaseOrders\UpdatePurchaseOrderRequest;
 
 use App\Models\Procurement\PurchaseOrders\PurchaseOrder;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
-
 use App\Models\Procurement\Vendors\Vendor;
+use App\Models\User;
 
 use App\Services\Procurement\PurchaseOrders\ProcurementRequestCommercialTermsForPurchaseOrder;
 use App\Services\Procurement\PurchaseOrders\ProcurementRequestLinesForPurchaseOrderPresenter;
@@ -81,7 +81,11 @@ class PurchaseOrderController extends Controller
 
             ->latest();
 
+        $user = $request->user();
 
+        if ($user?->scopesPurchaseOrdersToOwn()) {
+            $query->where('created_by', $user->id);
+        }
 
         if ($request->filled('q')) {
 
@@ -217,9 +221,10 @@ class PurchaseOrderController extends Controller
 
 
 
-    public function show(PurchaseOrder $purchaseOrder): View
+    public function show(Request $request, PurchaseOrder $purchaseOrder): View
 
     {
+        $this->authorizePurchaseOrderView($request->user(), $purchaseOrder);
 
         $purchaseOrder->load([
             'vendor.primaryLocation',
@@ -254,6 +259,8 @@ class PurchaseOrderController extends Controller
     public function print(Request $request, PurchaseOrder $purchaseOrder): View
 
     {
+        $this->authorizePurchaseOrderView($request->user(), $purchaseOrder);
+
         $printLabels = PurchaseOrderPrintLabels::resolve($request->query('locale'));
 
         $purchaseOrder->load([
@@ -433,6 +440,13 @@ class PurchaseOrderController extends Controller
     }
 
 
+
+    private function authorizePurchaseOrderView(?User $user, PurchaseOrder $purchaseOrder): void
+    {
+        if ($user === null || ! $user->canViewPurchaseOrder($purchaseOrder)) {
+            abort(403, 'You do not have permission to view this purchase order.');
+        }
+    }
 
     /**
      * @return array{general: list<string>, custom_rows: list<array{key: string, value: string}>}

@@ -27,7 +27,8 @@ final class PermissionCatalog
             'categories.import' => ['label' => 'Import categories', 'group' => 'Categories'],
             'categories.export' => ['label' => 'Export categories', 'group' => 'Categories'],
 
-            'purchase-orders.view' => ['label' => 'View purchase orders', 'group' => 'Purchase orders'],
+            'purchase-orders.view' => ['label' => 'View all purchase orders', 'group' => 'Purchase orders'],
+            'purchase-orders.view-own' => ['label' => 'View own purchase orders only', 'group' => 'Purchase orders'],
             'purchase-orders.create' => ['label' => 'Create purchase orders', 'group' => 'Purchase orders'],
             'purchase-orders.update' => ['label' => 'Update purchase orders', 'group' => 'Purchase orders'],
 
