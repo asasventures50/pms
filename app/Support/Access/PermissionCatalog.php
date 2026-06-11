@@ -42,7 +42,8 @@ final class PermissionCatalog
             'rfq-terms.view' => ['label' => 'View RFQ general terms', 'group' => 'RFQs'],
             'rfq-terms.manage' => ['label' => 'Manage RFQ general terms', 'group' => 'RFQs'],
 
-            'procurement-requests.view' => ['label' => 'View procurement requests', 'group' => 'Procurement requests'],
+            'procurement-requests.view' => ['label' => 'View all procurement requests', 'group' => 'Procurement requests'],
+            'procurement-requests.view-own' => ['label' => 'View own procurement requests only', 'group' => 'Procurement requests'],
             'procurement-requests.create' => ['label' => 'Create procurement requests', 'group' => 'Procurement requests'],
             'procurement-requests.update' => ['label' => 'Update procurement requests', 'group' => 'Procurement requests'],
 
@@ -118,7 +119,15 @@ final class PermissionCatalog
             return null;
         }
 
-        [, $prefix, $action] = $matches;
+        [, $prefix, $action, $scope] = $matches;
+
+        if ($scope === 'own') {
+            $ownName = "{$prefix}.{$action}-own";
+
+            if (array_key_exists($ownName, $definitions)) {
+                return $ownName;
+            }
+        }
 
         if ($action === 'delete') {
             $delete = $prefix.'.delete';

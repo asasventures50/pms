@@ -12,6 +12,7 @@ use App\Http\Requests\Procurement\ProcurementRequests\UpdateProcurementRequestRe
 use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
 use App\Models\Procurement\Projects\Project;
 use App\Models\Procurement\Vendors\Category;
+use App\Models\User;
 use App\Services\Procurement\ProcurementRequests\ProcurementRequestCodeGenerator;
 use App\Services\Procurement\ProcurementRequests\ProcurementRequestFormDataResolver;
 use App\Services\Procurement\ProcurementRequests\ProcurementRequestPayloadResolver;
@@ -39,6 +40,12 @@ class ProcurementRequestController extends Controller
         $query = ProcurementRequest::query()
             ->with(['creator', 'items:id,procurement_request_id,required_delivery_date', 'project:id,code,name'])
             ->latest();
+
+        $user = $request->user();
+
+        if ($user?->scopesProcurementRequestsToOwn()) {
+            $query->where('created_by', $user->id);
+        }
 
         if ($request->filled('q')) {
             $term = '%'.$request->string('q').'%';
@@ -101,8 +108,10 @@ class ProcurementRequestController extends Controller
             ->with('success', 'Procurement request created successfully.');
     }
 
-    public function show(ProcurementRequest $procurementRequest): View
+    public function show(Request $request, ProcurementRequest $procurementRequest): View
     {
+        $this->authorizeProcurementRequestView($request->user(), $procurementRequest);
+
         $procurementRequest->load([
             'creator',
             'project',
@@ -127,6 +136,8 @@ class ProcurementRequestController extends Controller
 
     public function print(Request $request, ProcurementRequest $procurementRequest): View
     {
+        $this->authorizeProcurementRequestView($request->user(), $procurementRequest);
+
         $printLabels = ProcurementRequestPrintLabels::resolve($request->query('locale'));
 
         $procurementRequest->load([
@@ -218,6 +229,13 @@ class ProcurementRequestController extends Controller
         return redirect()
             ->route('procurement-requests.index')
             ->with('success', 'Procurement request deleted successfully.');
+    }
+
+    private function authorizeProcurementRequestView(?User $user, ProcurementRequest $procurementRequest): void
+    {
+        if ($user === null || ! $user->canViewProcurementRequest($procurementRequest)) {
+            abort(403, 'You do not have permission to view this procurement request.');
+        }
     }
 
     private function syncHeaderSupportingDocuments(Request $request, ProcurementRequest $procurementRequest): void

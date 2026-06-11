@@ -187,11 +187,11 @@ Route::middleware(['auth'])->group(function () {
         ->middlewareFor(['edit', 'update', 'destroy'], 'permission:vendor-quotations.update|rfqs.update');
 
     Route::get('procurement-requests/{procurement_request}/print', [ProcurementRequestController::class, 'print'])
-        ->middleware('permission:procurement-requests.view')
+        ->middleware('permission:procurement-requests.view|procurement-requests.view-own')
         ->name('procurement-requests.print');
 
     Route::resource('procurement-requests', ProcurementRequestController::class)
-        ->middlewareFor(['index', 'show'], 'permission:procurement-requests.view')
+        ->middlewareFor(['index', 'show'], 'permission:procurement-requests.view|procurement-requests.view-own')
         ->middlewareFor(['create', 'store'], 'permission:procurement-requests.create')
         ->middlewareFor(['edit', 'update', 'destroy'], 'permission:procurement-requests.update');
 });

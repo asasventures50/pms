@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Access\Permission;
 use App\Models\Access\Role;
+use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
 use App\Models\User;
 use App\Support\Access\PermissionCatalog;
 use Database\Seeders\Access\RolePermissionSeeder;
@@ -92,6 +93,63 @@ class AccessControlTest extends TestCase
         $this->actingAs($user)->get(route('procurement-requests.create'))->assertOk();
     }
 
+    public function test_view_own_role_sees_only_own_procurement_requests(): void
+    {
+        $role = Role::query()->create(['name' => 'pr-view-own', 'label' => 'PR View Own']);
+        $role->syncPermissions(['procurement-requests.view-own']);
+
+        $owner = User::factory()->create();
+        $owner->syncRoles(['pr-view-own']);
+
+        $otherUser = User::factory()->create();
+
+        $ownRequest = ProcurementRequest::query()->create([
+            'request_number' => 'PR-OWN-001',
+            'created_by' => $owner->id,
+        ]);
+
+        $otherRequest = ProcurementRequest::query()->create([
+            'request_number' => 'PR-OTHER-001',
+            'created_by' => $otherUser->id,
+        ]);
+
+        $this->assertTrue($owner->hasPermission('procurement-requests.view-own'));
+        $this->assertTrue($owner->hasPermission('procurement-requests.view'));
+        $this->assertFalse($owner->canViewAllProcurementRequests());
+        $this->assertTrue($owner->scopesProcurementRequestsToOwn());
+
+        $index = $this->actingAs($owner)->get(route('procurement-requests.index'));
+        $index->assertOk();
+        $index->assertSee('PR-OWN-001');
+        $index->assertDontSee('PR-OTHER-001');
+
+        $this->actingAs($owner)->get(route('procurement-requests.show', $ownRequest))->assertOk();
+        $this->actingAs($owner)->get(route('procurement-requests.show', $otherRequest))->assertForbidden();
+    }
+
+    public function test_view_all_role_sees_every_procurement_request(): void
+    {
+        $role = Role::query()->create(['name' => 'pr-view-all-role', 'label' => 'PR View All']);
+        $role->syncPermissions(['procurement-requests.view']);
+
+        $viewer = User::factory()->create();
+        $viewer->syncRoles(['pr-view-all-role']);
+
+        $creator = User::factory()->create();
+
+        ProcurementRequest::query()->create([
+            'request_number' => 'PR-VIEWER-001',
+            'created_by' => $creator->id,
+        ]);
+
+        $this->assertTrue($viewer->canViewAllProcurementRequests());
+        $this->assertFalse($viewer->scopesProcurementRequestsToOwn());
+
+        $index = $this->actingAs($viewer)->get(route('procurement-requests.index'));
+        $index->assertOk();
+        $index->assertSee('PR-VIEWER-001');
+    }
+
     public function test_legacy_view_all_permission_is_recognized_as_view(): void
     {
         $legacy = Permission::query()->create([
@@ -107,8 +165,38 @@ class AccessControlTest extends TestCase
         $user->syncRoles(['pr-legacy-view']);
 
         $this->assertTrue($user->hasPermission('procurement-requests.view'));
+        $this->assertTrue($user->canViewAllProcurementRequests());
 
         $this->actingAs($user)->get(route('procurement-requests.index'))->assertOk();
+    }
+
+    public function test_legacy_view_own_permission_is_scoped_to_creator(): void
+    {
+        $legacy = Permission::query()->where('name', 'procurement-requests.view-own')->firstOrFail();
+
+        $role = Role::query()->create(['name' => 'pr-legacy-view-own', 'label' => 'PR Legacy View Own']);
+        $role->permissions()->sync([$legacy->id]);
+
+        $user = User::factory()->create();
+        $user->syncRoles(['pr-legacy-view-own']);
+
+        $otherUser = User::factory()->create();
+
+        $ownRequest = ProcurementRequest::query()->create([
+            'request_number' => 'PR-LEGACY-OWN',
+            'created_by' => $user->id,
+        ]);
+
+        $otherRequest = ProcurementRequest::query()->create([
+            'request_number' => 'PR-LEGACY-OTHER',
+            'created_by' => $otherUser->id,
+        ]);
+
+        $this->assertTrue($user->hasPermission('procurement-requests.view-own'));
+        $this->assertTrue($user->scopesProcurementRequestsToOwn());
+
+        $this->actingAs($user)->get(route('procurement-requests.show', $ownRequest))->assertOk();
+        $this->actingAs($user)->get(route('procurement-requests.show', $otherRequest))->assertForbidden();
     }
 
     /**

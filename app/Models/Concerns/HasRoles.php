@@ -4,6 +4,7 @@ namespace App\Models\Concerns;
 
 use App\Models\Access\Permission;
 use App\Models\Access\Role;
+use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
 use App\Support\Access\PermissionCatalog;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Collection;
@@ -44,6 +45,45 @@ trait HasRoles
         return self::permissionImpliedByGrant($granted, $permission);
     }
 
+    public function canViewAllProcurementRequests(): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        return $this->resolvePermissionNames()->contains('procurement-requests.view');
+    }
+
+    public function scopesProcurementRequestsToOwn(): bool
+    {
+        if ($this->canViewAllProcurementRequests()) {
+            return false;
+        }
+
+        $granted = $this->resolvePermissionNames();
+
+        return $granted->contains('procurement-requests.view-own')
+            || $granted->contains('procurement-requests.create');
+    }
+
+    public function canViewProcurementRequest(ProcurementRequest $procurementRequest): bool
+    {
+        if ($this->isSuperAdmin() || $this->canViewAllProcurementRequests()) {
+            return true;
+        }
+
+        if ($this->resolvePermissionNames()->contains('procurement-requests.update')) {
+            return true;
+        }
+
+        if ($this->scopesProcurementRequestsToOwn()) {
+            return (int) $procurementRequest->created_by === (int) $this->id;
+        }
+
+        return $this->hasPermission('procurement-requests.view')
+            || $this->hasPermission('procurement-requests.view-own');
+    }
+
     public function syncRoles(array $roleNames): void
     {
         $ids = Role::query()
@@ -79,6 +119,12 @@ trait HasRoles
      */
     private static function permissionImpliedByGrant(Collection $granted, string $required): bool
     {
+        if (preg_match('/^(.+)\.view$/', $required, $viewMatches)) {
+            if ($granted->contains("{$viewMatches[1]}.view-own")) {
+                return true;
+            }
+        }
+
         if (! preg_match('/^(.+)\.(view|create|update)$/', $required, $matches)) {
             return false;
         }
