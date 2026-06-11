@@ -38,7 +38,7 @@
     @if ($procurementRequest->paymentTerms->isEmpty())
         <p class="mt-3 text-slate-500">—</p>
     @else
-        <table class="mt-3 min-w-full text-sm"><thead class="text-xs uppercase text-slate-500"><tr><th class="py-1 pr-3">Milestone</th><th class="py-1 pr-3">Amount</th><th class="py-1 pr-3">%</th><th class="py-1">Due upon</th></tr></thead>
+        <table class="mt-3 min-w-full text-sm"><thead class="text-xs uppercase text-slate-500"><tr><th class="py-1 pr-3">Milestone</th><th class="py-1 pr-3">Note</th><th class="py-1 pr-3">%</th><th class="py-1">Due upon</th></tr></thead>
         <tbody>@foreach ($procurementRequest->paymentTerms as $row)<tr class="border-t border-slate-100"><td class="py-2 pr-3">{{ $row->milestone ?: '—' }}</td><td class="py-2 pr-3">{{ $row->amount ?: '—' }}</td><td class="py-2 pr-3">{{ $row->percentage ?? '—' }}</td><td class="py-2">{{ $row->due_upon ?: '—' }}</td></tr>@endforeach</tbody></table>
     @endif
 </section>

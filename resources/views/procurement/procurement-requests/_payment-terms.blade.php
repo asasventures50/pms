@@ -16,7 +16,7 @@
             <thead class="text-xs font-semibold uppercase tracking-wide text-slate-500">
             <tr>
                 <th class="px-2 py-2">Milestone</th>
-                <th class="px-2 py-2">Amount / milestone no.</th>
+                <th class="px-2 py-2">Note</th>
                 <th class="px-2 py-2">%</th>
                 <th class="px-2 py-2">Due upon</th>
                 <th class="px-2 py-2 print:hidden"></th>

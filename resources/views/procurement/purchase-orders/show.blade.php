@@ -182,11 +182,14 @@
                 @php
                     $paymentTermsDisplay = trim((string) ($purchaseOrder->payment_terms ?? ''));
                     $notesDisplay = trim((string) ($purchaseOrder->notes ?? ''));
+                    $showPaymentTermsOnPo = $purchaseOrder->show_payment_terms && $paymentTermsDisplay !== '';
                 @endphp
-                <div>
-                    <dt class="text-xs text-slate-500">Payment terms</dt>
-                    <dd class="whitespace-pre-wrap text-slate-900" @if($paymentTermsDisplay !== '' && \App\Support\TextDirection::isRtl($paymentTermsDisplay)) dir="rtl" lang="ar" @endif>{{ $paymentTermsDisplay !== '' ? $paymentTermsDisplay : '—' }}</dd>
-                </div>
+                @if ($showPaymentTermsOnPo)
+                    <div>
+                        <dt class="text-xs text-slate-500">Payment terms</dt>
+                        <dd class="whitespace-pre-wrap text-slate-900" @if(\App\Support\TextDirection::isRtl($paymentTermsDisplay)) dir="rtl" lang="ar" @endif>{{ $paymentTermsDisplay }}</dd>
+                    </div>
+                @endif
                 @include('procurement.purchase-orders._commercial-terms-display', ['purchaseOrder' => $purchaseOrder])
                 <div>
                     <dt class="text-xs text-slate-500">Notes</dt>

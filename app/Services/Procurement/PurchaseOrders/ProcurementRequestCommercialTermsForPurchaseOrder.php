@@ -15,6 +15,7 @@ class ProcurementRequestCommercialTermsForPurchaseOrder
      *     after_sale_service_applicable: bool|null,
      *     warranty_years: float|string|null,
      *     warranty_coverage: string|null,
+     *     has_payment_terms: bool,
      *     has_retention: bool,
      *     has_maintenance: bool,
      * }
@@ -39,12 +40,15 @@ class ProcurementRequestCommercialTermsForPurchaseOrder
             || ($warrantyYears !== null && $warrantyYears !== '')
             || $warrantyCoverage !== '';
 
+        $paymentTerms = $this->formatPaymentTerms($procurementRequest);
+
         return [
-            'payment_terms' => $this->formatPaymentTerms($procurementRequest),
+            'payment_terms' => $paymentTerms,
             'retentions' => $retentions,
             'after_sale_service_applicable' => $procurementRequest->after_sale_service_applicable,
             'warranty_years' => ($warrantyYears === null || $warrantyYears === '') ? null : $warrantyYears,
             'warranty_coverage' => $warrantyCoverage !== '' ? $warrantyCoverage : null,
+            'has_payment_terms' => $paymentTerms !== '',
             'has_retention' => $this->hasRetentionRows($retentions),
             'has_maintenance' => $hasMaintenance,
         ];
@@ -73,9 +77,9 @@ class ProcurementRequestCommercialTermsForPurchaseOrder
             $parts[] = $milestone;
         }
 
-        $amount = trim((string) ($row->amount ?? ''));
-        if ($amount !== '') {
-            $parts[] = 'Amount: '.$amount;
+        $note = trim((string) ($row->amount ?? ''));
+        if ($note !== '') {
+            $parts[] = 'Note: '.$note;
         }
 
         if ($row->percentage !== null && $row->percentage !== '') {
@@ -112,6 +116,12 @@ class ProcurementRequestCommercialTermsForPurchaseOrder
      */
     public static function normalizeHeader(array &$validated): void
     {
+        $validated['show_payment_terms'] = filter_var(
+            $validated['show_payment_terms'] ?? true,
+            FILTER_VALIDATE_BOOLEAN,
+            FILTER_NULL_ON_FAILURE
+        ) ?? true;
+
         $validated['show_retention'] = filter_var(
             $validated['show_retention'] ?? true,
             FILTER_VALIDATE_BOOLEAN,

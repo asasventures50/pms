@@ -51,6 +51,7 @@ class StorePurchaseOrderRequest extends FormRequest
             'delivery_fee' => ['nullable', 'numeric', 'min:0'],
             'discount' => ['nullable', 'numeric', 'min:0'],
             'payment_terms' => ['nullable', 'string', 'max:5000'],
+            'show_payment_terms' => ['nullable', 'boolean'],
             'retentions' => ['nullable', 'array'],
             'retentions.*.retention_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'retentions.*.release_period' => ['nullable', 'string', 'max:255'],

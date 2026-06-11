@@ -37,6 +37,7 @@ class UpdatePurchaseOrderRequest extends FormRequest
             'delivery_fee' => ['sometimes', 'nullable', 'numeric', 'min:0'],
             'discount' => ['sometimes', 'nullable', 'numeric', 'min:0'],
             'payment_terms' => ['sometimes', 'nullable', 'string', 'max:5000'],
+            'show_payment_terms' => ['sometimes', 'nullable', 'boolean'],
             'retentions' => ['sometimes', 'nullable', 'array'],
             'retentions.*.retention_percent' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:100'],
             'retentions.*.release_period' => ['sometimes', 'nullable', 'string', 'max:255'],

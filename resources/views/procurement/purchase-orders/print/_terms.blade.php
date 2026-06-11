@@ -6,6 +6,7 @@
     $termsLocale = $termsLocale ?? $printLabels->locale();
     $termsRtl = $termsLocale === 'ar';
     $paymentTermsText = trim((string) ($purchaseOrder->payment_terms ?? ''));
+    $showPaymentTerms = $purchaseOrder->show_payment_terms && $paymentTermsText !== '';
     $paymentTermsRtl = $paymentTermsText !== '' && TextDirection::isRtl($paymentTermsText);
     $notesText = trim((string) ($purchaseOrder->notes ?? ''));
     $notesRtl = $notesText !== '' && TextDirection::isRtl($notesText);
@@ -25,10 +26,12 @@
     </div>
 @endif
 
-<div class="po-field-block">
-    <div class="po-field-label">{{ $printLabels->t('payment_terms') }}</div>
-    <div class="po-field-value" @if ($paymentTermsRtl) dir="rtl" lang="ar" @endif>{{ $paymentTermsText }}</div>
-</div>
+@if ($showPaymentTerms)
+    <div class="po-field-block">
+        <div class="po-field-label">{{ $printLabels->t('payment_terms') }}</div>
+        <div class="po-field-value" @if ($paymentTermsRtl) dir="rtl" lang="ar" @endif>{{ $paymentTermsText }}</div>
+    </div>
+@endif
 
 @include('procurement.purchase-orders.print._commercial-terms', ['purchaseOrder' => $purchaseOrder])
 

@@ -139,10 +139,18 @@
                 $notesValue = old('notes', $po?->notes ?? '');
                 $paymentTermsRtl = \App\Support\TextDirection::isRtl($paymentTermsValue);
                 $notesRtl = \App\Support\TextDirection::isRtl($notesValue);
+                $showPaymentTerms = filter_var(old('show_payment_terms', $po?->show_payment_terms ?? true), FILTER_VALIDATE_BOOLEAN);
             @endphp
             <div class="md:col-span-2">
-                <label for="payment_terms" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Payment terms</label>
-                <p class="mt-0.5 text-xs text-slate-500">Imported from the linked P.R. when you import lines. Always shown on the purchase order.</p>
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <label for="payment_terms" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Payment terms</label>
+                    <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                        <input type="hidden" name="show_payment_terms" value="0">
+                        <input type="checkbox" name="show_payment_terms" id="show_payment_terms" value="1" @checked($showPaymentTerms)>
+                        Include on purchase order
+                    </label>
+                </div>
+                <p class="mt-0.5 text-xs text-slate-500">Imported from the linked P.R. when you import lines. You can edit below. Uncheck to omit from the printed P.O.</p>
                 <textarea name="payment_terms" id="payment_terms" rows="3"
                           class="po-bilingual-text admin-form-textarea @error('payment_terms') border-red-500 @enderror"
                           @if ($paymentTermsRtl) dir="rtl" lang="ar" @endif>{{ $paymentTermsValue }}</textarea>

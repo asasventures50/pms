@@ -519,6 +519,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const paymentTermsInput = document.getElementById('payment_terms');
+    const showPaymentTermsInput = document.getElementById('show_payment_terms');
     const showRetentionInput = document.getElementById('show_retention');
     const showMaintenanceInput = document.getElementById('show_maintenance');
     const retentionBody = document.getElementById('po-retentions-body');
@@ -602,6 +603,10 @@ document.addEventListener('DOMContentLoaded', function () {
         if (paymentTermsInput && typeof commercialTerms.payment_terms === 'string') {
             paymentTermsInput.value = commercialTerms.payment_terms;
             applyBilingualDirection(paymentTermsInput);
+        }
+
+        if (showPaymentTermsInput) {
+            showPaymentTermsInput.checked = Boolean(commercialTerms.has_payment_terms);
         }
 
         replaceRetentionRows(commercialTerms.retentions || []);

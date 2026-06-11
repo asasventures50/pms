@@ -42,6 +42,7 @@ class ProcurementRequestCommercialTermsForPurchaseOrderTest extends TestCase
 
         $this->assertStringContainsString('Advance', $snapshot['payment_terms']);
         $this->assertStringContainsString('20%', $snapshot['payment_terms']);
+        $this->assertTrue($snapshot['has_payment_terms']);
         $this->assertTrue($snapshot['has_retention']);
         $this->assertTrue($snapshot['has_maintenance']);
         $this->assertTrue($snapshot['after_sale_service_applicable']);
@@ -52,6 +53,7 @@ class ProcurementRequestCommercialTermsForPurchaseOrderTest extends TestCase
     public function test_normalize_header_casts_visibility_flags_and_retentions(): void
     {
         $validated = [
+            'show_payment_terms' => '0',
             'show_retention' => '0',
             'show_maintenance' => '1',
             'after_sale_service_applicable' => '1',
@@ -64,6 +66,7 @@ class ProcurementRequestCommercialTermsForPurchaseOrderTest extends TestCase
 
         ProcurementRequestCommercialTermsForPurchaseOrder::normalizeHeader($validated);
 
+        $this->assertFalse($validated['show_payment_terms']);
         $this->assertFalse($validated['show_retention']);
         $this->assertTrue($validated['show_maintenance']);
         $this->assertTrue($validated['after_sale_service_applicable']);
