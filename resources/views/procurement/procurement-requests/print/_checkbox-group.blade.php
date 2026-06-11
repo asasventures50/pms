@@ -6,10 +6,12 @@
     $valueParts = [];
 
     foreach ($options as $option) {
-        $valueParts[] = ($option['checked'] ?? false ? '✓ ' : '').($option['label'] ?? '');
+        if ($option['checked'] ?? false) {
+            $valueParts[] = $option['label'] ?? '';
+        }
     }
 
-    $valueLine = implode('  ', array_filter($valueParts, fn (string $part) => $part !== ''));
+    $valueLine = implode(', ', array_filter($valueParts, fn (string $part) => $part !== ''));
 @endphp
 
 <div class="po-form-group pr-form-option-group">
