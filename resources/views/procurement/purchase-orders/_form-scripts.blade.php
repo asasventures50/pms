@@ -302,6 +302,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const prImportConfirm = document.getElementById('po-pr-import-confirm');
     const poPrContextPanel = document.getElementById('po-pr-context');
     const poPrContextNumber = document.getElementById('po-pr-context-number');
+    const poPrContextProcurementType = document.getElementById('po-pr-context-procurement-type');
     const poPrContextScopeType = document.getElementById('po-pr-context-scope-type');
     const poPrContextCategory = document.getElementById('po-pr-context-category');
     const poPrContextProject = document.getElementById('po-pr-context-project');
@@ -352,6 +353,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const payload = context || {};
         const hasContent = Boolean(
             requestNumber
+            || payload.procurementType
             || payload.category
             || payload.scopeType
             || payload.project
@@ -362,6 +364,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (poPrContextNumber) {
             poPrContextNumber.textContent = requestNumber || '—';
+        }
+        if (poPrContextProcurementType) {
+            poPrContextProcurementType.textContent = payload.procurementType || '—';
         }
         if (poPrContextScopeType) {
             poPrContextScopeType.textContent = payload.scopeType || '—';
@@ -381,11 +386,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function clearPoPrContextPanel() {
         updatePoPrContextPanel('', {
+            procurementType: '',
             category: '',
             project: '',
             scopeType: '',
             scopeTypeKeys: [],
         });
+    }
+
+    function contextFromProcurementRequestResponse(data, selectedLines) {
+        const aggregated = aggregateContextFromLines(selectedLines);
+        const requestContext = data?.context || {};
+
+        return {
+            category: aggregated.category || requestContext.category || '',
+            project: aggregated.project || requestContext.project || '',
+            scopeType: aggregated.scopeType || requestContext.scope_type || '',
+            scopeTypeKeys: aggregated.scopeTypeKeys.length > 0
+                ? aggregated.scopeTypeKeys
+                : (Array.isArray(data?.scope_type_keys) ? data.scope_type_keys : []),
+            procurementType: requestContext.procurement_type || '',
+        };
     }
 
     let prImportPendingLines = [];
@@ -648,8 +669,10 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             openPrImportModal(data.request_number || '', data.items || [], function (selectedRows, mode) {
-                const aggregated = aggregateContextFromLines(selectedRows);
-                updatePoPrContextPanel(data.request_number || '', aggregated);
+                updatePoPrContextPanel(
+                    data.request_number || '',
+                    contextFromProcurementRequestResponse(data, selectedRows)
+                );
                 applyCommercialTermsFromPr(data.commercial_terms || null);
                 if (opts.onImported) {
                     opts.onImported();

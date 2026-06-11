@@ -227,7 +227,9 @@ class PurchaseOrderController extends Controller
             'vendor.vendorCategories.subcategory',
             'creator',
             'items',
+            'procurementRequest.headerDocuments',
             'procurementRequest.items.project',
+            'procurementRequest.items.documents',
         ]);
 
         $prContext = PurchaseOrderProcurementRequestContext::resolve($purchaseOrder);
@@ -259,7 +261,9 @@ class PurchaseOrderController extends Controller
             'vendor.vendorCategories.subcategory',
             'creator',
             'items',
+            'procurementRequest.headerDocuments',
             'procurementRequest.items.project',
+            'procurementRequest.items.documents',
         ]);
 
         return view('procurement.purchase-orders.print', [
@@ -282,7 +286,13 @@ class PurchaseOrderController extends Controller
 
     {
 
-        $purchaseOrder->load(['items', 'creator', 'procurementRequest.items.project']);
+        $purchaseOrder->load([
+            'items',
+            'creator',
+            'procurementRequest.headerDocuments',
+            'procurementRequest.items.project',
+            'procurementRequest.items.documents',
+        ]);
 
         $selectedVendor = $purchaseOrder->vendor_id
             ? Vendor::query()->find($purchaseOrder->vendor_id, ['id', 'vendor_code', 'name'])

@@ -28,6 +28,7 @@
         'minItemRows' => $minItemRows,
         'prContext' => $prContext,
     ])
+    @include('procurement.purchase-orders.print._supporting-documents', ['prContext' => $prContext])
     @include('procurement.purchase-orders.print._terms', ['termsLocale' => $termsLocale])
     @include('procurement.purchase-orders.print._signatures')
 </div>

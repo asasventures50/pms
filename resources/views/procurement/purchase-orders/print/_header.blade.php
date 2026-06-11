@@ -45,6 +45,10 @@
             <span class="po-form-label">P.R. number:</span>
             <span class="po-form-line">{{ $purchaseOrder->procurementRequest?->request_number ?? '' }}</span>
         </div>
+        <div class="po-form-group">
+            <span class="po-form-label">Procurement type:</span>
+            <span class="po-form-line">{{ $prContext['procurement_type'] ?? '' }}</span>
+        </div>
     </div>
     <div class="po-grid-col po-order-right">
         <div class="po-form-group">

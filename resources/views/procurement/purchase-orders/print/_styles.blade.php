@@ -492,6 +492,10 @@
         text-align: right;
     }
 
+    .po-supporting-documents-list {
+        margin: 0 0 14px;
+    }
+
     .po-terms-list {
         margin: 0;
         padding: 0 0 0 1rem;

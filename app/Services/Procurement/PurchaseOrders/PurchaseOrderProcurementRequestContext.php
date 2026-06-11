@@ -2,8 +2,10 @@
 
 namespace App\Services\Procurement\PurchaseOrders;
 
+use App\Enums\Procurement\ProcurementRequests\ProcurementType;
 use App\Enums\Procurement\ProcurementRequests\ProcurementVendorType;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
+use App\Models\Procurement\ProcurementRequests\ProcurementRequestDocument;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequestItem;
 use App\Models\Procurement\PurchaseOrders\PurchaseOrder;
 use App\Support\Procurement\ProcurementCheckboxGroup;
@@ -17,6 +19,8 @@ class PurchaseOrderProcurementRequestContext
      *     category: string,
      *     scope_type: string,
      *     project: string,
+     *     procurement_type: string,
+     *     supporting_documents: list<array{file_name: string, document_type: ?string, file_description: ?string}>,
      *     pr_items_by_line: array<string, ProcurementRequestItem>
      * }
      */
@@ -28,6 +32,7 @@ class PurchaseOrderProcurementRequestContext
             return [
                 ...self::emptyAggregates(),
                 'pr_items_by_line' => [],
+                'supporting_documents' => [],
             ];
         }
 
@@ -62,12 +67,13 @@ class PurchaseOrderProcurementRequestContext
         return [
             ...self::aggregateFromRequest($request, $items),
             'pr_items_by_line' => $byLine,
+            'supporting_documents' => self::supportingDocumentsForRequest($request, $items),
         ];
     }
 
     /**
      * @param  Collection<int, ProcurementRequestItem>  $items
-     * @return array{category: string, scope_type: string, project: string}
+     * @return array{category: string, scope_type: string, project: string, procurement_type: string}
      */
     public static function aggregateFromRequest(ProcurementRequest $request, Collection $items): array
     {
@@ -100,7 +106,44 @@ class PurchaseOrderProcurementRequestContext
             'category' => $categoryLabel !== '' ? $categoryLabel : $fromItems['category'],
             'scope_type' => $scopeType !== '' ? $scopeType : $fromItems['scope_type'],
             'project' => $projectLabel !== '' ? $projectLabel : $fromItems['project'],
+            'procurement_type' => self::procurementTypeDisplayFromRequest($request),
         ];
+    }
+
+    public static function procurementTypeDisplayFromRequest(ProcurementRequest $request): string
+    {
+        return ProcurementCheckboxGroup::display(
+            $request->procurement_types,
+            ProcurementType::values(),
+            fn (string $value) => ProcurementType::from($value)->label()
+        );
+    }
+
+    /**
+     * @param  Collection<int, ProcurementRequestItem>  $items
+     * @return list<array{file_name: string, document_type: ?string, file_description: ?string}>
+     */
+    public static function supportingDocumentsForRequest(ProcurementRequest $request, Collection $items): array
+    {
+        $request->loadMissing('headerDocuments');
+        $items->loadMissing('documents');
+
+        $documents = $request->headerDocuments;
+        foreach ($items as $item) {
+            $documents = $documents->concat($item->documents);
+        }
+
+        return $documents
+            ->unique('id')
+            ->values()
+            ->map(static fn (ProcurementRequestDocument $document) => [
+                'file_name' => (string) ($document->file_name ?? ''),
+                'document_type' => $document->document_type,
+                'file_description' => $document->file_description,
+            ])
+            ->filter(static fn (array $document) => $document['file_name'] !== '')
+            ->values()
+            ->all();
     }
 
     /**
@@ -265,7 +308,7 @@ class PurchaseOrderProcurementRequestContext
     }
 
     /**
-     * @return array{category: string, scope_type: string, project: string}
+     * @return array{category: string, scope_type: string, project: string, procurement_type: string}
      */
     public static function emptyAggregates(): array
     {
@@ -273,6 +316,7 @@ class PurchaseOrderProcurementRequestContext
             'category' => '',
             'scope_type' => '',
             'project' => '',
+            'procurement_type' => '',
         ];
     }
 
