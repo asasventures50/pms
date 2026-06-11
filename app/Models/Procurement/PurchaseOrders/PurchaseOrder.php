@@ -27,6 +27,7 @@ class PurchaseOrder extends Model
      */
     protected $fillable = [
         'created_by',
+        'company_key',
         'company_name',
         'company_address',
         'company_phone',

@@ -6,7 +6,7 @@ use App\Enums\Procurement\Rfqs\RfqTermsLocale;
 use App\Models\Procurement\PurchaseOrders\PurchaseOrder;
 use App\Models\Procurement\PurchaseOrders\PurchaseOrderItem;
 use App\Services\Procurement\Rfqs\RfqGeneralTermsService;
-use App\Enums\Procurement\BuyerCompany;
+use App\Services\Procurement\PurchaseOrders\PurchaseOrderBuyerCompanyApplier;
 use Illuminate\Support\Facades\DB;
 
 class PurchaseOrderPersistenceService
@@ -22,7 +22,7 @@ class PurchaseOrderPersistenceService
     public function create(array $header, array $items): PurchaseOrder
     {
         return DB::transaction(function () use ($header, $items) {
-            BuyerCompany::applyToHeader($header);
+            PurchaseOrderBuyerCompanyApplier::applyToHeader($header);
             $header = $this->applyTotals($header, $items);
             $purchaseOrder = PurchaseOrder::query()->create($header);
             $this->syncItems($purchaseOrder, $items);
@@ -38,7 +38,7 @@ class PurchaseOrderPersistenceService
     public function update(PurchaseOrder $purchaseOrder, array $header, array $items): PurchaseOrder
     {
         return DB::transaction(function () use ($purchaseOrder, $header, $items) {
-            BuyerCompany::applyToHeader($header);
+            PurchaseOrderBuyerCompanyApplier::applyToHeader($header);
             $header = $this->applyTotals($header, $items);
             $purchaseOrder->fill($header);
             $purchaseOrder->save();

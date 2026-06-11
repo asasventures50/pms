@@ -2,6 +2,7 @@
 
 namespace App\Services\Procurement\PurchaseOrders;
 
+use App\Enums\Procurement\PrCompany;
 use App\Enums\Procurement\ProcurementRequests\ProcurementType;
 use App\Enums\Procurement\ProcurementRequests\ProcurementVendorType;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
@@ -73,7 +74,7 @@ class PurchaseOrderProcurementRequestContext
 
     /**
      * @param  Collection<int, ProcurementRequestItem>  $items
-     * @return array{category: string, scope_type: string, project: string, procurement_type: string}
+     * @return array{company: string, category: string, scope_type: string, project: string, procurement_type: string}
      */
     public static function aggregateFromRequest(
         ProcurementRequest $request,
@@ -112,6 +113,7 @@ class PurchaseOrderProcurementRequestContext
         $scopeType = self::scopeTypeDisplayFromRequest($request, $items, $printLabels);
 
         return [
+            'company' => PrCompany::resolve($request->company_key)->label(),
             'category' => $categoryLabel !== '' ? $categoryLabel : $fromItems['category'],
             'scope_type' => $scopeType !== '' ? $scopeType : $fromItems['scope_type'],
             'project' => $projectLabel !== '' ? $projectLabel : $fromItems['project'],
@@ -323,13 +325,14 @@ class PurchaseOrderProcurementRequestContext
     }
 
     /**
-     * @return array{category: string, scope_type: string, project: string, procurement_type: string}
+     * @return array{company: string, category: string, scope_type: string, project: string, procurement_type: string}
      */
     public static function emptyAggregates(): array
     {
         return [
-            'category' => '',
+            'company' => '',
             'scope_type' => '',
+            'category' => '',
             'project' => '',
             'procurement_type' => '',
         ];

@@ -2,6 +2,7 @@
 
 namespace App\Services\Procurement\PurchaseOrders;
 
+use App\Enums\Procurement\PrCompany;
 use App\Enums\Procurement\ProcurementRequests\ProcurementVendorType;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequestItem;
@@ -22,6 +23,7 @@ class ProcurementRequestLinesForPurchaseOrderPresenter
      *     scope_type_keys: list<string>,
      *     items: list<array<string, mixed>>,
      *     commercial_terms: array<string, mixed>,
+     *     company: array<string, mixed>,
      * }
      */
     public function present(ProcurementRequest $procurementRequest): array
@@ -43,6 +45,7 @@ class ProcurementRequestLinesForPurchaseOrderPresenter
             'scope_type_keys' => PurchaseOrderProcurementRequestContext::scopeTypeKeysFromRequest($procurementRequest, $items),
             'items' => $items->map(fn (ProcurementRequestItem $line) => $this->toLine($procurementRequest, $line))->all(),
             'commercial_terms' => $this->commercialTerms->snapshot($procurementRequest),
+            'company' => PrCompany::resolve($procurementRequest->company_key)->toPurchaseOrderApiPayload(),
         ];
     }
 

@@ -48,7 +48,11 @@
             @if ($purchaseOrder->procurementRequest)
                 <div class="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
                     <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-600">Linked P.R. — {{ $purchaseOrder->procurementRequest->request_number }}</h3>
-                    <dl class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 text-sm">
+                    <dl class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-5 text-sm">
+                        <div>
+                            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Company</dt>
+                            <dd class="mt-0.5 text-slate-900">{{ ($prContext['company'] ?? '') ?: '—' }}</dd>
+                        </div>
                         <div>
                             <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Procurement type</dt>
                             <dd class="mt-0.5 text-slate-900">{{ ($prContext['procurement_type'] ?? '') ?: '—' }}</dd>

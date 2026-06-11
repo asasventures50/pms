@@ -2,6 +2,7 @@
     $prContext = $prContext ?? \App\Services\Procurement\PurchaseOrders\PurchaseOrderProcurementRequestContext::emptyAggregates();
     $linkedPrNumber = $linkedPrNumber ?? ($purchaseOrder?->procurementRequest?->request_number ?? '');
     $hasContent = ($linkedPrNumber !== '')
+        || ($prContext['company'] ?? '') !== ''
         || ($prContext['category'] ?? '') !== ''
         || ($prContext['scope_type'] ?? '') !== ''
         || ($prContext['project'] ?? '') !== ''
@@ -12,10 +13,14 @@
      class="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm {{ $hasContent ? '' : 'hidden' }}"
      data-initial-scope-type-keys='@json($scopeTypeKeys ?? [])'>
     <h4 class="text-xs font-semibold uppercase tracking-wide text-slate-600">From linked P.R.</h4>
-    <dl class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+    <dl class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <div>
             <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">P.R. number</dt>
             <dd id="po-pr-context-number" class="mt-0.5 font-mono text-slate-900">{{ $linkedPrNumber ?: '—' }}</dd>
+        </div>
+        <div>
+            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Company</dt>
+            <dd id="po-pr-context-company" class="mt-0.5 text-slate-900">{{ $prContext['company'] ?? '—' }}</dd>
         </div>
         <div>
             <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Procurement type</dt>

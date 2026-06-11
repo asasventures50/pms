@@ -302,10 +302,100 @@ document.addEventListener('DOMContentLoaded', function () {
     const prImportConfirm = document.getElementById('po-pr-import-confirm');
     const poPrContextPanel = document.getElementById('po-pr-context');
     const poPrContextNumber = document.getElementById('po-pr-context-number');
+    const poPrContextCompany = document.getElementById('po-pr-context-company');
     const poPrContextProcurementType = document.getElementById('po-pr-context-procurement-type');
     const poPrContextScopeType = document.getElementById('po-pr-context-scope-type');
     const poPrContextCategory = document.getElementById('po-pr-context-category');
     const poPrContextProject = document.getElementById('po-pr-context-project');
+    const poCompanyLogo = document.querySelector('[data-po-company-logo]');
+    const poCompanyLogoFallback = document.querySelector('[data-po-company-logo-fallback]');
+    const poCompanyLabel = document.querySelector('[data-po-company-label]');
+    const poCompanyNameField = document.querySelector('[data-po-company-name]');
+    const poCompanyPhoneField = document.querySelector('[data-po-company-phone]');
+    const poCompanyEmailField = document.querySelector('[data-po-company-email]');
+    const poCompanyAddressField = document.querySelector('[data-po-company-address]');
+    const poCompanyFaxField = document.querySelector('[data-po-company-fax]');
+
+    let poDefaultBuyerCompany = {};
+    let poDefaultCompany = null;
+    try {
+        poDefaultBuyerCompany = JSON.parse(document.getElementById('po-default-buyer-company')?.textContent || '{}');
+    } catch (e) {
+        poDefaultBuyerCompany = {};
+    }
+    try {
+        poDefaultCompany = JSON.parse(document.getElementById('po-default-company')?.textContent || 'null');
+    } catch (e) {
+        poDefaultCompany = null;
+    }
+
+    function displayValue(value) {
+        const text = (value || '').trim();
+        return text !== '' ? text : '—';
+    }
+
+    function applyPoCompanyPreview(company) {
+        if (!company || typeof company !== 'object') {
+            return;
+        }
+
+        if (poCompanyLabel) {
+            poCompanyLabel.textContent = company.label || '—';
+        }
+
+        if (poCompanyLogo && company.logo_url) {
+            poCompanyLogo.src = company.logo_url;
+            poCompanyLogo.style.display = '';
+            poCompanyLogo.onerror = function () {
+                poCompanyLogo.style.display = 'none';
+                if (poCompanyLogoFallback) {
+                    poCompanyLogoFallback.innerHTML = company.logo_fallback_html || '';
+                    poCompanyLogoFallback.style.display = 'block';
+                }
+            };
+        }
+
+        if (poCompanyLogoFallback) {
+            poCompanyLogoFallback.innerHTML = company.logo_fallback_html || '';
+            poCompanyLogoFallback.style.display = company.logo_exists ? 'none' : 'block';
+        }
+
+        const buyer = company.buyer || {};
+        if (poCompanyNameField) {
+            poCompanyNameField.textContent = displayValue(buyer.name);
+        }
+        if (poCompanyPhoneField) {
+            poCompanyPhoneField.textContent = displayValue(buyer.phone);
+        }
+        if (poCompanyEmailField) {
+            poCompanyEmailField.textContent = displayValue(buyer.email);
+        }
+        if (poCompanyAddressField) {
+            poCompanyAddressField.textContent = displayValue(buyer.address);
+        }
+        if (poCompanyFaxField) {
+            poCompanyFaxField.textContent = displayValue(buyer.fax);
+        }
+    }
+
+    function resetPoCompanyPreview() {
+        applyPoCompanyPreview(poDefaultCompany);
+        if (poCompanyNameField) {
+            poCompanyNameField.textContent = displayValue(poDefaultBuyerCompany.name);
+        }
+        if (poCompanyPhoneField) {
+            poCompanyPhoneField.textContent = displayValue(poDefaultBuyerCompany.phone);
+        }
+        if (poCompanyEmailField) {
+            poCompanyEmailField.textContent = displayValue(poDefaultBuyerCompany.email);
+        }
+        if (poCompanyAddressField) {
+            poCompanyAddressField.textContent = displayValue(poDefaultBuyerCompany.address);
+        }
+        if (poCompanyFaxField) {
+            poCompanyFaxField.textContent = displayValue(poDefaultBuyerCompany.fax);
+        }
+    }
 
     let poPrScopeTypeKeys = [];
     try {
@@ -353,6 +443,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const payload = context || {};
         const hasContent = Boolean(
             requestNumber
+            || payload.company
             || payload.procurementType
             || payload.category
             || payload.scopeType
@@ -364,6 +455,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (poPrContextNumber) {
             poPrContextNumber.textContent = requestNumber || '—';
+        }
+        if (poPrContextCompany) {
+            poPrContextCompany.textContent = payload.company || '—';
         }
         if (poPrContextProcurementType) {
             poPrContextProcurementType.textContent = payload.procurementType || '—';
@@ -386,12 +480,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function clearPoPrContextPanel() {
         updatePoPrContextPanel('', {
+            company: '',
             procurementType: '',
             category: '',
             project: '',
             scopeType: '',
             scopeTypeKeys: [],
         });
+        resetPoCompanyPreview();
     }
 
     function contextFromProcurementRequestResponse(data, selectedLines) {
@@ -399,6 +495,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const requestContext = data?.context || {};
 
         return {
+            company: requestContext.company || '',
             category: aggregated.category || requestContext.category || '',
             project: aggregated.project || requestContext.project || '',
             scopeType: aggregated.scopeType || requestContext.scope_type || '',
@@ -678,6 +775,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     data.request_number || '',
                     contextFromProcurementRequestResponse(data, selectedRows)
                 );
+                applyPoCompanyPreview(data.company || null);
                 applyCommercialTermsFromPr(data.commercial_terms || null);
                 if (opts.onImported) {
                     opts.onImported();

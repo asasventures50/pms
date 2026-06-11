@@ -1,6 +1,12 @@
 @php
+    use App\Enums\Procurement\PrCompany;
+    use App\Services\Procurement\PurchaseOrders\PurchaseOrderBuyerCompanyApplier;
+
     $po = $purchaseOrder ?? null;
     $lineItems = old('items', $defaultItems ?? [['item' => '', 'description' => '', 'quantity' => 1, 'unit_price' => 0]]);
+    $poCompany = $po?->exists
+        ? PurchaseOrderBuyerCompanyApplier::resolveForPurchaseOrder($po)
+        : PrCompany::AsasVentures;
 @endphp
 
 <div class="space-y-8">
@@ -72,6 +78,7 @@
     @include('procurement._our-company', [
         'document' => $po,
         'variant' => 'admin-form',
+        'poCompany' => $poCompany,
     ])
 
     @include('procurement.purchase-orders._vendor-section', [
@@ -173,6 +180,8 @@
     ])
 
     <script type="application/json" id="po-scope-terms-map">@json($scopeTermsMap ?? [])</script>
+    <script type="application/json" id="po-default-buyer-company">@json(\App\Enums\Procurement\BuyerCompany::defaults())</script>
+    <script type="application/json" id="po-default-company">@json(PrCompany::AsasVentures->toPurchaseOrderApiPayload())</script>
 
     <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 class="border-b border-slate-100 pb-3 text-base font-semibold text-slate-900">Signatures</h2>

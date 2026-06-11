@@ -1,18 +1,16 @@
 @php
+    use App\Services\Procurement\PurchaseOrders\PurchaseOrderBuyerCompanyApplier;
     use App\Services\Procurement\PurchaseOrders\PurchaseOrderPrintLabels;
     use App\Services\Procurement\PurchaseOrders\PurchaseOrderProcurementRequestContext;
-    use Illuminate\Support\Facades\Storage;
 
     $printLabels = $printLabels ?? PurchaseOrderPrintLabels::resolve(null);
     $buyer = $buyerCompany ?? \App\Enums\Procurement\BuyerCompany::forDisplay($purchaseOrder);
     $prContext = $prContext ?? PurchaseOrderProcurementRequestContext::resolve($purchaseOrder, $printLabels);
+    $poCompany = PurchaseOrderBuyerCompanyApplier::resolveForPurchaseOrder($purchaseOrder);
     $minItemRows = 1;
-    $poLogoPublicPath = public_path('images/po/logo.png');
-    $poLogoExists = is_file($poLogoPublicPath)
-        || Storage::disk('public')->exists('logo.png');
-    $poLogoUrl = is_file($poLogoPublicPath)
-        ? asset('images/po/logo.png')
-        : (Storage::disk('public')->exists('logo.png') ? Storage::disk('public')->url('logo.png') : asset('images/po/logo.png'));
+    $poLogoUrl = $poCompany->logoUrl();
+    $poLogoExists = $poCompany->logoExists();
+    $poLogoFallbackHtml = $poCompany->logoFallbackHtml();
     $termsLocale = $printLabels->locale();
 @endphp
 
@@ -21,8 +19,10 @@
 <div class="po-wrapper">
     @include('procurement.purchase-orders.print._header', [
         'buyer' => $buyer,
+        'poCompany' => $poCompany,
         'poLogoUrl' => $poLogoUrl,
         'poLogoExists' => $poLogoExists,
+        'poLogoFallbackHtml' => $poLogoFallbackHtml,
         'prContext' => $prContext,
     ])
     @include('procurement.purchase-orders.print._parties')

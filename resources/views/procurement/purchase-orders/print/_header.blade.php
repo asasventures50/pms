@@ -5,12 +5,12 @@
 <table class="po-header-table">
     <tr>
         <td class="po-header-logo">
-            <img src="{{ $poLogoUrl }}" alt="ASAS VENTURES" class="po-logo-img"
+            <img src="{{ $poLogoUrl }}" alt="{{ $poCompany->label() ?? 'Company' }}" class="po-logo-img"
                  @unless ($poLogoExists)
                      onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='block';"
                  @endunless>
             <div class="po-logo-fallback" @if ($poLogoExists) style="display:none;" @endif>
-                ASAS<br>VENTURES
+                {!! $poLogoFallbackHtml ?? 'ASAS<br>VENTURES' !!}
             </div>
         </td>
         <td class="po-header-title">{{ $printLabels->t('document_title') }}</td>

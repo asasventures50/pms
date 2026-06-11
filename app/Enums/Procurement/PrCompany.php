@@ -53,17 +53,17 @@ enum PrCompany: string
             ],
             self::QassiounJourney => [
                 'name' => 'Qassioun Journey',
-                'address' => null,
-                'phone' => null,
-                'email' => null,
-                'fax' => null,
+                'address' => 'Nouri Pasha, Arawda square, Damascus, Syria',
+                'phone' => '011-3344955/ 011-3344954',
+                'email' => 'asasventures.sy@gmail.com',
+                'fax' => '011-3344953',
             ],
             self::Activation => [
                 'name' => 'Activation',
-                'address' => null,
-                'phone' => null,
-                'email' => null,
-                'fax' => null,
+                'address' => 'Nouri Pasha, Arawda square, Damascus, Syria',
+                'phone' => '011-3344955/ 011-3344954',
+                'email' => 'asasventures.sy@gmail.com',
+                'fax' => '011-3344953',
             ],
         };
     }
@@ -108,5 +108,51 @@ enum PrCompany: string
         $parts = preg_split('/\s+/', $this->label()) ?: [$this->label()];
 
         return implode('<br>', array_map('strtoupper', $parts));
+    }
+
+    /**
+     * @return array{
+     *     company_key: string,
+     *     company_name: string|null,
+     *     company_phone: string|null,
+     *     company_email: string|null,
+     *     company_address: string|null,
+     *     company_website: string|null
+     * }
+     */
+    public function toPurchaseOrderHeader(): array
+    {
+        $details = $this->details();
+
+        return [
+            'company_key' => $this->value,
+            'company_name' => $details['name'],
+            'company_phone' => $details['phone'],
+            'company_email' => $details['email'],
+            'company_address' => $details['address'],
+            'company_website' => $details['fax'],
+        ];
+    }
+
+    /**
+     * @return array{
+     *     key: string,
+     *     label: string,
+     *     logo_url: string,
+     *     logo_exists: bool,
+     *     logo_fallback_html: string,
+     *     buyer: array{name: string, address: string|null, phone: string|null, email: string|null, fax: string|null}
+     * }
+     */
+    public function toPurchaseOrderApiPayload(): array
+    {
+        return [
+            'key' => $this->value,
+            'label' => $this->label(),
+            'logo_url' => $this->logoUrl(),
+            'logo_exists' => $this->logoExists(),
+            'logo_fallback_html' => $this->logoFallbackHtml(),
+            'buyer' => $this->details(),
+        ];
     }
 }
