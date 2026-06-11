@@ -276,25 +276,84 @@
         </div>
     </form>
 
+    @php
+        $vendorTableColumns = [
+            'vendor_code' => 'Vendor Code',
+            'created_by' => 'Created by',
+            'vendor_name' => 'Vendor Name',
+            'language' => 'Language',
+            'country' => 'Country',
+            'city' => 'City',
+            'phone' => 'Phone',
+            'email' => 'Email',
+            'rfq_methods' => 'RFQ methods',
+            'status' => 'Status',
+            'primary_categories' => 'Primary Categories',
+            'business_types' => 'Business Types',
+            'brochures' => 'Brochures',
+        ];
+    @endphp
     <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div class="flex items-center justify-end border-b border-slate-200 bg-slate-50/80 px-4 py-2">
+            <div class="relative" id="vendor-columns-wrap">
+                <button type="button"
+                        id="vendor-columns-btn"
+                        aria-expanded="false"
+                        aria-haspopup="listbox"
+                        aria-controls="vendor-columns-panel"
+                        class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50">
+                    <svg class="h-4 w-4 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"/>
+                    </svg>
+                    Columns
+                </button>
+                <div id="vendor-columns-panel"
+                     class="hidden absolute right-0 top-full z-30 mt-1 w-56 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg ring-1 ring-black/5"
+                     role="listbox"
+                     aria-label="Choose visible columns">
+                    <div class="border-b border-slate-100 px-3 py-2">
+                        <p class="text-xs font-medium text-slate-500">Show columns</p>
+                    </div>
+                    <div class="max-h-64 overflow-y-auto py-1">
+                        @foreach ($vendorTableColumns as $colKey => $colLabel)
+                            <label class="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50">
+                                <input type="checkbox"
+                                       class="vendor-column-toggle rounded border-slate-300 text-slate-900 focus:ring-slate-500"
+                                       value="{{ $colKey }}"
+                                       data-vendor-column-toggle="{{ $colKey }}"
+                                       checked>
+                                <span class="text-slate-800">{{ $colLabel }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                    <div class="border-t border-slate-100 px-3 py-2">
+                        <button type="button"
+                                id="vendor-columns-reset"
+                                class="text-xs font-medium text-slate-600 hover:text-slate-900">
+                            Show all columns
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+            <table id="vendor-list-table" class="min-w-full divide-y divide-slate-200 text-left text-sm">
                 <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <tr>
-                    <th class="px-3 py-3">Vendor Code</th>
-                    <th class="px-3 py-3">Created by</th>
-                    <th class="px-3 py-3">Vendor Name</th>
-                    <th class="px-3 py-3">Language</th>
-                    <th class="px-3 py-3">Country</th>
-                    <th class="px-3 py-3">City</th>
-                    <th class="px-3 py-3">Phone</th>
-                    <th class="px-3 py-3">Email</th>
-                    <th class="px-3 py-3 min-w-[8rem]">RFQ methods</th>
-                    <th class="px-3 py-3">Status</th>
-                    <th class="px-3 py-3 min-w-[10rem]">Primary Categories</th>
-                    <th class="px-3 py-3 min-w-[8rem]">Business Types</th>
-                    <th class="px-3 py-3">Brochures</th>
-                    <th class="px-3 py-3 text-right">Actions</th>
+                    <th class="px-3 py-3" data-vendor-col="vendor_code">Vendor Code</th>
+                    <th class="px-3 py-3" data-vendor-col="created_by">Created by</th>
+                    <th class="px-3 py-3" data-vendor-col="vendor_name">Vendor Name</th>
+                    <th class="px-3 py-3" data-vendor-col="language">Language</th>
+                    <th class="px-3 py-3" data-vendor-col="country">Country</th>
+                    <th class="px-3 py-3" data-vendor-col="city">City</th>
+                    <th class="px-3 py-3" data-vendor-col="phone">Phone</th>
+                    <th class="px-3 py-3" data-vendor-col="email">Email</th>
+                    <th class="px-3 py-3 min-w-[8rem]" data-vendor-col="rfq_methods">RFQ methods</th>
+                    <th class="px-3 py-3" data-vendor-col="status">Status</th>
+                    <th class="px-3 py-3 min-w-[10rem]" data-vendor-col="primary_categories">Primary Categories</th>
+                    <th class="px-3 py-3 min-w-[8rem]" data-vendor-col="business_types">Business Types</th>
+                    <th class="px-3 py-3" data-vendor-col="brochures">Brochures</th>
+                    <th class="px-3 py-3 text-right" data-vendor-col="actions">Actions</th>
                 </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -314,18 +373,18 @@
                         })->join(', ');
                     @endphp
                     <tr class="hover:bg-slate-50/80">
-                        <td class="whitespace-nowrap px-3 py-2 font-mono text-xs text-slate-800">{{ $vendor->vendor_code }}</td>
-                        <td class="whitespace-nowrap px-3 py-2 text-slate-700">{{ $vendor->creator?->name ?? '—' }}</td>
-                        <td class="max-w-[14rem] truncate px-3 py-2 text-slate-900" title="{{ $vendor->name }}">{{ $vendor->name }}</td>
-                        <td class="whitespace-nowrap px-3 py-2 text-slate-700">{{ strtoupper($vendor->language instanceof \BackedEnum ? $vendor->language->value : $vendor->language) }}</td>
+                        <td class="whitespace-nowrap px-3 py-2 font-mono text-xs text-slate-800" data-vendor-col="vendor_code">{{ $vendor->vendor_code }}</td>
+                        <td class="whitespace-nowrap px-3 py-2 text-slate-700" data-vendor-col="created_by">{{ $vendor->creator?->name ?? '—' }}</td>
+                        <td class="max-w-[14rem] truncate px-3 py-2 text-slate-900" title="{{ $vendor->name }}" data-vendor-col="vendor_name">{{ $vendor->name }}</td>
+                        <td class="whitespace-nowrap px-3 py-2 text-slate-700" data-vendor-col="language">{{ strtoupper($vendor->language instanceof \BackedEnum ? $vendor->language->value : $vendor->language) }}</td>
                         @php
                             $primaryLoc = $vendor->locations->firstWhere('is_primary', true) ?? $vendor->locations->first();
                         @endphp
-                        <td class="px-3 py-2 text-slate-700">{{ $primaryLoc?->country?->name ?? '—' }}</td>
-                        <td class="px-3 py-2 text-slate-700">{{ $primaryLoc?->city?->name ?? '' }}</td>
-                        <td class="whitespace-nowrap px-3 py-2 text-slate-700">{{ $vendor->phone ?? '—' }}</td>
-                        <td class="max-w-[12rem] truncate px-3 py-2 text-slate-700" title="{{ $vendor->email }}">{{ $vendor->email ?? '—' }}</td>
-                        <td class="px-3 py-2">
+                        <td class="px-3 py-2 text-slate-700" data-vendor-col="country">{{ $primaryLoc?->country?->name ?? '—' }}</td>
+                        <td class="px-3 py-2 text-slate-700" data-vendor-col="city">{{ $primaryLoc?->city?->name ?? '' }}</td>
+                        <td class="whitespace-nowrap px-3 py-2 text-slate-700" data-vendor-col="phone">{{ $vendor->phone ?? '—' }}</td>
+                        <td class="max-w-[12rem] truncate px-3 py-2 text-slate-700" title="{{ $vendor->email }}" data-vendor-col="email">{{ $vendor->email ?? '—' }}</td>
+                        <td class="px-3 py-2" data-vendor-col="rfq_methods">
                             @if (is_array($vendor->rfq_method) && count($vendor->rfq_method) > 0)
                                 <div class="flex max-w-[14rem] flex-wrap gap-1">
                                     @foreach ($vendor->rfq_method as $m)
@@ -336,11 +395,11 @@
                                 <span class="text-xs text-slate-700">—</span>
                             @endif
                         </td>
-                        <td class="whitespace-nowrap px-3 py-2">
+                        <td class="whitespace-nowrap px-3 py-2" data-vendor-col="status">
                             @php $st = $vendor->status; $sv = $st instanceof \BackedEnum ? $st->value : $st; @endphp
                             <span class="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-800">{{ \Illuminate\Support\Str::headline(str_replace('_', ' ', $sv)) }}</span>
                         </td>
-                        <td class="px-3 py-2 text-xs text-slate-700">
+                        <td class="px-3 py-2 text-xs text-slate-700" data-vendor-col="primary_categories">
                             @if ($primaryLabels->isEmpty())
                                 —
                             @else
@@ -354,9 +413,9 @@
                                 @endforeach
                             @endif
                         </td>
-                        <td class="px-3 py-2 text-xs text-slate-700">{{ $btLabels !== '' ? $btLabels : '—' }}</td>
-                        <td class="whitespace-nowrap px-3 py-2 text-slate-700">{{ ($vendor->brochures_count ?? 0) > 0 ? 'Yes' : 'No' }}</td>
-                        <td class="whitespace-nowrap px-3 py-2 text-right">
+                        <td class="px-3 py-2 text-xs text-slate-700" data-vendor-col="business_types">{{ $btLabels !== '' ? $btLabels : '—' }}</td>
+                        <td class="whitespace-nowrap px-3 py-2 text-slate-700" data-vendor-col="brochures">{{ ($vendor->brochures_count ?? 0) > 0 ? 'Yes' : 'No' }}</td>
+                        <td class="whitespace-nowrap px-3 py-2 text-right" data-vendor-col="actions">
                             <a href="{{ route('vendors.show', ['vendor' => $vendor, 'return' => $vendorListReturn]) }}" class="text-sm font-medium text-slate-700 hover:text-slate-900">View</a>
                             <span class="mx-1 text-slate-300">|</span>
                             <a href="{{ route('vendors.edit', ['vendor' => $vendor, 'return' => $vendorListReturn]) }}" class="text-sm font-medium text-slate-700 hover:text-slate-900">Edit</a>
@@ -381,8 +440,132 @@
 @push('scripts')
     <script type="application/json" id="vendor-filter-subcategories-by-category">@json($subcategoriesByCategory)</script>
     <script type="application/json" id="vendor-filter-cities-by-country">@json($citiesByCountry)</script>
+    <script type="application/json" id="vendor-table-column-keys">@json(array_keys($vendorTableColumns))</script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const vendorColumnKeys = JSON.parse(document.getElementById('vendor-table-column-keys')?.textContent || '[]');
+            const vendorColumnsStorageKey = 'pms.vendors.table-columns';
+            const vendorColumnsWrap = document.getElementById('vendor-columns-wrap');
+            const vendorColumnsBtn = document.getElementById('vendor-columns-btn');
+            const vendorColumnsPanel = document.getElementById('vendor-columns-panel');
+            const vendorColumnsReset = document.getElementById('vendor-columns-reset');
+
+            function readStoredVendorColumns() {
+                try {
+                    const raw = localStorage.getItem(vendorColumnsStorageKey);
+                    if (!raw) {
+                        return null;
+                    }
+                    const parsed = JSON.parse(raw);
+                    if (!Array.isArray(parsed)) {
+                        return null;
+                    }
+                    return parsed.filter(function (key) {
+                        return vendorColumnKeys.includes(key);
+                    });
+                } catch (error) {
+                    return null;
+                }
+            }
+
+            function applyVendorColumnVisibility(visibleKeys) {
+                const visible = new Set(visibleKeys);
+                document.querySelectorAll('[data-vendor-col]').forEach(function (cell) {
+                    const key = cell.getAttribute('data-vendor-col');
+                    if (key === 'actions' || visible.has(key)) {
+                        cell.classList.remove('hidden');
+                    } else {
+                        cell.classList.add('hidden');
+                    }
+                });
+            }
+
+            function syncVendorColumnCheckboxes(visibleKeys) {
+                const visible = new Set(visibleKeys);
+                document.querySelectorAll('[data-vendor-column-toggle]').forEach(function (input) {
+                    input.checked = visible.has(input.value);
+                });
+            }
+
+            function saveVendorColumnVisibility(visibleKeys) {
+                localStorage.setItem(vendorColumnsStorageKey, JSON.stringify(visibleKeys));
+            }
+
+            function currentVendorColumnSelection() {
+                return Array.from(document.querySelectorAll('[data-vendor-column-toggle]'))
+                    .filter(function (input) {
+                        return input.checked;
+                    })
+                    .map(function (input) {
+                        return input.value;
+                    });
+            }
+
+            function initVendorColumnPicker() {
+                if (!vendorColumnsWrap || !vendorColumnsBtn || !vendorColumnsPanel) {
+                    return;
+                }
+
+                const stored = readStoredVendorColumns();
+                const initialVisible = stored && stored.length > 0 ? stored : vendorColumnKeys.slice();
+                syncVendorColumnCheckboxes(initialVisible);
+                applyVendorColumnVisibility(initialVisible);
+
+                function closeVendorColumnsPanel() {
+                    vendorColumnsPanel.classList.add('hidden');
+                    vendorColumnsBtn.setAttribute('aria-expanded', 'false');
+                }
+
+                function openVendorColumnsPanel() {
+                    vendorColumnsPanel.classList.remove('hidden');
+                    vendorColumnsBtn.setAttribute('aria-expanded', 'true');
+                }
+
+                vendorColumnsBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    if (vendorColumnsPanel.classList.contains('hidden')) {
+                        openVendorColumnsPanel();
+                    } else {
+                        closeVendorColumnsPanel();
+                    }
+                });
+
+                document.addEventListener('click', function (e) {
+                    if (!vendorColumnsWrap.contains(e.target)) {
+                        closeVendorColumnsPanel();
+                    }
+                });
+
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape') {
+                        closeVendorColumnsPanel();
+                    }
+                });
+
+                document.querySelectorAll('[data-vendor-column-toggle]').forEach(function (input) {
+                    input.addEventListener('change', function () {
+                        let visible = currentVendorColumnSelection();
+                        if (visible.length === 0) {
+                            input.checked = true;
+                            visible = currentVendorColumnSelection();
+                        }
+                        applyVendorColumnVisibility(visible);
+                        saveVendorColumnVisibility(visible);
+                    });
+                });
+
+                if (vendorColumnsReset) {
+                    vendorColumnsReset.addEventListener('click', function () {
+                        const all = vendorColumnKeys.slice();
+                        syncVendorColumnCheckboxes(all);
+                        applyVendorColumnVisibility(all);
+                        saveVendorColumnVisibility(all);
+                    });
+                }
+            }
+
+            initVendorColumnPicker();
+
             document.querySelectorAll('[data-per-page-auto]').forEach(function (select) {
                 select.addEventListener('change', function () {
                     const url = new URL(window.location.href);
