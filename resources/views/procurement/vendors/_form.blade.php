@@ -33,6 +33,10 @@
         return $en !== '' ? $en : $ar;
     };
 
+    $categories = collect($categories)
+        ->sort(fn ($a, $b) => strcasecmp($catalogLabel($a), $catalogLabel($b)))
+        ->values();
+
     if ($mode === 'edit' && $v) {
         $bucket = [];
         foreach ($v->vendorCategories->sortBy('id') as $vc) {
@@ -123,11 +127,13 @@
     ]);
 
     $subcategoriesByCategory = $categories->mapWithKeys(fn ($c) => [
-        $c->id => $c->subcategories->map(fn ($s) => [
-            'id' => $s->id,
-            'name_ar' => $s->name_ar,
-            'name_en' => $s->name_en,
-        ])->values(),
+        $c->id => $c->subcategories
+            ->sort(fn ($a, $b) => strcasecmp($catalogLabel($a), $catalogLabel($b)))
+            ->map(fn ($s) => [
+                'id' => $s->id,
+                'name_ar' => $s->name_ar,
+                'name_en' => $s->name_en,
+            ])->values(),
     ]);
 
     $categoryInitialForJs = collect($categoryRows)->map(function ($row, $index) {
@@ -649,7 +655,9 @@
                         }
                         $subIdsSel = array_map('intval', $subIdsSel);
                         $subsForRow = $catId !== '' && $catId !== null
-                            ? ($categories->firstWhere('id', (int) $catId)?->subcategories ?? collect())
+                            ? ($categories->firstWhere('id', (int) $catId)?->subcategories
+                                ?->sort(fn ($a, $b) => strcasecmp($catalogLabel($a), $catalogLabel($b)))
+                                ?->values() ?? collect())
                             : collect();
                     @endphp
                     <tr class="category-row" data-row-index="{{ $index }}" data-category-row-persisted="{{ $mode === 'edit' ? '1' : '0' }}">
@@ -1049,7 +1057,11 @@
                 if (!categoryId) {
                     return [];
                 }
-                return subData[categoryId] || subData[String(categoryId)] || [];
+                const list = subData[categoryId] || subData[String(categoryId)] || [];
+
+                return list.slice().sort(function (a, b) {
+                    return catalogOptionLabel(a).localeCompare(catalogOptionLabel(b), undefined, { sensitivity: 'base' });
+                });
             }
 
             function optionsForProcurementCategory(categoryId) {
@@ -1088,6 +1100,7 @@
 
                     return;
                 }
+
                 const sel = new Set((selectedIds || []).map(String));
                 list.forEach(function (item) {
                     const label = document.createElement('label');
@@ -1382,7 +1395,24 @@
                 if (selectEl.querySelector('option[value="' + CSS.escape(id) + '"]')) {
                     return;
                 }
-                selectEl.appendChild(createCategoryOption(category));
+
+                const opt = createCategoryOption(category);
+                const label = catalogOptionLabel(category).toLowerCase();
+                const existingOptions = Array.from(selectEl.options).filter(function (optionEl) {
+                    return optionEl.value !== '';
+                });
+                let inserted = false;
+                for (let i = 0; i < existingOptions.length; i++) {
+                    const existing = existingOptions[i];
+                    if (existing.textContent.trim().toLowerCase().localeCompare(label, undefined, { sensitivity: 'base' }) > 0) {
+                        selectEl.insertBefore(opt, existing);
+                        inserted = true;
+                        break;
+                    }
+                }
+                if (!inserted) {
+                    selectEl.appendChild(opt);
+                }
             }
 
             function appendCategoryToAllSelects(category) {
