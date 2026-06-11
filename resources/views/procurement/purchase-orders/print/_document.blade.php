@@ -1,9 +1,11 @@
 @php
+    use App\Services\Procurement\PurchaseOrders\PurchaseOrderPrintLabels;
     use App\Services\Procurement\PurchaseOrders\PurchaseOrderProcurementRequestContext;
     use Illuminate\Support\Facades\Storage;
 
+    $printLabels = $printLabels ?? PurchaseOrderPrintLabels::resolve(null);
     $buyer = $buyerCompany ?? \App\Enums\Procurement\BuyerCompany::forDisplay($purchaseOrder);
-    $prContext = $prContext ?? PurchaseOrderProcurementRequestContext::resolve($purchaseOrder);
+    $prContext = $prContext ?? PurchaseOrderProcurementRequestContext::resolve($purchaseOrder, $printLabels);
     $minItemRows = 1;
     $poLogoPublicPath = public_path('images/po/logo.png');
     $poLogoExists = is_file($poLogoPublicPath)
@@ -11,7 +13,7 @@
     $poLogoUrl = is_file($poLogoPublicPath)
         ? asset('images/po/logo.png')
         : (Storage::disk('public')->exists('logo.png') ? Storage::disk('public')->url('logo.png') : asset('images/po/logo.png'));
-    $termsLocale = $purchaseOrder->terms_locale ?? 'en';
+    $termsLocale = $printLabels->locale();
 @endphp
 
 @include('procurement.purchase-orders.print._page-setup', ['buyer' => $buyer])

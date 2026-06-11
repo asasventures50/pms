@@ -1,9 +1,10 @@
 @php
+    $printLabels = $printLabels ?? \App\Services\Procurement\PurchaseOrders\PurchaseOrderPrintLabels::resolve(null);
     $supportingDocuments = $prContext['supporting_documents'] ?? [];
 @endphp
 
 @if (count($supportingDocuments) > 0)
-    <div class="po-section-title">Supporting documents</div>
+    <div class="po-section-title">{{ $printLabels->t('supporting_documents') }}</div>
     <ul class="po-terms-list po-supporting-documents-list">
         @foreach ($supportingDocuments as $document)
             <li>

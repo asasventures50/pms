@@ -9,12 +9,15 @@
 @endphp
 
 @if ($variant === 'print')
+    @php
+        $printLabels = $printLabels ?? \App\Services\Procurement\PurchaseOrders\PurchaseOrderPrintLabels::resolve(null);
+    @endphp
     @if ($vendorRows !== [])
         <div class="po-vendor-details">
-            <div class="po-section-title">Vendor Details</div>
+            <div class="po-section-title">{{ $printLabels->t('vendor_details') }}</div>
             @foreach ($vendorRows as $label => $value)
                 <div class="po-form-group">
-                    <span class="po-form-label">{{ $label }}:</span>
+                    <span class="po-form-label">{{ $printLabels->vendorRowLabel($label) }}:</span>
                     <span class="po-form-line">{{ $value }}</span>
                 </div>
             @endforeach

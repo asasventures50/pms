@@ -15,8 +15,10 @@
             @endif
             <a href="{{ route('purchase-orders.index') }}"
                class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">Back to list</a>
-            <a href="{{ route('purchase-orders.print', $purchaseOrder) }}" target="_blank" rel="noopener"
-               class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">Print</a>
+            <a href="{{ route('purchase-orders.print', ['purchase_order' => $purchaseOrder, 'locale' => 'en']) }}" target="_blank" rel="noopener"
+               class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">Print (EN)</a>
+            <a href="{{ route('purchase-orders.print', ['purchase_order' => $purchaseOrder, 'locale' => 'ar']) }}" target="_blank" rel="noopener"
+               class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">Print (AR)</a>
         </div>
     </div>
 

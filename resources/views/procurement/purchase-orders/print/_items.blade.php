@@ -1,4 +1,6 @@
 @php
+    $printLabels = $printLabels ?? \App\Services\Procurement\PurchaseOrders\PurchaseOrderPrintLabels::resolve(null);
+
     $currency = $purchaseOrder->displayCurrency();
     $currencySuffix = $currency ? ' ('.$currency.')' : '';
     $itemCount = $purchaseOrder->items->count();
@@ -33,12 +35,12 @@
         </th>
     </tr>
     <tr>
-        <th class="col-item">Item</th>
-        <th class="col-desc">Item or service<br>description</th>
-        <th class="col-scope">Scope of<br>work</th>
-        <th class="col-qty">Quantity</th>
-        <th class="col-price">Price per<br>unit{{ $currencySuffix }}</th>
-        <th class="col-total">Line Total{{ $currencySuffix }}</th>
+        <th class="col-item">{{ $printLabels->t('item') }}</th>
+        <th class="col-desc">{!! nl2br(e($printLabels->t('description'))) !!}</th>
+        <th class="col-scope">{!! nl2br(e($printLabels->t('scope_of_work'))) !!}</th>
+        <th class="col-qty">{{ $printLabels->t('quantity') }}</th>
+        <th class="col-price">{!! nl2br(e($printLabels->t('price_per_unit'))) !!}{{ $currencySuffix }}</th>
+        <th class="col-total">{{ $printLabels->t('line_total') }}{{ $currencySuffix }}</th>
     </tr>
     </thead>
     <tbody>
@@ -87,19 +89,19 @@
 <div class="po-totals-wrap">
     <table class="po-totals-table">
         <tr>
-            <td class="po-totals-label">Subtotal</td>
+            <td class="po-totals-label">{{ $printLabels->t('subtotal') }}</td>
             <td class="po-totals-value">{{ $purchaseOrder->formatMoneyAmount($linesSubtotal) }}</td>
         </tr>
         <tr>
-            <td class="po-totals-label">Delivery fee</td>
+            <td class="po-totals-label">{{ $printLabels->t('delivery_fee') }}</td>
             <td class="po-totals-value">{{ $purchaseOrder->formatMoneyAmount($deliveryFee) }}</td>
         </tr>
         <tr>
-            <td class="po-totals-label">Discount</td>
+            <td class="po-totals-label">{{ $printLabels->t('discount') }}</td>
             <td class="po-totals-value">{{ $showDiscountMinus ? '−' : '' }}{{ $purchaseOrder->formatMoneyAmount($discount) }}</td>
         </tr>
         <tr>
-            <td class="po-totals-label">Total Price:</td>
+            <td class="po-totals-label">{{ $printLabels->t('total_price') }}</td>
             <td class="po-totals-value">{{ $purchaseOrder->formatMoneyAmount($totalPrice) }}</td>
         </tr>
     </table>

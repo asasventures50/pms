@@ -24,6 +24,7 @@ use App\Models\Procurement\Vendors\Vendor;
 use App\Services\Procurement\PurchaseOrders\ProcurementRequestCommercialTermsForPurchaseOrder;
 use App\Services\Procurement\PurchaseOrders\ProcurementRequestLinesForPurchaseOrderPresenter;
 use App\Services\Procurement\PurchaseOrders\ProcurementRequestOptionsForPurchaseOrderQuery;
+use App\Services\Procurement\PurchaseOrders\PurchaseOrderPrintLabels;
 use App\Services\Procurement\PurchaseOrders\PurchaseOrderProcurementRequestContext;
 use App\Services\Procurement\Vendors\VendorSelectOptions;
 use App\Services\Procurement\PurchaseOrders\PurchaseOrderCodeGenerator;
@@ -250,9 +251,10 @@ class PurchaseOrderController extends Controller
 
 
 
-    public function print(PurchaseOrder $purchaseOrder): View
+    public function print(Request $request, PurchaseOrder $purchaseOrder): View
 
     {
+        $printLabels = PurchaseOrderPrintLabels::resolve($request->query('locale'));
 
         $purchaseOrder->load([
             'vendor.primaryLocation',
@@ -264,6 +266,8 @@ class PurchaseOrderController extends Controller
             'procurementRequest.headerDocuments',
             'procurementRequest.items.project',
             'procurementRequest.items.documents',
+            'procurementRequest.category',
+            'procurementRequest.subcategory',
         ]);
 
         return view('procurement.purchase-orders.print', [
@@ -272,9 +276,11 @@ class PurchaseOrderController extends Controller
 
             'buyerCompany' => BuyerCompany::forDisplay($purchaseOrder),
 
-            'terms' => $this->resolvedTermsForPurchaseOrder($purchaseOrder),
+            'terms' => $this->resolvedTermsForPurchaseOrder($purchaseOrder, $printLabels->locale()),
 
-            'prContext' => PurchaseOrderProcurementRequestContext::resolve($purchaseOrder),
+            'prContext' => PurchaseOrderProcurementRequestContext::resolve($purchaseOrder, $printLabels),
+
+            'printLabels' => $printLabels,
 
         ]);
 
@@ -489,17 +495,19 @@ class PurchaseOrderController extends Controller
 
      */
 
-    private function resolvedTermsForPurchaseOrder(PurchaseOrder $purchaseOrder): array
+    private function resolvedTermsForPurchaseOrder(PurchaseOrder $purchaseOrder, ?string $termsLocale = null): array
     {
+        $locale = $termsLocale ?? $purchaseOrder->terms_locale;
+
         $resolved = $this->termsService->resolveStoredTermsForLocale(
             $purchaseOrder->terms,
-            $purchaseOrder->terms_locale,
+            $locale,
         );
         if ($resolved !== []) {
             return $resolved;
         }
 
-        return RfqTerms::legacyDefaults($purchaseOrder->terms_locale);
+        return RfqTerms::legacyDefaults($locale);
     }
 
 }

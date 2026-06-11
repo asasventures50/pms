@@ -24,7 +24,7 @@ class PurchaseOrderProcurementRequestContext
      *     pr_items_by_line: array<string, ProcurementRequestItem>
      * }
      */
-    public static function resolve(PurchaseOrder $purchaseOrder): array
+    public static function resolve(PurchaseOrder $purchaseOrder, ?PurchaseOrderPrintLabels $printLabels = null): array
     {
         $request = $purchaseOrder->procurementRequest;
 
@@ -65,7 +65,7 @@ class PurchaseOrderProcurementRequestContext
         }
 
         return [
-            ...self::aggregateFromRequest($request, $items),
+            ...self::aggregateFromRequest($request, $items, $printLabels),
             'pr_items_by_line' => $byLine,
             'supporting_documents' => self::supportingDocumentsForRequest($request, $items),
         ];
@@ -75,9 +75,12 @@ class PurchaseOrderProcurementRequestContext
      * @param  Collection<int, ProcurementRequestItem>  $items
      * @return array{category: string, scope_type: string, project: string, procurement_type: string}
      */
-    public static function aggregateFromRequest(ProcurementRequest $request, Collection $items): array
-    {
-        $fromItems = self::aggregateFromItems($items);
+    public static function aggregateFromRequest(
+        ProcurementRequest $request,
+        Collection $items,
+        ?PurchaseOrderPrintLabels $printLabels = null,
+    ): array {
+        $fromItems = self::aggregateFromItems($items, $printLabels);
 
         if ($request->relationLoaded('project') || $request->project_id) {
             $request->loadMissing(['project', 'category', 'subcategory']);
@@ -90,8 +93,14 @@ class PurchaseOrderProcurementRequestContext
 
         $categoryLabel = '';
         if ($request->category) {
-            $category = $request->category->name_en ?? $request->category->name_ar ?? '';
-            $subcategory = $request->subcategory?->name_en ?? $request->subcategory?->name_ar ?? '';
+            if ($printLabels !== null) {
+                $category = $printLabels->categoryName($request->category);
+                $subcategory = $printLabels->subcategoryName($request->subcategory);
+            } else {
+                $category = $request->category->name_en ?? $request->category->name_ar ?? '';
+                $subcategory = $request->subcategory?->name_en ?? $request->subcategory?->name_ar ?? '';
+            }
+
             $categoryLabel = match (true) {
                 $category !== '' && $subcategory !== '' => $category.' / '.$subcategory,
                 $category !== '' => $category,
@@ -100,13 +109,15 @@ class PurchaseOrderProcurementRequestContext
             };
         }
 
-        $scopeType = self::scopeTypeDisplayFromRequest($request, $items);
+        $scopeType = self::scopeTypeDisplayFromRequest($request, $items, $printLabels);
 
         return [
             'category' => $categoryLabel !== '' ? $categoryLabel : $fromItems['category'],
             'scope_type' => $scopeType !== '' ? $scopeType : $fromItems['scope_type'],
             'project' => $projectLabel !== '' ? $projectLabel : $fromItems['project'],
-            'procurement_type' => self::procurementTypeDisplayFromRequest($request),
+            'procurement_type' => $printLabels !== null
+                ? $printLabels->procurementTypeDisplayFromRequest($request)
+                : self::procurementTypeDisplayFromRequest($request),
         ];
     }
 
@@ -181,30 +192,33 @@ class PurchaseOrderProcurementRequestContext
     /**
      * @param  Collection<int, ProcurementRequestItem>  $items
      */
-    private static function scopeTypeDisplayFromRequest(ProcurementRequest $request, Collection $items): string
-    {
-        $fromItems = self::aggregateScopeTypes($items);
+    private static function scopeTypeDisplayFromRequest(
+        ProcurementRequest $request,
+        Collection $items,
+        ?PurchaseOrderPrintLabels $printLabels = null,
+    ): string {
+        $fromItems = self::aggregateScopeTypes($items, $printLabels);
         if ($fromItems !== '') {
             return $fromItems;
         }
 
         $keys = self::scopeTypeKeysFromRequest($request, $items);
+        $labelFn = $printLabels !== null
+            ? fn (string $scope): string => $printLabels->scopeTypeLabel($scope)
+            : static fn (string $scope): string => ProcurementScopeType::label($scope);
 
-        return implode(', ', array_map(
-            static fn (string $scope): string => ProcurementScopeType::label($scope),
-            $keys
-        ));
+        return implode(', ', array_map($labelFn, $keys));
     }
 
     /**
      * @param  Collection<int, ProcurementRequestItem>  $items
      * @return array{category: string, scope_type: string, project: string}
      */
-    public static function aggregateFromItems(Collection $items): array
+    public static function aggregateFromItems(Collection $items, ?PurchaseOrderPrintLabels $printLabels = null): array
     {
         return [
             'category' => self::aggregateCategories($items),
-            'scope_type' => self::aggregateScopeTypes($items),
+            'scope_type' => self::aggregateScopeTypes($items, $printLabels),
             'project' => self::aggregateProjects($items),
         ];
     }
@@ -238,7 +252,7 @@ class PurchaseOrderProcurementRequestContext
     /**
      * @param  Collection<int, ProcurementRequestItem>  $items
      */
-    private static function aggregateScopeTypes(Collection $items): string
+    private static function aggregateScopeTypes(Collection $items, ?PurchaseOrderPrintLabels $printLabels = null): string
     {
         $found = [];
 
@@ -255,10 +269,11 @@ class PurchaseOrderProcurementRequestContext
             }
         }
 
-        return implode(', ', array_map(
-            static fn (string $scope): string => ProcurementScopeType::label($scope),
-            $ordered
-        ));
+        $labelFn = $printLabels !== null
+            ? fn (string $scope): string => $printLabels->scopeTypeLabel($scope)
+            : static fn (string $scope): string => ProcurementScopeType::label($scope);
+
+        return implode(', ', array_map($labelFn, $ordered));
     }
 
     /**
