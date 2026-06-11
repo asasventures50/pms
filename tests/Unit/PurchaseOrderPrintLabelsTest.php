@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
 use App\Services\Procurement\PurchaseOrders\PurchaseOrderPrintLabels;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -45,6 +46,21 @@ class PurchaseOrderPrintLabelsTest extends TestCase
 
         $this->assertSame('الاسم', $labels->vendorRowLabel('Name'));
         $this->assertSame('التصنيف', $labels->vendorRowLabel('Classification'));
+    }
+
+    #[Test]
+    public function geographic_scope_display_uses_local_international_labels(): void
+    {
+        $request = new ProcurementRequest([
+            'geographic_scopes' => ['local', 'international'],
+        ]);
+
+        $this->assertSame('Both', PurchaseOrderPrintLabels::resolve('en')->geographicScopeDisplayFromRequest($request));
+        $this->assertSame('محلي ودولي', PurchaseOrderPrintLabels::resolve('ar')->geographicScopeDisplayFromRequest($request));
+
+        $request->geographic_scopes = ['international'];
+        $this->assertSame('International', PurchaseOrderPrintLabels::resolve('en')->geographicScopeDisplayFromRequest($request));
+        $this->assertSame('دولي', PurchaseOrderPrintLabels::resolve('ar')->geographicScopeDisplayFromRequest($request));
     }
 
     #[Test]

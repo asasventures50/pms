@@ -304,6 +304,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const poPrContextNumber = document.getElementById('po-pr-context-number');
     const poPrContextCompany = document.getElementById('po-pr-context-company');
     const poPrContextProcurementType = document.getElementById('po-pr-context-procurement-type');
+    const poPrContextGeographicScope = document.getElementById('po-pr-context-geographic-scope');
     const poPrContextScopeType = document.getElementById('po-pr-context-scope-type');
     const poPrContextCategory = document.getElementById('po-pr-context-category');
     const poPrContextProject = document.getElementById('po-pr-context-project');
@@ -445,6 +446,7 @@ document.addEventListener('DOMContentLoaded', function () {
             requestNumber
             || payload.company
             || payload.procurementType
+            || payload.geographicScope
             || payload.category
             || payload.scopeType
             || payload.project
@@ -461,6 +463,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (poPrContextProcurementType) {
             poPrContextProcurementType.textContent = payload.procurementType || '—';
+        }
+        if (poPrContextGeographicScope) {
+            poPrContextGeographicScope.textContent = payload.geographicScope || '—';
         }
         if (poPrContextScopeType) {
             poPrContextScopeType.textContent = payload.scopeType || '—';
@@ -482,6 +487,7 @@ document.addEventListener('DOMContentLoaded', function () {
         updatePoPrContextPanel('', {
             company: '',
             procurementType: '',
+            geographicScope: '',
             category: '',
             project: '',
             scopeType: '',
@@ -503,6 +509,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 ? aggregated.scopeTypeKeys
                 : (Array.isArray(data?.scope_type_keys) ? data.scope_type_keys : []),
             procurementType: requestContext.procurement_type || '',
+            geographicScope: requestContext.geographic_scope || '',
         };
     }
 

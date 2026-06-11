@@ -53,6 +53,10 @@
             <span class="po-form-label">{{ $printLabels->t('procurement_type') }}</span>
             <span class="po-form-line">{{ $prContext['procurement_type'] ?? '' }}</span>
         </div>
+        <div class="po-form-group">
+            <span class="po-form-label">{{ $printLabels->t('local_international') }}</span>
+            <span class="po-form-line">{{ $prContext['geographic_scope'] ?? '' }}</span>
+        </div>
     </div>
     <div class="po-grid-col po-order-right">
         <div class="po-form-group">

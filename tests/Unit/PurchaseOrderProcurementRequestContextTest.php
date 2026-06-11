@@ -20,6 +20,7 @@ class PurchaseOrderProcurementRequestContextTest extends TestCase
         $request = ProcurementRequest::query()->create([
             'request_number' => 'PR-PO-001',
             'procurement_types' => ['purchase', 'rental'],
+            'geographic_scopes' => ['local'],
         ]);
 
         $includedLine = ProcurementRequestItem::query()->create([
@@ -78,6 +79,7 @@ class PurchaseOrderProcurementRequestContextTest extends TestCase
         );
 
         $this->assertSame('Purchase, Rental', $context['procurement_type']);
+        $this->assertSame('Local', $context['geographic_scope']);
         $this->assertCount(2, $context['supporting_documents']);
         $this->assertSame('header-spec.pdf', $context['supporting_documents'][0]['file_name']);
         $this->assertSame('line-drawing.pdf', $context['supporting_documents'][1]['file_name']);

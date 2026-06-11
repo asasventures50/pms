@@ -3,6 +3,7 @@
 namespace App\Services\Procurement\PurchaseOrders;
 
 use App\Enums\Procurement\PrCompany;
+use App\Enums\Procurement\ProcurementRequests\GeographicScope;
 use App\Enums\Procurement\ProcurementRequests\ProcurementType;
 use App\Enums\Procurement\ProcurementRequests\ProcurementVendorType;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
@@ -21,6 +22,7 @@ class PurchaseOrderProcurementRequestContext
      *     scope_type: string,
      *     project: string,
      *     procurement_type: string,
+     *     geographic_scope: string,
      *     supporting_documents: list<array{file_name: string, document_type: ?string, file_description: ?string}>,
      *     pr_items_by_line: array<string, ProcurementRequestItem>
      * }
@@ -74,7 +76,7 @@ class PurchaseOrderProcurementRequestContext
 
     /**
      * @param  Collection<int, ProcurementRequestItem>  $items
-     * @return array{company: string, category: string, scope_type: string, project: string, procurement_type: string}
+     * @return array{company: string, category: string, scope_type: string, project: string, procurement_type: string, geographic_scope: string}
      */
     public static function aggregateFromRequest(
         ProcurementRequest $request,
@@ -120,7 +122,15 @@ class PurchaseOrderProcurementRequestContext
             'procurement_type' => $printLabels !== null
                 ? $printLabels->procurementTypeDisplayFromRequest($request)
                 : self::procurementTypeDisplayFromRequest($request),
+            'geographic_scope' => $printLabels !== null
+                ? $printLabels->geographicScopeDisplayFromRequest($request)
+                : self::geographicScopeDisplayFromRequest($request),
         ];
+    }
+
+    public static function geographicScopeDisplayFromRequest(ProcurementRequest $request): string
+    {
+        return GeographicScope::display($request->geographic_scopes);
     }
 
     public static function procurementTypeDisplayFromRequest(ProcurementRequest $request): string
@@ -325,7 +335,7 @@ class PurchaseOrderProcurementRequestContext
     }
 
     /**
-     * @return array{company: string, category: string, scope_type: string, project: string, procurement_type: string}
+     * @return array{company: string, category: string, scope_type: string, project: string, procurement_type: string, geographic_scope: string}
      */
     public static function emptyAggregates(): array
     {
@@ -335,6 +345,7 @@ class PurchaseOrderProcurementRequestContext
             'category' => '',
             'project' => '',
             'procurement_type' => '',
+            'geographic_scope' => '',
         ];
     }
 

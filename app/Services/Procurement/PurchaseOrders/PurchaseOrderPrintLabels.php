@@ -2,6 +2,7 @@
 
 namespace App\Services\Procurement\PurchaseOrders;
 
+use App\Enums\Procurement\ProcurementRequests\GeographicScope;
 use App\Enums\Procurement\ProcurementRequests\ProcurementType;
 use App\Enums\Procurement\Rfqs\RfqTermsLocale;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
@@ -22,6 +23,7 @@ class PurchaseOrderPrintLabels
         'date' => 'Date:',
         'pr_number' => 'P.R. number:',
         'procurement_type' => 'Procurement type:',
+        'local_international' => 'Local / International:',
         'category' => 'Category:',
         'scope_type' => 'Scope Type:',
         'project' => 'Project:',
@@ -84,6 +86,7 @@ class PurchaseOrderPrintLabels
         'date' => 'التاريخ:',
         'pr_number' => 'رقم طلب الشراء:',
         'procurement_type' => 'نوع الشراء:',
+        'local_international' => 'محلي / دولي:',
         'category' => 'الفئة:',
         'scope_type' => 'نوع النطاق:',
         'project' => 'المشروع:',
@@ -211,6 +214,36 @@ class PurchaseOrderPrintLabels
             ProcurementType::values(),
             fn (string $value) => $this->procurementTypeLabel($value)
         );
+    }
+
+    public function geographicScopeLabel(string $value): string
+    {
+        if ($this->locale !== RfqTermsLocale::Ar->value) {
+            return GeographicScope::from($value)->label();
+        }
+
+        return match ($value) {
+            GeographicScope::Local->value => 'محلي',
+            GeographicScope::International->value => 'دولي',
+            default => GeographicScope::from($value)->label(),
+        };
+    }
+
+    public function geographicScopeDisplayFromRequest(ProcurementRequest $request): string
+    {
+        $selected = GeographicScope::selectedValues($request->geographic_scopes);
+        if ($selected === []) {
+            return '';
+        }
+
+        if (count(array_intersect(GeographicScope::values(), $selected)) === count(GeographicScope::values())) {
+            return $this->locale === RfqTermsLocale::Ar->value ? 'محلي ودولي' : 'Both';
+        }
+
+        return implode(', ', array_map(
+            fn (string $value) => $this->geographicScopeLabel($value),
+            $selected
+        ));
     }
 
     public function scopeTypeLabel(string $value): string
