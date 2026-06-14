@@ -49,6 +49,17 @@
         </section>
 
         <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="flex flex-col gap-3 border-b border-slate-100 pb-3 sm:flex-row sm:items-center sm:justify-between">
+                <h2 class="text-base font-semibold text-slate-900">Category-level vendors</h2>
+                <a href="{{ route('categories.vendor-links', $category) }}"
+                   class="text-sm font-medium text-slate-700 hover:text-slate-900">
+                    Manage vendors ({{ $categoryOnlyVendorCount }})
+                </a>
+            </div>
+            <p class="mt-3 text-sm text-slate-500">Vendors linked to this category without a specific subcategory.</p>
+        </section>
+
+        <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 class="border-b border-slate-100 pb-2 text-base font-semibold text-slate-900">Subcategories</h2>
             @if ($category->subcategories->isEmpty())
                 <p class="mt-3 text-sm text-slate-500">No subcategories.</p>
@@ -63,6 +74,7 @@
                             <th class="px-3 py-2 text-left">Slug</th>
                             <th class="px-3 py-2 text-left">Status</th>
                             <th class="px-3 py-2 text-left">Vendors</th>
+                            <th class="px-3 py-2 text-right">Actions</th>
                         </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
@@ -74,6 +86,10 @@
                                 <td class="px-3 py-2 font-mono text-xs">{{ $sub->slug }}</td>
                                 <td class="px-3 py-2">{{ $sub->status }}</td>
                                 <td class="px-3 py-2 text-slate-700">{{ $sub->vendors_count }}</td>
+                                <td class="px-3 py-2 text-right text-xs">
+                                    <a href="{{ route('categories.subcategories.vendor-links', [$category, $sub]) }}"
+                                       class="font-medium text-slate-700 hover:text-slate-900">Vendors</a>
+                                </td>
                             </tr>
                         @endforeach
                         </tbody>

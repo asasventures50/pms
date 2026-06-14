@@ -6,13 +6,16 @@ use App\Exports\Procurement\CategoriesExport;
 use App\Exports\Procurement\CategoriesTemplateExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Procurement\Categories\ImportCategoriesRequest;
+use App\Http\Requests\Procurement\Categories\ReassignCategoryVendorLinkRequest;
 use App\Http\Requests\Procurement\Categories\StoreCategoryRequest;
 use App\Http\Requests\Procurement\Categories\UpdateCategoryRequest;
 use App\DataTransferObjects\Procurement\SubcategoryMoveResult;
 use App\Imports\Procurement\CategoriesImport;
 use App\Models\Procurement\Vendors\Category;
 use App\Models\Procurement\Vendors\Subcategory;
+use App\Models\Procurement\Vendors\VendorCategory;
 use App\Services\Procurement\Categories\CategoryCatalogService;
+use App\Services\Procurement\Categories\CategoryVendorLinkService;
 use App\Services\Procurement\Categories\SubcategoryMoveService;
 use App\Support\TableSort;
 use Illuminate\Http\JsonResponse;
@@ -28,6 +31,7 @@ class CategoryController extends Controller
     public function __construct(
         protected CategoryCatalogService $catalogService,
         protected SubcategoryMoveService $moveService,
+        protected CategoryVendorLinkService $vendorLinkService,
     ) {}
 
     public function index(Request $request): View
@@ -101,9 +105,160 @@ class CategoryController extends Controller
     {
         $category->load(['subcategories' => fn ($q) => $q->orderBy('name_en')->withCount('vendors')]);
 
+        $categoryOnlyVendorCount = VendorCategory::query()
+            ->where('category_id', $category->id)
+            ->whereNull('subcategory_id')
+            ->distinct('vendor_id')
+            ->count('vendor_id');
+
         return view('procurement.categories.show', [
             'category' => $category,
+            'categoryOnlyVendorCount' => $categoryOnlyVendorCount,
         ]);
+    }
+
+    public function categoryVendorLinks(Category $category): View
+    {
+        return $this->vendorLinksView($category, null);
+    }
+
+    public function subcategoryVendorLinks(Category $category, Subcategory $subcategory): View
+    {
+        if ((int) $subcategory->category_id !== (int) $category->id) {
+            abort(404);
+        }
+
+        return $this->vendorLinksView($category, $subcategory);
+    }
+
+    public function reassignVendorLink(
+        ReassignCategoryVendorLinkRequest $request,
+        VendorCategory $vendorCategory,
+    ): RedirectResponse {
+        $validated = $request->validated();
+        $updateBrochures = filter_var($validated['update_brochures'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $targetSubcategoryId = isset($validated['target_subcategory_id']) && $validated['target_subcategory_id'] !== null
+            ? (int) $validated['target_subcategory_id']
+            : null;
+
+        $result = $this->vendorLinkService->reassign(
+            $vendorCategory,
+            (int) $validated['target_category_id'],
+            $targetSubcategoryId,
+            $updateBrochures,
+        );
+
+        $message = $this->vendorLinkResultMessage($result);
+
+        return redirect()
+            ->to($this->resolveVendorLinksReturnUrl($request, $vendorCategory))
+            ->with('success', $message);
+    }
+
+    public function removeVendorLink(Request $request, VendorCategory $vendorCategory): RedirectResponse
+    {
+        $updateBrochures = filter_var($request->input('update_brochures'), FILTER_VALIDATE_BOOLEAN);
+        $returnUrl = $this->resolveVendorLinksReturnUrl($request, $vendorCategory);
+
+        $result = $this->vendorLinkService->removeLink($vendorCategory, $updateBrochures);
+
+        return redirect()
+            ->to($returnUrl)
+            ->with('success', $this->vendorLinkResultMessage($result));
+    }
+
+    /**
+     * @param  array{brochures_updated: int, merged: bool, removed: bool}  $result
+     */
+    private function vendorLinkResultMessage(array $result): string
+    {
+        if ($result['merged']) {
+            $message = 'This vendor was already linked to the target classification. The duplicate link here was removed.';
+        } elseif ($result['removed']) {
+            $message = 'Vendor link removed from this classification.';
+        } else {
+            $message = 'Vendor reassigned successfully.';
+        }
+
+        if ($result['brochures_updated'] > 0) {
+            $message .= ' '.$result['brochures_updated'].' brochure(s) updated.';
+        }
+
+        return $message.' Procurement requests were not changed.';
+    }
+
+    private function vendorLinksView(Category $category, ?Subcategory $subcategory): View
+    {
+        $query = VendorCategory::query()
+            ->with(['vendor'])
+            ->where('category_id', $category->id)
+            ->orderBy('id');
+
+        if ($subcategory === null) {
+            $query->whereNull('subcategory_id');
+        } else {
+            $query->where('subcategory_id', $subcategory->id);
+        }
+
+        $vendorLinks = $query->get()->map(function (VendorCategory $link) use ($category) {
+            $link->setAttribute(
+                'matching_brochures_count',
+                $this->vendorLinkService->countMatchingBrochures($link)
+            );
+            $link->setAttribute(
+                'other_links_in_category',
+                VendorCategory::query()
+                    ->where('vendor_id', $link->vendor_id)
+                    ->where('category_id', $category->id)
+                    ->whereKeyNot($link->id)
+                    ->with('subcategory')
+                    ->get()
+            );
+
+            return $link;
+        });
+
+        $catalogCategories = Category::query()
+            ->with(['subcategories' => fn ($q) => $q->orderBy('name_en')])
+            ->orderBy('name_ar')
+            ->orderBy('name_en')
+            ->get();
+
+        $subcategoriesByCategory = $catalogCategories->mapWithKeys(fn (Category $cat) => [
+            $cat->id => $cat->subcategories->map(fn (Subcategory $sub) => [
+                'id' => $sub->id,
+                'label' => trim($sub->name_ar.' — '.$sub->name_en, ' —'),
+            ])->values(),
+        ])->all();
+
+        return view('procurement.categories.vendor-links', [
+            'category' => $category,
+            'subcategory' => $subcategory,
+            'vendorLinks' => $vendorLinks,
+            'catalogCategories' => $catalogCategories,
+            'subcategoriesByCategory' => $subcategoriesByCategory,
+        ]);
+    }
+
+    private function resolveVendorLinksReturnUrl(Request $request, VendorCategory $vendorCategory): string
+    {
+        $return = trim((string) $request->input('return_url', ''));
+        if ($return !== '') {
+            $returnPath = parse_url($return, PHP_URL_PATH) ?? '';
+            if (preg_match('#^/categories/\d+/vendor-links$#', $returnPath) === 1
+                || preg_match('#^/categories/\d+/subcategories/\d+/vendor-links$#', $returnPath) === 1) {
+                return $return;
+            }
+        }
+
+        if ($vendorCategory->subcategory_id !== null) {
+            return route('categories.subcategories.vendor-links', [
+                'category' => $vendorCategory->category_id,
+                'subcategory' => $vendorCategory->subcategory_id,
+            ]);
+        }
+
+        return route('categories.vendor-links', $vendorCategory->category_id);
     }
 
     public function edit(Category $category): View

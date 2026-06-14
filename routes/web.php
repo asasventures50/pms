@@ -87,6 +87,22 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('permission:categories.update')
         ->name('categories.subcategories.move-preview');
 
+    Route::get('/categories/{category}/vendor-links', [CategoryController::class, 'categoryVendorLinks'])
+        ->middleware('permission:categories.view')
+        ->name('categories.vendor-links');
+
+    Route::get('/categories/{category}/subcategories/{subcategory}/vendor-links', [CategoryController::class, 'subcategoryVendorLinks'])
+        ->middleware('permission:categories.view')
+        ->name('categories.subcategories.vendor-links');
+
+    Route::put('/vendor-categories/{vendorCategory}/reassign', [CategoryController::class, 'reassignVendorLink'])
+        ->middleware('permission:categories.update')
+        ->name('vendor-categories.reassign');
+
+    Route::delete('/vendor-categories/{vendorCategory}', [CategoryController::class, 'removeVendorLink'])
+        ->middleware('permission:categories.update')
+        ->name('vendor-categories.destroy');
+
     Route::resource('categories', CategoryController::class)
         ->middlewareFor(['index', 'show'], 'permission:categories.view')
         ->middlewareFor(['create', 'store'], 'permission:categories.create')
