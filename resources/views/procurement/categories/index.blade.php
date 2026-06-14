@@ -108,11 +108,15 @@
                             <span class="mx-1 text-slate-300">|</span>
                             <a href="{{ route('categories.edit', $category) }}" class="font-medium text-slate-700 hover:text-slate-900">Edit</a>
                             <span class="mx-1 text-slate-300">|</span>
-                            <form action="{{ route('categories.destroy', $category) }}" method="post" class="inline" onsubmit="return confirm('Delete this category and soft-delete its subcategories?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="font-medium text-red-700 hover:text-red-900">Delete</button>
-                            </form>
+                            @if ((int) $category->vendors_count === 0)
+                                <form action="{{ route('categories.destroy', $category) }}" method="post" class="inline" onsubmit="return confirm('Delete this category and soft-delete its subcategories?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="font-medium text-red-700 hover:text-red-900">Delete</button>
+                                </form>
+                            @else
+                                <span class="font-medium text-slate-400" title="Cannot delete while this category is linked to one or more vendors.">Delete</span>
+                            @endif
                         </td>
                     </tr>
                 @empty

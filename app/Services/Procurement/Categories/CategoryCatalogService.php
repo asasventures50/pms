@@ -4,8 +4,10 @@ namespace App\Services\Procurement\Categories;
 
 use App\Models\Procurement\Vendors\Category;
 use App\Models\Procurement\Vendors\Subcategory;
+use App\Models\Procurement\Vendors\VendorCategory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 class CategoryCatalogService
 {
@@ -52,7 +54,52 @@ class CategoryCatalogService
             ->where('category_id', $category->id)
             ->whereNotIn('id', $keptIds)
             ->get()
-            ->each(fn (Subcategory $s) => $s->delete());
+            ->each(function (Subcategory $subcategory) {
+                $this->assertSubcategoryCanBeDeleted($subcategory);
+                $subcategory->delete();
+            });
+    }
+
+    public function linkedVendorCountForCategory(Category $category): int
+    {
+        return (int) VendorCategory::query()
+            ->where('category_id', $category->id)
+            ->distinct()
+            ->count('vendor_id');
+    }
+
+    public function linkedVendorCountForSubcategory(Subcategory $subcategory): int
+    {
+        return (int) VendorCategory::query()
+            ->where('subcategory_id', $subcategory->id)
+            ->distinct()
+            ->count('vendor_id');
+    }
+
+    public function categoryCanBeDeleted(Category $category): bool
+    {
+        return $this->linkedVendorCountForCategory($category) === 0;
+    }
+
+    public function subcategoryCanBeDeleted(Subcategory $subcategory): bool
+    {
+        return $this->linkedVendorCountForSubcategory($subcategory) === 0;
+    }
+
+    public function assertCategoryCanBeDeleted(Category $category): void
+    {
+        if (! $this->categoryCanBeDeleted($category)) {
+            throw new RuntimeException('This category cannot be deleted because it is linked to one or more vendors.');
+        }
+    }
+
+    public function assertSubcategoryCanBeDeleted(Subcategory $subcategory): void
+    {
+        if (! $this->subcategoryCanBeDeleted($subcategory)) {
+            throw new RuntimeException(
+                'Subcategory "'.$subcategory->name_en.'" cannot be removed because it is linked to one or more vendors.'
+            );
+        }
     }
 
     /**
@@ -93,6 +140,8 @@ class CategoryCatalogService
 
     public function softDeleteCategoryCascade(Category $category): void
     {
+        $this->assertCategoryCanBeDeleted($category);
+
         DB::transaction(function () use ($category) {
             Subcategory::query()
                 ->where('category_id', $category->id)

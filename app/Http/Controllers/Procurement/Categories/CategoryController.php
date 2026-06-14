@@ -108,7 +108,7 @@ class CategoryController extends Controller
 
     public function edit(Category $category): View
     {
-        $category->load(['subcategories' => fn ($q) => $q->orderBy('name_ar')->orderBy('name_en')]);
+        $category->load(['subcategories' => fn ($q) => $q->orderBy('name_ar')->orderBy('name_en')->withCount('vendors')]);
 
         return view('procurement.categories.edit', [
             'category' => $category,
@@ -215,6 +215,12 @@ class CategoryController extends Controller
 
     public function destroy(Category $category): RedirectResponse
     {
+        if (! $this->catalogService->categoryCanBeDeleted($category)) {
+            return redirect()
+                ->route('categories.index')
+                ->with('error', 'Cannot delete this category because it is linked to one or more vendors.');
+        }
+
         $this->catalogService->softDeleteCategoryCascade($category);
 
         return redirect()

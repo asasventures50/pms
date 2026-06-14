@@ -4,6 +4,7 @@ namespace App\Http\Requests\Procurement\Categories;
 
 use App\Models\Procurement\Vendors\Category;
 use App\Models\Procurement\Vendors\Subcategory;
+use App\Models\Procurement\Vendors\VendorCategory;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -251,6 +252,36 @@ class UpdateCategoryRequest extends FormRequest
                     $validator->errors()->add(
                         "subcategories.$index.name_en",
                         'This subcategory English name is already used for this category.'
+                    );
+                }
+            }
+
+            $submittedIds = [];
+            foreach ($subs as $sub) {
+                if (! is_array($sub)) {
+                    continue;
+                }
+
+                if (! empty($sub['id'])) {
+                    $submittedIds[] = (int) $sub['id'];
+                }
+            }
+
+            $removedSubcategories = Subcategory::query()
+                ->where('category_id', $currentCategoryId)
+                ->when($submittedIds !== [], fn ($q) => $q->whereNotIn('id', $submittedIds))
+                ->get(['id', 'name_en']);
+
+            foreach ($removedSubcategories as $removedSubcategory) {
+                $linkedVendors = (int) VendorCategory::query()
+                    ->where('subcategory_id', $removedSubcategory->id)
+                    ->distinct()
+                    ->count('vendor_id');
+
+                if ($linkedVendors > 0) {
+                    $validator->errors()->add(
+                        'subcategories',
+                        'Cannot remove subcategory "'.$removedSubcategory->name_en.'" because it is linked to one or more vendors.'
                     );
                 }
             }

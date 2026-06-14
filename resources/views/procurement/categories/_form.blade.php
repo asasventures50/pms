@@ -12,6 +12,27 @@
     $oldSubs = old('subcategories');
     if (is_array($oldSubs)) {
         $subRows = array_values($oldSubs);
+        if ($mode === 'edit' && $subRows !== []) {
+            $subcategoryIds = collect($subRows)
+                ->pluck('id')
+                ->filter(fn ($id) => $id !== null && $id !== '')
+                ->map(fn ($id) => (int) $id)
+                ->all();
+            if ($subcategoryIds !== []) {
+                $vendorCountsBySubcategoryId = \App\Models\Procurement\Vendors\VendorCategory::query()
+                    ->whereIn('subcategory_id', $subcategoryIds)
+                    ->selectRaw('subcategory_id, count(distinct vendor_id) as vendors_count')
+                    ->groupBy('subcategory_id')
+                    ->pluck('vendors_count', 'subcategory_id');
+                $subRows = array_map(function (array $row) use ($vendorCountsBySubcategoryId) {
+                    if (! empty($row['id']) && ! array_key_exists('vendors_count', $row)) {
+                        $row['vendors_count'] = (int) ($vendorCountsBySubcategoryId[(int) $row['id']] ?? 0);
+                    }
+
+                    return $row;
+                }, $subRows);
+            }
+        }
     } elseif ($mode === 'edit') {
         $subRows = $c->subcategories->map(fn ($s) => [
             'id' => $s->id,
@@ -20,6 +41,7 @@
             'slug' => $s->slug,
             'status' => $s->status,
             'target_category_id' => $currentCategoryId,
+            'vendors_count' => (int) ($s->vendors_count ?? 0),
         ])->values()->all();
     } else {
         $subRows = [['name_ar' => '', 'name_en' => '', 'slug' => '', 'status' => 'active']];
@@ -100,8 +122,10 @@
             @foreach ($subRows as $index => $row)
                 @php
                     $selectedParentId = (int) old("subcategories.$index.target_category_id", $row['target_category_id'] ?? $currentCategoryId);
+                    $vendorsCount = (int) ($row['vendors_count'] ?? 0);
+                    $canRemoveSubcategory = $vendorsCount === 0;
                 @endphp
-                <tr class="subcategory-row" data-row-index="{{ $index }}" @if ($mode === 'edit') data-subcategory-id="{{ $row['id'] ?? '' }}" data-current-category-id="{{ $currentCategoryId }}" @endif>
+                <tr class="subcategory-row" data-row-index="{{ $index }}" @if ($mode === 'edit') data-subcategory-id="{{ $row['id'] ?? '' }}" data-current-category-id="{{ $currentCategoryId }}" data-vendors-count="{{ $vendorsCount }}" @endif>
                     @if ($mode === 'edit' && ! empty($row['id']))
                         <input type="hidden" name="subcategories[{{ $index }}][id]" value="{{ $row['id'] }}">
                     @endif
@@ -143,7 +167,15 @@
                         @error('subcategories.'.$index.'.status')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                     </td>
                     <td class="px-2 py-2 align-top">
-                        <button type="button" class="remove-subcategory-row text-sm font-medium text-red-700 hover:text-red-900">Remove</button>
+                        @if ($mode === 'edit' && ! empty($row['id']) && ! $canRemoveSubcategory)
+                            <button type="button" disabled
+                                    class="text-sm font-medium text-slate-400 cursor-not-allowed"
+                                    title="Cannot remove while this subcategory is linked to {{ $vendorsCount }} vendor(s).">
+                                Remove
+                            </button>
+                        @else
+                            <button type="button" class="remove-subcategory-row text-sm font-medium text-red-700 hover:text-red-900">Remove</button>
+                        @endif
                     </td>
                 </tr>
             @endforeach
@@ -672,6 +704,9 @@
             tbody.addEventListener('click', function (e) {
                 if (e.target.classList.contains('remove-subcategory-row')) {
                     const row = e.target.closest('tr');
+                    if (row && parseInt(row.dataset.vendorsCount || '0', 10) > 0) {
+                        return;
+                    }
                     if (row) {
                         row.remove();
                     }
