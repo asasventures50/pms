@@ -112,7 +112,10 @@ class CategoryController extends Controller
 
         return view('procurement.categories.edit', [
             'category' => $category,
-            'allCategories' => Category::query()->orderBy('name_en')->get(['id', 'name_en', 'name_ar']),
+            'allCategories' => Category::query()
+                ->orderBy('name_en')
+                ->orderBy('name_ar')
+                ->get(['id', 'name_en', 'name_ar']),
         ]);
     }
 

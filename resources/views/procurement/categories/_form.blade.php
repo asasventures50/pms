@@ -1,7 +1,14 @@
 @php
     $c = $category;
     $currentCategoryId = (int) ($c->id ?? 0);
-    $categoryOptions = ($mode === 'edit' && isset($allCategories)) ? $allCategories : collect();
+    $categoryOptions = ($mode === 'edit' && isset($allCategories))
+        ? $allCategories->sortBy(fn ($category) => mb_strtolower($category->name_en ?? ''))->values()
+        : collect();
+    $categoryPickerOptions = $categoryOptions->map(fn ($category) => [
+        'id' => (string) $category->id,
+        'label' => trim($category->name_ar.' — '.$category->name_en, ' —'),
+        'search' => mb_strtolower(trim($category->name_ar.' '.$category->name_en)),
+    ])->values();
     $oldSubs = old('subcategories');
     if (is_array($oldSubs)) {
         $subRows = array_values($oldSubs);
@@ -115,15 +122,13 @@
                     </td>
                     @if ($mode === 'edit')
                         <td class="px-2 py-2 align-top">
-                            <select name="subcategories[{{ $index }}][target_category_id]"
-                                    data-target-category-select
-                                    class="admin-filter-control !mt-0 min-w-[10rem] @error('subcategories.'.$index.'.target_category_id') border-red-500 @enderror">
-                                @foreach ($categoryOptions as $option)
-                                    <option value="{{ $option->id }}" @selected($selectedParentId === (int) $option->id)>
-                                        {{ $option->name_en }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            @include('partials.searchable-select', [
+                                'name' => 'subcategories['.$index.'][target_category_id]',
+                                'selectedValue' => $selectedParentId,
+                                'options' => $categoryOptions,
+                                'searchPlaceholder' => 'Search categories…',
+                                'inputAttributes' => ['data-target-category-select' => '1'],
+                            ])
                             <p class="mt-1 hidden text-xs font-medium text-amber-700" data-move-warning>Will move on save</p>
                             @error('subcategories.'.$index.'.target_category_id')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                         </td>
@@ -164,14 +169,9 @@
         </td>
         @if ($mode === 'edit')
             <td class="px-2 py-2 align-top">
-                <select name="subcategories[__IDX__][target_category_id]" data-target-category-select
-                        class="admin-filter-control !mt-0 min-w-[10rem]">
-                    @foreach ($categoryOptions as $option)
-                        <option value="{{ $option->id }}" @selected((int) $option->id === $currentCategoryId)>
-                            {{ $option->name_en }}
-                        </option>
-                    @endforeach
-                </select>
+                <div data-searchable-select-placeholder
+                     data-name="subcategories[__IDX__][target_category_id]"
+                     data-selected="{{ $currentCategoryId }}"></div>
                 <p class="mt-1 hidden text-xs font-medium text-amber-700" data-move-warning>Will move on save</p>
             </td>
         @endif
@@ -193,6 +193,9 @@
             const isEditMode = @json($mode === 'edit');
             const currentCategoryId = @json($currentCategoryId);
             const movePreviewBaseUrl = @json($mode === 'edit' ? url('/categories/subcategories') : null);
+            const categoryPickerOptions = @json($mode === 'edit' ? $categoryPickerOptions : []);
+
+            let openSearchableSelect = null;
 
             function slugify(text) {
                 return text
@@ -203,6 +206,262 @@
                     .toLowerCase()
                     .replace(/[^a-z0-9]+/g, '-')
                     .replace(/^-+|-+$/g, '');
+            }
+
+            function escapeHtml(text) {
+                return String(text)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;');
+            }
+
+            function findSelectedOptionLabel(selectedValue) {
+                const match = categoryPickerOptions.find(function (option) {
+                    return String(option.id) === String(selectedValue);
+                });
+
+                return match ? match.label : 'Select…';
+            }
+
+            function buildSearchableSelectMarkup(name, selectedValue) {
+                const selectedLabel = findSelectedOptionLabel(selectedValue);
+                const optionsHtml = categoryPickerOptions.map(function (option) {
+                    const isSelected = String(option.id) === String(selectedValue);
+                    return '<button type="button" role="option" data-searchable-select-option'
+                        + ' data-value="' + escapeHtml(option.id) + '"'
+                        + ' data-label="' + escapeHtml(option.label) + '"'
+                        + ' data-search="' + escapeHtml(option.search) + '"'
+                        + ' class="block w-full px-3 py-2 text-left text-sm hover:bg-slate-50'
+                        + (isSelected ? ' bg-slate-100 font-medium text-slate-900' : '')
+                        + '"><span dir="auto">' + escapeHtml(option.label) + '</span></button>';
+                }).join('');
+
+                return ''
+                    + '<div class="searchable-select relative min-w-[12rem]" data-searchable-select>'
+                    + '<input type="hidden" name="' + escapeHtml(name) + '" value="' + escapeHtml(selectedValue) + '" data-searchable-select-value data-target-category-select>'
+                    + '<button type="button" class="admin-filter-dropdown-btn !mt-0 w-full" data-searchable-select-btn aria-haspopup="listbox" aria-expanded="false">'
+                    + '<span class="min-w-0 flex-1 truncate text-left" data-searchable-select-label">' + escapeHtml(selectedLabel) + '</span>'
+                    + '<svg class="h-3.5 w-3.5 shrink-0 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">'
+                    + '<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>'
+                    + '</svg></button>'
+                    + '<div class="fixed z-[9999] hidden overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg ring-1 ring-black/5" data-searchable-select-panel role="listbox">'
+                    + '<div class="border-b border-slate-100 p-2">'
+                    + '<input type="search" autocomplete="off" placeholder="Search categories…" class="admin-filter-control !mt-0 w-full" data-searchable-select-search>'
+                    + '</div>'
+                    + '<div class="max-h-52 overflow-y-auto overscroll-y-contain py-1" data-searchable-select-list">' + optionsHtml + '</div>'
+                    + '<p class="hidden px-3 py-2 text-sm text-slate-500" data-searchable-select-empty>No matches found.</p>'
+                    + '</div></div>';
+            }
+
+            function getSearchableSelectRoot(panel) {
+                const rootId = panel.dataset.searchableSelectRootId;
+                if (rootId) {
+                    return document.querySelector('[data-searchable-select-root-id="' + rootId + '"]');
+                }
+
+                return panel.closest('[data-searchable-select]');
+            }
+
+            function positionSearchableSelectPanel(btn, panel) {
+                const rect = btn.getBoundingClientRect();
+                const width = Math.max(rect.width, 192);
+                let left = rect.left;
+                const margin = 8;
+
+                if (left + width > window.innerWidth - margin) {
+                    left = window.innerWidth - width - margin;
+                }
+                if (left < margin) {
+                    left = margin;
+                }
+
+                panel.style.width = width + 'px';
+                panel.style.left = left + 'px';
+
+                panel.classList.remove('hidden');
+                const panelHeight = panel.offsetHeight || 280;
+                const spaceBelow = window.innerHeight - rect.bottom - margin;
+                const spaceAbove = rect.top - margin;
+
+                if (spaceBelow >= panelHeight || spaceBelow >= spaceAbove) {
+                    panel.style.top = (rect.bottom + 4) + 'px';
+                } else {
+                    panel.style.top = Math.max(margin, rect.top - panelHeight - 4) + 'px';
+                }
+            }
+
+            function attachSearchableSelectPanel(root, panel) {
+                if (panel.parentElement !== document.body) {
+                    document.body.appendChild(panel);
+                }
+                panel.dataset.searchableSelectDetached = '1';
+            }
+
+            function restoreSearchableSelectPanel(root, panel) {
+                panel.classList.add('hidden');
+                panel.style.top = '';
+                panel.style.left = '';
+                panel.style.width = '';
+                panel.dataset.searchableSelectDetached = '0';
+
+                if (root && panel.parentElement === document.body) {
+                    root.appendChild(panel);
+                }
+            }
+
+            function closeSearchableSelectPanel(panel) {
+                if (!panel) {
+                    return;
+                }
+
+                const root = getSearchableSelectRoot(panel);
+                restoreSearchableSelectPanel(root, panel);
+
+                const btn = root ? root.querySelector('[data-searchable-select-btn]') : null;
+                if (btn) {
+                    btn.setAttribute('aria-expanded', 'false');
+                }
+
+                if (openSearchableSelect && openSearchableSelect.panel === panel) {
+                    openSearchableSelect = null;
+                }
+            }
+
+            function closeAllSearchableSelectPanels(exceptPanel) {
+                document.querySelectorAll('[data-searchable-select-panel]').forEach(function (panel) {
+                    if (panel !== exceptPanel) {
+                        closeSearchableSelectPanel(panel);
+                    }
+                });
+            }
+
+            function filterSearchableSelectOptions(panel, query) {
+                const normalized = query.trim().toLowerCase();
+                let visibleCount = 0;
+
+                panel.querySelectorAll('[data-searchable-select-option]').forEach(function (option) {
+                    const haystack = (option.getAttribute('data-search') || option.textContent || '').toLowerCase();
+                    const visible = normalized === '' || haystack.includes(normalized);
+                    option.classList.toggle('hidden', !visible);
+                    if (visible) {
+                        visibleCount++;
+                    }
+                });
+
+                const emptyState = panel.querySelector('[data-searchable-select-empty]');
+                if (emptyState) {
+                    emptyState.classList.toggle('hidden', visibleCount > 0);
+                }
+            }
+
+            function setSearchableSelectValue(root, value, label) {
+                const hidden = root.querySelector('[data-searchable-select-value]');
+                const labelEl = root.querySelector('[data-searchable-select-label]');
+                if (!hidden || !labelEl) {
+                    return;
+                }
+
+                hidden.value = value;
+                labelEl.textContent = label;
+                hidden.dispatchEvent(new Event('change', { bubbles: true }));
+
+                root.querySelectorAll('[data-searchable-select-option]').forEach(function (option) {
+                    const isSelected = option.getAttribute('data-value') === String(value);
+                    option.classList.toggle('bg-slate-100', isSelected);
+                    option.classList.toggle('font-medium', isSelected);
+                    option.classList.toggle('text-slate-900', isSelected);
+                });
+
+                const panel = root.querySelector('[data-searchable-select-panel]');
+                if (panel) {
+                    panel.querySelectorAll('[data-searchable-select-option]').forEach(function (option) {
+                        const isSelected = option.getAttribute('data-value') === String(value);
+                        option.classList.toggle('bg-slate-100', isSelected);
+                        option.classList.toggle('font-medium', isSelected);
+                        option.classList.toggle('text-slate-900', isSelected);
+                    });
+                }
+            }
+
+            function openSearchableSelectPanel(root, btn, panel, searchInput) {
+                attachSearchableSelectPanel(root, panel);
+                positionSearchableSelectPanel(btn, panel);
+                btn.setAttribute('aria-expanded', 'true');
+                openSearchableSelect = { root: root, btn: btn, panel: panel };
+
+                if (searchInput) {
+                    searchInput.value = '';
+                    filterSearchableSelectOptions(panel, '');
+                    searchInput.focus();
+                }
+            }
+
+            function initSearchableSelect(root) {
+                if (!root || root.dataset.searchableSelectWired === '1') {
+                    return;
+                }
+
+                root.dataset.searchableSelectWired = '1';
+                root.dataset.searchableSelectRootId = 'searchable-select-' + Math.random().toString(36).slice(2);
+
+                const btn = root.querySelector('[data-searchable-select-btn]');
+                const panel = root.querySelector('[data-searchable-select-panel]');
+                const searchInput = panel ? panel.querySelector('[data-searchable-select-search]') : null;
+
+                if (!btn || !panel) {
+                    return;
+                }
+
+                panel.dataset.searchableSelectRootId = root.dataset.searchableSelectRootId;
+
+                btn.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                    const isOpen = openSearchableSelect && openSearchableSelect.panel === panel;
+                    closeAllSearchableSelectPanels(isOpen ? null : panel);
+
+                    if (isOpen) {
+                        closeSearchableSelectPanel(panel);
+                    } else {
+                        openSearchableSelectPanel(root, btn, panel, searchInput);
+                    }
+                });
+
+                if (searchInput) {
+                    searchInput.addEventListener('input', function () {
+                        filterSearchableSelectOptions(panel, searchInput.value);
+                    });
+
+                    searchInput.addEventListener('keydown', function (event) {
+                        event.stopPropagation();
+                    });
+                }
+
+                panel.querySelectorAll('[data-searchable-select-option]').forEach(function (option) {
+                    option.addEventListener('click', function () {
+                        setSearchableSelectValue(
+                            root,
+                            option.getAttribute('data-value') || '',
+                            option.getAttribute('data-label') || option.textContent.trim()
+                        );
+                        closeSearchableSelectPanel(panel);
+                    });
+                });
+            }
+
+            function mountSearchableSelectPlaceholders(scope) {
+                scope.querySelectorAll('[data-searchable-select-placeholder]').forEach(function (placeholder) {
+                    const markup = buildSearchableSelectMarkup(
+                        placeholder.getAttribute('data-name') || '',
+                        placeholder.getAttribute('data-selected') || ''
+                    );
+                    placeholder.outerHTML = markup;
+                });
+            }
+
+            function initSearchableSelects(scope) {
+                mountSearchableSelectPlaceholders(scope);
+                scope.querySelectorAll('[data-searchable-select]').forEach(initSearchableSelect);
             }
 
             function wireCategorySlug() {
@@ -222,19 +481,24 @@
                 });
             }
 
+            function getTargetCategoryValue(row) {
+                const input = row.querySelector('[data-target-category-select]');
+                return input ? parseInt(input.value, 10) : NaN;
+            }
+
             function updateMoveWarning(row) {
                 if (!isEditMode) {
                     return;
                 }
 
-                const select = row.querySelector('[data-target-category-select]');
+                const hiddenInput = row.querySelector('[data-target-category-select]');
                 const warning = row.querySelector('[data-move-warning]');
-                if (!select || !warning) {
+                if (!hiddenInput || !warning) {
                     return;
                 }
 
                 const subcategoryId = row.dataset.subcategoryId || '';
-                const targetId = parseInt(select.value, 10);
+                const targetId = parseInt(hiddenInput.value, 10);
                 const isMove = subcategoryId !== '' && !isNaN(targetId) && targetId !== currentCategoryId;
                 warning.classList.toggle('hidden', !isMove);
             }
@@ -244,12 +508,12 @@
                     return;
                 }
 
-                const select = row.querySelector('[data-target-category-select]');
-                if (!select) {
+                const hiddenInput = row.querySelector('[data-target-category-select]');
+                if (!hiddenInput) {
                     return;
                 }
 
-                select.addEventListener('change', function () {
+                hiddenInput.addEventListener('change', function () {
                     updateMoveWarning(row);
                 });
                 updateMoveWarning(row);
@@ -273,7 +537,43 @@
                 wireTargetCategorySelect(row);
             }
 
+            initSearchableSelects(document);
             document.querySelectorAll('#subcategory-rows tr.subcategory-row').forEach(wireSubRow);
+
+            document.addEventListener('click', function (event) {
+                if (event.target.closest('[data-searchable-select]') || event.target.closest('[data-searchable-select-panel]')) {
+                    return;
+                }
+                closeAllSearchableSelectPanels();
+            });
+
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') {
+                    closeAllSearchableSelectPanels();
+                }
+            });
+
+            window.addEventListener('resize', function () {
+                if (!openSearchableSelect) {
+                    return;
+                }
+                positionSearchableSelectPanel(openSearchableSelect.btn, openSearchableSelect.panel);
+            });
+
+            window.addEventListener('scroll', function (event) {
+                if (!openSearchableSelect) {
+                    return;
+                }
+
+                const panel = openSearchableSelect.panel;
+                const scrollTarget = event.target;
+
+                if (scrollTarget instanceof Node && (scrollTarget === panel || panel.contains(scrollTarget))) {
+                    return;
+                }
+
+                positionSearchableSelectPanel(openSearchableSelect.btn, panel);
+            }, true);
 
             const tbody = document.getElementById('subcategory-rows');
             const tpl = document.getElementById('subcategory-row-template');
@@ -295,11 +595,10 @@
             function rowsMarkedForMove() {
                 return Array.from(tbody.querySelectorAll('tr.subcategory-row')).filter(function (row) {
                     const subcategoryId = row.dataset.subcategoryId || '';
-                    const select = row.querySelector('[data-target-category-select]');
-                    if (!select || subcategoryId === '') {
+                    if (subcategoryId === '') {
                         return false;
                     }
-                    const targetId = parseInt(select.value, 10);
+                    const targetId = getTargetCategoryValue(row);
                     return !isNaN(targetId) && targetId !== currentCategoryId;
                 });
             }
@@ -328,7 +627,7 @@
 
                 for (const row of rows) {
                     const subcategoryId = row.dataset.subcategoryId;
-                    const targetCategoryId = row.querySelector('[data-target-category-select]').value;
+                    const targetCategoryId = row.querySelector('[data-target-category-select]')?.value;
                     const nameEn = row.querySelector('[data-sub-slug-source]')?.value || 'Subcategory';
 
                     try {
@@ -362,6 +661,7 @@
                     tbody.insertAdjacentHTML('beforeend', html);
                     const row = tbody.lastElementChild;
                     row.dataset.rowIndex = String(idx);
+                    initSearchableSelects(row);
                     wireSubRow(row);
                     row.querySelector('.remove-subcategory-row').addEventListener('click', function () {
                         row.remove();
