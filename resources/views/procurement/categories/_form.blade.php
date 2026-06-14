@@ -2,7 +2,7 @@
     $c = $category;
     $currentCategoryId = (int) ($c->id ?? 0);
     $categoryOptions = ($mode === 'edit' && isset($allCategories))
-        ? $allCategories->sortBy(fn ($category) => mb_strtolower($category->name_en ?? ''))->values()
+        ? $allCategories->sortBy(fn ($category) => mb_strtolower($category->name_ar ?? ''))->values()
         : collect();
     $categoryPickerOptions = $categoryOptions->map(fn ($category) => [
         'id' => (string) $category->id,

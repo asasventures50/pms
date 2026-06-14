@@ -108,13 +108,13 @@ class CategoryController extends Controller
 
     public function edit(Category $category): View
     {
-        $category->load(['subcategories' => fn ($q) => $q->orderBy('name_en')]);
+        $category->load(['subcategories' => fn ($q) => $q->orderBy('name_ar')->orderBy('name_en')]);
 
         return view('procurement.categories.edit', [
             'category' => $category,
             'allCategories' => Category::query()
-                ->orderBy('name_en')
                 ->orderBy('name_ar')
+                ->orderBy('name_en')
                 ->get(['id', 'name_en', 'name_ar']),
         ]);
     }
