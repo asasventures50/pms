@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Procurement\Categories;
 
 use App\Models\Procurement\Vendors\Category;
+use App\Models\Procurement\Vendors\Subcategory;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -71,6 +72,7 @@ class UpdateCategoryRequest extends FormRequest
 
             'subcategories' => ['nullable', 'array'],
             'subcategories.*.id' => ['nullable', 'integer', 'exists:subcategories,id'],
+            'subcategories.*.target_category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'subcategories.*.name_en' => ['required', 'string', 'max:255'],
             'subcategories.*.name_ar' => ['required', 'string', 'max:255'],
             'subcategories.*.slug' => ['required', 'string', 'max:255', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/'],
@@ -86,6 +88,7 @@ class UpdateCategoryRequest extends FormRequest
         return [
             'slug' => 'slug',
             'subcategories.*.slug' => 'subcategory slug',
+            'subcategories.*.target_category_id' => 'parent category',
         ];
     }
 
@@ -105,6 +108,7 @@ class UpdateCategoryRequest extends FormRequest
         $validator->after(function (Validator $validator) {
             /** @var Category $category */
             $category = $this->route('category');
+            $currentCategoryId = (int) $category->getKey();
             $subs = (array) $this->input('subcategories', []);
 
             $slugs = [];
@@ -118,6 +122,10 @@ class UpdateCategoryRequest extends FormRequest
                 $slug = Str::slug((string) ($sub['slug'] ?? ''));
                 $nameEn = trim((string) ($sub['name_en'] ?? ''));
                 $id = isset($sub['id']) ? (int) $sub['id'] : null;
+                $targetCategoryId = isset($sub['target_category_id']) && $sub['target_category_id'] !== ''
+                    ? (int) $sub['target_category_id']
+                    : $currentCategoryId;
+                $isMove = $targetCategoryId !== $currentCategoryId;
 
                 if ($slug !== '') {
                     if (isset($slugs[$slug])) {
@@ -139,10 +147,19 @@ class UpdateCategoryRequest extends FormRequest
                     $names[$nameEn] = true;
                 }
 
+                if ($isMove && ! $id) {
+                    $validator->errors()->add(
+                        "subcategories.$index.target_category_id",
+                        'Save the subcategory under this category before moving it to another parent.'
+                    );
+
+                    continue;
+                }
+
                 if ($id) {
-                    $belongs = \App\Models\Procurement\Vendors\Subcategory::query()
+                    $belongs = Subcategory::query()
                         ->whereKey($id)
-                        ->where('category_id', $category->getKey())
+                        ->where('category_id', $currentCategoryId)
                         ->exists();
 
                     if (! $belongs) {
@@ -152,23 +169,59 @@ class UpdateCategoryRequest extends FormRequest
                         );
                     }
                 }
-            }
 
-            foreach ($subs as $index => $sub) {
-                if (! is_array($sub)) {
+                if ($isMove && $targetCategoryId === $currentCategoryId) {
                     continue;
                 }
 
-                $slug = Str::slug((string) ($sub['slug'] ?? ''));
-                $nameEn = trim((string) ($sub['name_en'] ?? ''));
-                $id = isset($sub['id']) ? (int) $sub['id'] : null;
+                if ($isMove) {
+                    if ($slug === '') {
+                        continue;
+                    }
+
+                    $slugQuery = Subcategory::query()
+                        ->where('category_id', $targetCategoryId)
+                        ->where('slug', $slug);
+
+                    if ($id) {
+                        $slugQuery->whereKeyNot($id);
+                    }
+
+                    if ($slugQuery->exists()) {
+                        $validator->errors()->add(
+                            "subcategories.$index.slug",
+                            'This subcategory slug is already used in the target category.'
+                        );
+                    }
+
+                    if ($nameEn === '') {
+                        continue;
+                    }
+
+                    $nameQuery = Subcategory::query()
+                        ->where('category_id', $targetCategoryId)
+                        ->where('name_en', $nameEn);
+
+                    if ($id) {
+                        $nameQuery->whereKeyNot($id);
+                    }
+
+                    if ($nameQuery->exists()) {
+                        $validator->errors()->add(
+                            "subcategories.$index.name_en",
+                            'This subcategory English name is already used in the target category.'
+                        );
+                    }
+
+                    continue;
+                }
 
                 if ($slug === '') {
                     continue;
                 }
 
-                $slugQuery = \App\Models\Procurement\Vendors\Subcategory::query()
-                    ->where('category_id', $category->getKey())
+                $slugQuery = Subcategory::query()
+                    ->where('category_id', $currentCategoryId)
                     ->where('slug', $slug);
 
                 if ($id) {
@@ -186,8 +239,8 @@ class UpdateCategoryRequest extends FormRequest
                     continue;
                 }
 
-                $nameQuery = \App\Models\Procurement\Vendors\Subcategory::query()
-                    ->where('category_id', $category->getKey())
+                $nameQuery = Subcategory::query()
+                    ->where('category_id', $currentCategoryId)
                     ->where('name_en', $nameEn);
 
                 if ($id) {

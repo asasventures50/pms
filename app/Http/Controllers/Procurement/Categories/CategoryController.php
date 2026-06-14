@@ -8,10 +8,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Procurement\Categories\ImportCategoriesRequest;
 use App\Http\Requests\Procurement\Categories\StoreCategoryRequest;
 use App\Http\Requests\Procurement\Categories\UpdateCategoryRequest;
+use App\DataTransferObjects\Procurement\SubcategoryMoveResult;
 use App\Imports\Procurement\CategoriesImport;
 use App\Models\Procurement\Vendors\Category;
+use App\Models\Procurement\Vendors\Subcategory;
 use App\Services\Procurement\Categories\CategoryCatalogService;
+use App\Services\Procurement\Categories\SubcategoryMoveService;
 use App\Support\TableSort;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +26,8 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 class CategoryController extends Controller
 {
     public function __construct(
-        protected CategoryCatalogService $catalogService
+        protected CategoryCatalogService $catalogService,
+        protected SubcategoryMoveService $moveService,
     ) {}
 
     public function index(Request $request): View
@@ -107,14 +112,37 @@ class CategoryController extends Controller
 
         return view('procurement.categories.edit', [
             'category' => $category,
+            'allCategories' => Category::query()->orderBy('name_en')->get(['id', 'name_en', 'name_ar']),
+        ]);
+    }
+
+    public function movePreview(Request $request, Subcategory $subcategory): JsonResponse
+    {
+        $validated = $request->validate([
+            'target_category_id' => ['required', 'integer', 'exists:categories,id'],
+        ]);
+
+        $target = Category::query()->findOrFail((int) $validated['target_category_id']);
+        $impact = $this->moveService->preview($subcategory, $target);
+
+        return response()->json([
+            'vendor_links' => $impact->vendorLinks,
+            'brochures' => $impact->brochures,
+            'procurement_requests' => $impact->procurementRequests,
+            'has_name_conflict' => $impact->hasNameConflict,
+            'has_slug_conflict' => $impact->hasSlugConflict,
         ]);
     }
 
     public function update(UpdateCategoryRequest $request, Category $category): RedirectResponse
     {
         $data = $request->validated();
+        [$moveRows, $stayRows] = $this->partitionSubcategoryRows($data['subcategories'] ?? [], $category->id);
 
-        DB::transaction(function () use ($data, $category) {
+        /** @var list<SubcategoryMoveResult> $moveResults */
+        $moveResults = [];
+
+        DB::transaction(function () use ($data, $category, $moveRows, $stayRows, &$moveResults) {
             $category->update([
                 'name_en' => $data['name_en'],
                 'name_ar' => $data['name_ar'],
@@ -122,12 +150,64 @@ class CategoryController extends Controller
                 'status' => $data['status'],
             ]);
 
-            $this->catalogService->syncSubcategories($category, $data['subcategories'] ?? []);
+            foreach ($moveRows as $row) {
+                $subcategory = Subcategory::query()
+                    ->whereKey((int) $row['id'])
+                    ->where('category_id', $category->id)
+                    ->firstOrFail();
+
+                $subcategory->update([
+                    'name_en' => $row['name_en'],
+                    'name_ar' => $row['name_ar'],
+                    'slug' => $row['slug'],
+                    'status' => $row['status'],
+                ]);
+
+                $target = Category::query()->findOrFail((int) $row['target_category_id']);
+                $moveResults[] = $this->moveService->move($subcategory->fresh(), $target);
+            }
+
+            $this->catalogService->syncSubcategories($category, $stayRows);
         });
+
+        $message = 'Category updated successfully.';
+        if ($moveResults !== []) {
+            $message = 'Category updated. '.implode(' ', array_map(
+                static fn (SubcategoryMoveResult $result) => $result->summaryLine(),
+                $moveResults
+            ));
+        }
 
         return redirect()
             ->route('categories.show', $category)
-            ->with('success', 'Category updated successfully.');
+            ->with('success', $message);
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $rows
+     * @return array{0: list<array<string, mixed>>, 1: list<array<string, mixed>>}
+     */
+    private function partitionSubcategoryRows(array $rows, int $currentCategoryId): array
+    {
+        $moveRows = [];
+        $stayRows = [];
+
+        foreach ($rows as $row) {
+            $targetCategoryId = isset($row['target_category_id']) && $row['target_category_id'] !== ''
+                ? (int) $row['target_category_id']
+                : $currentCategoryId;
+
+            if ($targetCategoryId !== $currentCategoryId && ! empty($row['id'])) {
+                $row['target_category_id'] = $targetCategoryId;
+                $moveRows[] = $row;
+
+                continue;
+            }
+
+            $stayRows[] = $row;
+        }
+
+        return [$moveRows, $stayRows];
     }
 
     public function destroy(Category $category): RedirectResponse

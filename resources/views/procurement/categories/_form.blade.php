@@ -1,5 +1,7 @@
 @php
     $c = $category;
+    $currentCategoryId = (int) ($c->id ?? 0);
+    $categoryOptions = ($mode === 'edit' && isset($allCategories)) ? $allCategories : collect();
     $oldSubs = old('subcategories');
     if (is_array($oldSubs)) {
         $subRows = array_values($oldSubs);
@@ -10,12 +12,15 @@
             'name_en' => $s->name_en,
             'slug' => $s->slug,
             'status' => $s->status,
+            'target_category_id' => $currentCategoryId,
         ])->values()->all();
     } else {
         $subRows = [['name_ar' => '', 'name_en' => '', 'slug' => '', 'status' => 'active']];
     }
     if (count($subRows) === 0) {
-        $subRows = [['name_ar' => '', 'name_en' => '', 'slug' => '', 'status' => 'active']];
+        $subRows = $mode === 'edit'
+            ? []
+            : [['name_ar' => '', 'name_en' => '', 'slug' => '', 'status' => 'active']];
     }
 @endphp
 
@@ -64,7 +69,11 @@
             Add subcategory row
         </button>
     </div>
-    <p class="mt-2 text-xs text-slate-500">Arabic name is shown first. Slugs are generated from English name unless you edit them.</p>
+    @if ($mode === 'edit')
+        <p class="mt-2 text-xs text-slate-500">Change the parent category to move a subcategory. Vendor links, brochures, and procurement requests will be updated on save.</p>
+    @else
+        <p class="mt-2 text-xs text-slate-500">Arabic name is shown first. Slugs are generated from English name unless you edit them.</p>
+    @endif
 
     <div class="mt-4 overflow-x-auto">
         <table class="min-w-full divide-y divide-slate-200 text-sm">
@@ -73,13 +82,19 @@
                 <th class="px-2 py-2 text-left">Arabic name</th>
                 <th class="px-2 py-2 text-left">English name</th>
                 <th class="px-2 py-2 text-left">Slug</th>
+                @if ($mode === 'edit')
+                    <th class="px-2 py-2 text-left">Parent category</th>
+                @endif
                 <th class="px-2 py-2 text-left">Status</th>
                 <th class="px-2 py-2 text-left w-24"></th>
             </tr>
             </thead>
             <tbody id="subcategory-rows" class="divide-y divide-slate-100">
             @foreach ($subRows as $index => $row)
-                <tr class="subcategory-row" data-row-index="{{ $index }}">
+                @php
+                    $selectedParentId = (int) old("subcategories.$index.target_category_id", $row['target_category_id'] ?? $currentCategoryId);
+                @endphp
+                <tr class="subcategory-row" data-row-index="{{ $index }}" @if ($mode === 'edit') data-subcategory-id="{{ $row['id'] ?? '' }}" data-current-category-id="{{ $currentCategoryId }}" @endif>
                     @if ($mode === 'edit' && ! empty($row['id']))
                         <input type="hidden" name="subcategories[{{ $index }}][id]" value="{{ $row['id'] }}">
                     @endif
@@ -98,6 +113,21 @@
                                class="admin-filter-control !mt-0 min-w-[8rem] font-mono text-xs @error('subcategories.'.$index.'.slug') border-red-500 @enderror">
                         @error('subcategories.'.$index.'.slug')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                     </td>
+                    @if ($mode === 'edit')
+                        <td class="px-2 py-2 align-top">
+                            <select name="subcategories[{{ $index }}][target_category_id]"
+                                    data-target-category-select
+                                    class="admin-filter-control !mt-0 min-w-[10rem] @error('subcategories.'.$index.'.target_category_id') border-red-500 @enderror">
+                                @foreach ($categoryOptions as $option)
+                                    <option value="{{ $option->id }}" @selected($selectedParentId === (int) $option->id)>
+                                        {{ $option->name_en }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <p class="mt-1 hidden text-xs font-medium text-amber-700" data-move-warning>Will move on save</p>
+                            @error('subcategories.'.$index.'.target_category_id')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                        </td>
+                    @endif
                     <td class="px-2 py-2 align-top">
                         <select name="subcategories[{{ $index }}][status]"
                                 class="admin-filter-control !mt-0 @error('subcategories.'.$index.'.status') border-red-500 @enderror">
@@ -119,7 +149,7 @@
 </section>
 
 <template id="subcategory-row-template">
-    <tr class="subcategory-row" data-row-index="__IDX__">
+    <tr class="subcategory-row" data-row-index="__IDX__" @if ($mode === 'edit') data-current-category-id="{{ $currentCategoryId }}" @endif>
         <td class="px-2 py-2 align-top">
             <input type="text" name="subcategories[__IDX__][name_ar]" value="" dir="auto"
                    class="admin-filter-control !mt-0 min-w-[8rem]">
@@ -132,6 +162,19 @@
             <input type="text" name="subcategories[__IDX__][slug]" value="" data-sub-slug-target data-slug-manual="0"
                    class="admin-filter-control !mt-0 min-w-[8rem] font-mono text-xs">
         </td>
+        @if ($mode === 'edit')
+            <td class="px-2 py-2 align-top">
+                <select name="subcategories[__IDX__][target_category_id]" data-target-category-select
+                        class="admin-filter-control !mt-0 min-w-[10rem]">
+                    @foreach ($categoryOptions as $option)
+                        <option value="{{ $option->id }}" @selected((int) $option->id === $currentCategoryId)>
+                            {{ $option->name_en }}
+                        </option>
+                    @endforeach
+                </select>
+                <p class="mt-1 hidden text-xs font-medium text-amber-700" data-move-warning>Will move on save</p>
+            </td>
+        @endif
         <td class="px-2 py-2 align-top">
             <select name="subcategories[__IDX__][status]" class="admin-filter-control !mt-0">
                 <option value="active" selected>Active</option>
@@ -147,6 +190,10 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const isEditMode = @json($mode === 'edit');
+            const currentCategoryId = @json($currentCategoryId);
+            const movePreviewBaseUrl = @json($mode === 'edit' ? url('/categories/subcategories') : null);
+
             function slugify(text) {
                 return text
                     .toString()
@@ -175,6 +222,39 @@
                 });
             }
 
+            function updateMoveWarning(row) {
+                if (!isEditMode) {
+                    return;
+                }
+
+                const select = row.querySelector('[data-target-category-select]');
+                const warning = row.querySelector('[data-move-warning]');
+                if (!select || !warning) {
+                    return;
+                }
+
+                const subcategoryId = row.dataset.subcategoryId || '';
+                const targetId = parseInt(select.value, 10);
+                const isMove = subcategoryId !== '' && !isNaN(targetId) && targetId !== currentCategoryId;
+                warning.classList.toggle('hidden', !isMove);
+            }
+
+            function wireTargetCategorySelect(row) {
+                if (!isEditMode) {
+                    return;
+                }
+
+                const select = row.querySelector('[data-target-category-select]');
+                if (!select) {
+                    return;
+                }
+
+                select.addEventListener('change', function () {
+                    updateMoveWarning(row);
+                });
+                updateMoveWarning(row);
+            }
+
             function wireSubRow(row) {
                 const src = row.querySelector('[data-sub-slug-source]');
                 const tgt = row.querySelector('[data-sub-slug-target]');
@@ -190,6 +270,7 @@
                 tgt.addEventListener('input', function () {
                     tgt.dataset.slugManual = tgt.value === '' ? '0' : '1';
                 });
+                wireTargetCategorySelect(row);
             }
 
             document.querySelectorAll('#subcategory-rows tr.subcategory-row').forEach(wireSubRow);
@@ -197,6 +278,7 @@
             const tbody = document.getElementById('subcategory-rows');
             const tpl = document.getElementById('subcategory-row-template');
             const addBtn = document.getElementById('add-subcategory-row');
+            const form = document.querySelector('form[action*="categories"]');
 
             function nextIndex() {
                 const rows = tbody.querySelectorAll('tr.subcategory-row');
@@ -208,6 +290,69 @@
                     }
                 });
                 return max + 1;
+            }
+
+            function rowsMarkedForMove() {
+                return Array.from(tbody.querySelectorAll('tr.subcategory-row')).filter(function (row) {
+                    const subcategoryId = row.dataset.subcategoryId || '';
+                    const select = row.querySelector('[data-target-category-select]');
+                    if (!select || subcategoryId === '') {
+                        return false;
+                    }
+                    const targetId = parseInt(select.value, 10);
+                    return !isNaN(targetId) && targetId !== currentCategoryId;
+                });
+            }
+
+            async function fetchMovePreview(subcategoryId, targetCategoryId) {
+                const url = movePreviewBaseUrl + '/' + subcategoryId + '/move-preview?target_category_id=' + encodeURIComponent(targetCategoryId);
+                const response = await fetch(url, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error('Preview request failed');
+                }
+
+                return response.json();
+            }
+
+            async function buildMoveConfirmMessage(rows) {
+                let vendorLinks = 0;
+                let brochures = 0;
+                let procurementRequests = 0;
+                let conflicts = [];
+
+                for (const row of rows) {
+                    const subcategoryId = row.dataset.subcategoryId;
+                    const targetCategoryId = row.querySelector('[data-target-category-select]').value;
+                    const nameEn = row.querySelector('[data-sub-slug-source]')?.value || 'Subcategory';
+
+                    try {
+                        const preview = await fetchMovePreview(subcategoryId, targetCategoryId);
+                        vendorLinks += preview.vendor_links || 0;
+                        brochures += preview.brochures || 0;
+                        procurementRequests += preview.procurement_requests || 0;
+
+                        if (preview.has_name_conflict || preview.has_slug_conflict) {
+                            conflicts.push(nameEn);
+                        }
+                    } catch (error) {
+                        conflicts.push(nameEn);
+                    }
+                }
+
+                if (conflicts.length > 0) {
+                    return 'Unable to preview one or more subcategory moves. Please review the form and try again.';
+                }
+
+                return 'Moving ' + rows.length + ' subcategory row(s) will update '
+                    + vendorLinks + ' vendor link(s), '
+                    + brochures + ' brochure(s), and '
+                    + procurementRequests + ' procurement request(s) to reflect the new parent categories.\n\nContinue?';
             }
 
             if (addBtn && tpl && tbody) {
@@ -232,6 +377,21 @@
                     }
                 }
             });
+
+            if (form && isEditMode) {
+                form.addEventListener('submit', async function (event) {
+                    const rows = rowsMarkedForMove();
+                    if (rows.length === 0) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    const message = await buildMoveConfirmMessage(rows);
+                    if (window.confirm(message)) {
+                        form.submit();
+                    }
+                });
+            }
 
             wireCategorySlug();
         });

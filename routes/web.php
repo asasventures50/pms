@@ -83,6 +83,10 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('permission:categories.import')
         ->name('categories.import');
 
+    Route::get('/categories/subcategories/{subcategory}/move-preview', [CategoryController::class, 'movePreview'])
+        ->middleware('permission:categories.update')
+        ->name('categories.subcategories.move-preview');
+
     Route::resource('categories', CategoryController::class)
         ->middlewareFor(['index', 'show'], 'permission:categories.view')
         ->middlewareFor(['create', 'store'], 'permission:categories.create')
