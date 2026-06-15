@@ -60,6 +60,22 @@
             text-align: right;
         }
 
+        .po-print--rtl .po-signature-col {
+            text-align: right;
+        }
+
+        .po-print--rtl .po-signature-row .po-form-label {
+            width: auto;
+            text-align: right;
+            margin-inline-end: 4px;
+        }
+
+        .po-print--rtl .po-signature-row .po-form-line {
+            width: 180px;
+            max-width: 180px;
+            text-align: right;
+        }
+
         @media print {
             .po-print-page {
                 max-width: none;
