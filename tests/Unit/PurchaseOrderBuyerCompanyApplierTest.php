@@ -48,6 +48,18 @@ class PurchaseOrderBuyerCompanyApplierTest extends TestCase
         $this->assertSame('Activation', $payload['company']['buyer']['name']);
     }
 
+    public function test_presenter_includes_currency_code_from_linked_pr(): void
+    {
+        $request = ProcurementRequest::query()->create([
+            'request_number' => 'PR-CUR-001',
+            'currency_code' => 'eur',
+        ]);
+
+        $payload = app(ProcurementRequestLinesForPurchaseOrderPresenter::class)->present($request);
+
+        $this->assertSame('EUR', $payload['currency_code']);
+    }
+
     public function test_resolve_for_purchase_order_prefers_stored_company_key(): void
     {
         $request = ProcurementRequest::query()->create([

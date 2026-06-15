@@ -211,6 +211,13 @@
 
     .po-order-right .po-form-label {
         width: 88px;
+        text-align: right;
+        margin-inline-end: 4px;
+    }
+
+    .po-ltr {
+        direction: ltr;
+        unicode-bidi: embed;
     }
 
     .po-order-right .po-form-line {

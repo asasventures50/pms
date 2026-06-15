@@ -22,7 +22,13 @@
             @foreach ($deliveryRows as $key => $value)
                 <div class="po-form-group">
                     <span class="po-form-label">{{ $printLabels->t($key) }}:</span>
-                    <span class="po-form-line">{{ $value }}</span>
+                    <span class="po-form-line">
+                        @if (in_array($key, ['phone', 'email'], true))
+                            <span class="po-ltr">{{ $value }}</span>
+                        @else
+                            {{ $value }}
+                        @endif
+                    </span>
                 </div>
             @endforeach
         </div>

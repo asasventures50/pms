@@ -24,13 +24,13 @@
         <div>{{ $printLabels->t('address') }} {{ $buyer['address'] }}</div>
     @endif
     @if ($buyer['phone'] ?? null)
-        <div>{{ $printLabels->t('phone') }} {{ $buyer['phone'] }}</div>
+        <div>{{ $printLabels->t('phone') }} <span class="po-ltr">{{ $buyer['phone'] }}</span></div>
     @endif
     @if ($buyer['email'] ?? null)
-        <div>{{ $printLabels->t('email') }} {{ $buyer['email'] }}</div>
+        <div>{{ $printLabels->t('email') }} <span class="po-ltr">{{ $buyer['email'] }}</span></div>
     @endif
     @if ($buyer['fax'] ?? null)
-        <div>{{ $printLabels->t('fax') }} {{ $buyer['fax'] }}</div>
+        <div>{{ $printLabels->t('fax') }} <span class="po-ltr">{{ $buyer['fax'] }}</span></div>
     @endif
 </div>
 

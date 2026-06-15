@@ -24,6 +24,7 @@ class ProcurementRequestLinesForPurchaseOrderPresenter
      *     items: list<array<string, mixed>>,
      *     commercial_terms: array<string, mixed>,
      *     company: array<string, mixed>,
+     *     currency_code: string|null,
      * }
      */
     public function present(ProcurementRequest $procurementRequest): array
@@ -46,6 +47,9 @@ class ProcurementRequestLinesForPurchaseOrderPresenter
             'items' => $items->map(fn (ProcurementRequestItem $line) => $this->toLine($procurementRequest, $line))->all(),
             'commercial_terms' => $this->commercialTerms->snapshot($procurementRequest),
             'company' => PrCompany::resolve($procurementRequest->company_key)->toPurchaseOrderApiPayload(),
+            'currency_code' => filled($procurementRequest->currency_code)
+                ? strtoupper(trim((string) $procurementRequest->currency_code))
+                : null,
         ];
     }
 

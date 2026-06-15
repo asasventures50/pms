@@ -18,7 +18,13 @@
             @foreach ($vendorRows as $label => $value)
                 <div class="po-form-group">
                     <span class="po-form-label">{{ $printLabels->vendorRowLabel($label) }}:</span>
-                    <span class="po-form-line">{{ $value }}</span>
+                    <span class="po-form-line">
+                        @if (in_array($label, ['Phone', 'WhatsApp', 'Email'], true))
+                            <span class="po-ltr">{{ $value }}</span>
+                        @else
+                            {{ $value }}
+                        @endif
+                    </span>
                 </div>
             @endforeach
         </div>

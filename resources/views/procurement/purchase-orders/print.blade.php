@@ -44,6 +44,22 @@
             text-align: left;
         }
 
+        .po-print--rtl .po-order-right {
+            text-align: right;
+        }
+
+        .po-print--rtl .po-order-right .po-form-label {
+            width: 88px;
+            text-align: right;
+            margin-inline-end: 4px;
+        }
+
+        .po-print--rtl .po-order-right .po-form-line {
+            width: 200px;
+            max-width: 200px;
+            text-align: right;
+        }
+
         @media print {
             .po-print-page {
                 max-width: none;

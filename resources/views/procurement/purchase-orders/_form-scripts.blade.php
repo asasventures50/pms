@@ -699,6 +699,20 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function applyCurrencyFromPr(currencyCode) {
+        if (!currencyInput) {
+            return;
+        }
+
+        const code = (currencyCode || '').trim().toUpperCase();
+        if (!code) {
+            return;
+        }
+
+        currencyInput.value = code;
+        updateCurrencyLabels();
+    }
+
     function applyCommercialTermsFromPr(commercialTerms) {
         if (!commercialTerms || typeof commercialTerms !== 'object') {
             return;
@@ -784,6 +798,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 );
                 applyPoCompanyPreview(data.company || null);
                 applyCommercialTermsFromPr(data.commercial_terms || null);
+                applyCurrencyFromPr(data.currency_code || '');
                 if (opts.onImported) {
                     opts.onImported();
                 }
