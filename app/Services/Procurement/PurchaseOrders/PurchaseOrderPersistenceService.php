@@ -117,6 +117,7 @@ class PurchaseOrderPersistenceService
                 'item' => $row['item'] ?? null,
                 'description' => $row['description'] ?? null,
                 'quantity' => $row['quantity'],
+                'unit' => $row['unit'] ?? null,
                 'unit_price' => $row['unit_price'],
                 'line_total' => $row['line_total'],
             ]);
@@ -145,10 +146,13 @@ class PurchaseOrderPersistenceService
             $unitPrice = max(0, (float) ($row['unit_price'] ?? 0));
             $lineTotal = round($quantity * $unitPrice, 2);
 
+            $unit = isset($row['unit']) ? trim((string) $row['unit']) : '';
+
             $normalized[] = [
                 'item' => isset($row['item']) ? trim((string) $row['item']) : null,
                 'description' => $description,
                 'quantity' => $quantity,
+                'unit' => $unit !== '' ? $unit : null,
                 'unit_price' => $unitPrice,
                 'line_total' => $lineTotal,
             ];

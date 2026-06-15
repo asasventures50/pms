@@ -73,6 +73,7 @@ class ProcurementRequestLinesForPurchaseOrderPresenter
             'item' => $line->line_number ?? '',
             'description' => $line->description ?? '',
             'quantity' => (float) $line->quantity,
+            'unit' => trim((string) ($line->unit ?? '')),
             'unit_price' => (float) ($line->unit_price ?? 0),
             'project' => $projectLabel,
             'category' => $categoryLabel,

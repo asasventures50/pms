@@ -18,6 +18,7 @@ class PurchaseOrderItem extends Model
         'item',
         'description',
         'quantity',
+        'unit',
         'unit_price',
         'line_total',
     ];

@@ -364,32 +364,37 @@
 
     .po-items-table col.col-item,
     .po-items-table .col-item {
-        width: 14%;
+        width: 12%;
     }
 
     .po-items-table col.col-desc,
     .po-items-table .col-desc {
-        width: 11%;
+        width: 10%;
     }
 
     .po-items-table col.col-scope,
     .po-items-table .col-scope {
-        width: 48%;
+        width: 40%;
     }
 
     .po-items-table col.col-qty,
     .po-items-table .col-qty {
-        width: 10%;
+        width: 8%;
+    }
+
+    .po-items-table col.col-unit,
+    .po-items-table .col-unit {
+        width: 8%;
     }
 
     .po-items-table col.col-price,
     .po-items-table .col-price {
-        width: 8%;
+        width: 10%;
     }
 
     .po-items-table col.col-total,
     .po-items-table .col-total {
-        width: 9%;
+        width: 12%;
     }
 
     .po-items-table .po-thead-meta th {

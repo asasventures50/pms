@@ -3,7 +3,7 @@
     use App\Services\Procurement\PurchaseOrders\PurchaseOrderBuyerCompanyApplier;
 
     $po = $purchaseOrder ?? null;
-    $lineItems = old('items', $defaultItems ?? [['item' => '', 'description' => '', 'quantity' => 1, 'unit_price' => 0]]);
+    $lineItems = old('items', $defaultItems ?? [['item' => '', 'description' => '', 'quantity' => 1, 'unit' => '', 'unit_price' => 0]]);
     $poCompany = $po?->exists
         ? PurchaseOrderBuyerCompanyApplier::resolveForPurchaseOrder($po)
         : PrCompany::AsasVentures;

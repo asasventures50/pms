@@ -121,6 +121,7 @@
                     <th class="border border-slate-200 px-3 py-2 text-left">Item</th>
                     <th class="border border-slate-200 px-3 py-2 text-left">Item or service description</th>
                     <th class="border border-slate-200 px-3 py-2 text-right">Quantity</th>
+                    <th class="border border-slate-200 px-3 py-2 text-right">Unit</th>
                     <th class="border border-slate-200 px-3 py-2 text-right">Price per unit{{ $currency ? ' ('.$currency.')' : '' }}</th>
                     <th class="border border-slate-200 px-3 py-2 text-right">Line total{{ $currency ? ' ('.$currency.')' : '' }}</th>
                 </tr>
@@ -131,30 +132,31 @@
                         <td class="border border-slate-200 px-3 py-2 font-mono text-xs">{{ $line->item ?: '—' }}</td>
                         <td class="border border-slate-200 px-3 py-2">{{ $line->description }}</td>
                         <td class="border border-slate-200 px-3 py-2 text-right">{{ number_format($line->quantity, 3) }}</td>
+                        <td class="border border-slate-200 px-3 py-2 text-right">{{ $line->unit ?: '—' }}</td>
                         <td class="border border-slate-200 px-3 py-2 text-right">{{ number_format($line->unit_price, 2) }}</td>
                         <td class="border border-slate-200 px-3 py-2 text-right font-mono">{{ number_format($line->line_total, 2) }}</td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="border border-slate-200 px-3 py-6 text-center text-slate-500">No line items.</td>
+                        <td colspan="6" class="border border-slate-200 px-3 py-6 text-center text-slate-500">No line items.</td>
                     </tr>
                 @endforelse
                 </tbody>
                 <tfoot>
                 <tr>
-                    <td colspan="4" class="border border-slate-200 px-3 py-2 text-right text-slate-700">Subtotal</td>
+                    <td colspan="5" class="border border-slate-200 px-3 py-2 text-right text-slate-700">Subtotal</td>
                     <td class="border border-slate-200 px-3 py-2 text-right font-mono">{{ $purchaseOrder->formatMoneyAmount($linesSubtotal) }}</td>
                 </tr>
                 <tr>
-                    <td colspan="4" class="border border-slate-200 px-3 py-2 text-right text-slate-700">Delivery fee</td>
+                    <td colspan="5" class="border border-slate-200 px-3 py-2 text-right text-slate-700">Delivery fee</td>
                     <td class="border border-slate-200 px-3 py-2 text-right font-mono">{{ $purchaseOrder->formatMoneyAmount($purchaseOrder->delivery_fee ?? 0) }}</td>
                 </tr>
                 <tr>
-                    <td colspan="4" class="border border-slate-200 px-3 py-2 text-right text-slate-700">Discount</td>
+                    <td colspan="5" class="border border-slate-200 px-3 py-2 text-right text-slate-700">Discount</td>
                     <td class="border border-slate-200 px-3 py-2 text-right font-mono">−{{ $purchaseOrder->formatMoneyAmount($purchaseOrder->discount ?? 0) }}</td>
                 </tr>
                 <tr class="bg-slate-50 font-semibold">
-                    <td colspan="4" class="border border-slate-200 px-3 py-2 text-right">Total price{{ $currency ? ' ('.$currency.')' : '' }}</td>
+                    <td colspan="5" class="border border-slate-200 px-3 py-2 text-right">Total price{{ $currency ? ' ('.$currency.')' : '' }}</td>
                     <td class="border border-slate-200 px-3 py-2 text-right font-mono">{{ $purchaseOrder->formatMoneyAmount($purchaseOrder->total_price ?? 0) }}</td>
                 </tr>
                 </tfoot>

@@ -35,6 +35,7 @@
                 <th class="px-2 py-2 w-24">Item</th>
                 <th class="px-2 py-2">Item or service description</th>
                 <th class="px-2 py-2 w-28">Quantity</th>
+                <th class="px-2 py-2 w-24">Unit</th>
                 <th class="px-2 py-2 w-32">
                     <span data-po-price-label data-po-price-label-base="Price per unit">Price per unit{{ $currencyCode ? ' ('.$currencyCode.')' : '' }}</span>
                 </th>
@@ -46,10 +47,15 @@
             </thead>
             <tbody id="po-lines-body">
             @foreach ($lineItems as $index => $row)
+                @php
+                    $itemLocked = filled($row['item'] ?? '');
+                @endphp
                 <tr class="po-line-row border-t border-slate-100">
                     <td class="px-2 py-2 align-top">
                         <input type="text" name="items[{{ $index }}][item]" value="{{ $row['item'] ?? '' }}"
-                               class="admin-filter-control w-full font-mono text-xs">
+                               @readonly($itemLocked)
+                               class="admin-filter-control w-full font-mono text-xs @if($itemLocked) bg-slate-50 text-slate-600 cursor-not-allowed @endif"
+                               @if($itemLocked) data-item-locked="1" @endif>
                     </td>
                     <td class="px-2 py-2 align-top">
                         <input type="text" name="items[{{ $index }}][description]" value="{{ $row['description'] ?? '' }}" required
@@ -59,6 +65,11 @@
                     <td class="px-2 py-2 align-top">
                         <input type="number" name="items[{{ $index }}][quantity]" value="{{ $row['quantity'] ?? 1 }}" min="0" step="0.001"
                                class="po-qty admin-filter-control w-full" required>
+                    </td>
+                    <td class="px-2 py-2 align-top">
+                        <input type="text" name="items[{{ $index }}][unit]" value="{{ $row['unit'] ?? '' }}"
+                               class="admin-filter-control w-full @error('items.'.$index.'.unit') border-red-500 @enderror">
+                        @error('items.'.$index.'.unit')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                     </td>
                     <td class="px-2 py-2 align-top">
                         <input type="number" name="items[{{ $index }}][unit_price]" value="{{ $row['unit_price'] ?? 0 }}" min="0" step="0.01"
@@ -75,12 +86,12 @@
             </tbody>
             <tfoot>
             <tr class="border-t border-slate-100">
-                <td colspan="4" class="px-2 py-2 text-right text-sm text-slate-700">Subtotal</td>
+                <td colspan="5" class="px-2 py-2 text-right text-sm text-slate-700">Subtotal</td>
                 <td class="px-2 py-2 text-right font-mono text-sm" id="po-lines-subtotal">0.00</td>
                 <td></td>
             </tr>
             <tr class="border-t border-slate-100">
-                <td colspan="3" class="px-2 py-2 text-right text-sm text-slate-700">
+                <td colspan="4" class="px-2 py-2 text-right text-sm text-slate-700">
                     <label for="delivery_fee" class="text-xs font-medium uppercase tracking-wide text-slate-500">Delivery fee</label>
                 </td>
                 <td class="px-2 py-2" colspan="2">
@@ -91,7 +102,7 @@
                 <td></td>
             </tr>
             <tr class="border-t border-slate-100">
-                <td colspan="3" class="px-2 py-2 text-right text-sm text-slate-700">
+                <td colspan="4" class="px-2 py-2 text-right text-sm text-slate-700">
                     <label for="discount" class="text-xs font-medium uppercase tracking-wide text-slate-500">Discount</label>
                 </td>
                 <td class="px-2 py-2" colspan="2">
@@ -102,7 +113,7 @@
                 <td></td>
             </tr>
             <tr class="border-t-2 border-slate-200 bg-slate-50">
-                <td colspan="4" class="px-2 py-3 text-right text-sm font-semibold text-slate-900">
+                <td colspan="5" class="px-2 py-3 text-right text-sm font-semibold text-slate-900">
                     <span data-po-price-label data-po-price-label-base="Total price:">Total price:{{ $currencyCode ? ' ('.$currencyCode.')' : '' }}</span>
                 </td>
                 <td class="px-2 py-3 text-right font-mono text-sm font-semibold text-slate-900" id="po-total-price">0.00</td>
@@ -122,6 +133,9 @@
             </td>
             <td class="px-2 py-2 align-top">
                 <input type="number" data-name="quantity" value="1" min="0" step="0.001" class="po-qty admin-filter-control w-full" required>
+            </td>
+            <td class="px-2 py-2 align-top">
+                <input type="text" data-name="unit" class="admin-filter-control w-full">
             </td>
             <td class="px-2 py-2 align-top">
                 <input type="number" data-name="unit_price" value="0" min="0" step="0.01" class="po-unit admin-filter-control w-full" required>

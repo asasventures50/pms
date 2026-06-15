@@ -222,6 +222,27 @@ document.addEventListener('DOMContentLoaded', function () {
         recalcAll();
     }
 
+    function setItemFieldLocked(row, locked) {
+        const input = row.querySelector('[data-name="item"], [name$="[item]"]');
+        if (!input) {
+            return;
+        }
+
+        const hasValue = (input.value || '').trim() !== '';
+        const shouldLock = Boolean(locked && hasValue);
+
+        input.readOnly = shouldLock;
+        input.classList.toggle('bg-slate-50', shouldLock);
+        input.classList.toggle('text-slate-600', shouldLock);
+        input.classList.toggle('cursor-not-allowed', shouldLock);
+
+        if (shouldLock) {
+            input.setAttribute('data-item-locked', '1');
+        } else {
+            input.removeAttribute('data-item-locked');
+        }
+    }
+
     function addRowFromData(rowData) {
         const clone = template.content.cloneNode(true);
         const row = clone.querySelector('tr');
@@ -232,10 +253,12 @@ document.addEventListener('DOMContentLoaded', function () {
         row.querySelector('[data-name="item"]').value = rowData.item || '';
         row.querySelector('[data-name="description"]').value = rowData.description || '';
         row.querySelector('[data-name="quantity"]').value = rowData.quantity ?? 1;
+        row.querySelector('[data-name="unit"]').value = rowData.unit || '';
         row.querySelector('[data-name="unit_price"]').value = rowData.unit_price ?? 0;
 
         linesBody.appendChild(row);
         bindRow(row);
+        setItemFieldLocked(row, true);
     }
 
     function replaceRowsFromProcurementRequest(rows) {

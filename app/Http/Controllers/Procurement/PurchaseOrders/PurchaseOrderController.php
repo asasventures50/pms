@@ -157,7 +157,7 @@ class PurchaseOrderController extends Controller
             'prContext' => PurchaseOrderProcurementRequestContext::emptyAggregates(),
             'scopeTypeKeys' => [],
 
-            'defaultItems' => [['item' => '', 'description' => '', 'quantity' => 1, 'unit_price' => 0]],
+            'defaultItems' => [['item' => '', 'description' => '', 'quantity' => 1, 'unit' => '', 'unit_price' => 0]],
 
             'poTerms' => $this->termsForForm(),
 
@@ -328,6 +328,8 @@ class PurchaseOrderController extends Controller
 
             'quantity' => $row->quantity,
 
+            'unit' => $row->unit,
+
             'unit_price' => $row->unit_price,
 
         ])->all();
@@ -336,7 +338,7 @@ class PurchaseOrderController extends Controller
 
         if ($defaultItems === []) {
 
-            $defaultItems = [['item' => '', 'description' => '', 'quantity' => 1, 'unit_price' => 0]];
+            $defaultItems = [['item' => '', 'description' => '', 'quantity' => 1, 'unit' => '', 'unit_price' => 0]];
 
         }
 

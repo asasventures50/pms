@@ -60,6 +60,26 @@ class PurchaseOrderBuyerCompanyApplierTest extends TestCase
         $this->assertSame('EUR', $payload['currency_code']);
     }
 
+    public function test_presenter_includes_unit_on_line_items(): void
+    {
+        $request = ProcurementRequest::query()->create([
+            'request_number' => 'PR-UNIT-001',
+        ]);
+
+        $request->items()->create([
+            'sort_order' => 0,
+            'line_number' => '1.1',
+            'description' => 'Test item',
+            'quantity' => 2,
+            'unit' => 'm²',
+            'unit_price' => 100,
+        ]);
+
+        $payload = app(ProcurementRequestLinesForPurchaseOrderPresenter::class)->present($request->fresh('items'));
+
+        $this->assertSame('m²', $payload['items'][0]['unit']);
+    }
+
     public function test_resolve_for_purchase_order_prefers_stored_company_key(): void
     {
         $request = ProcurementRequest::query()->create([

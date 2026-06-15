@@ -19,12 +19,13 @@
         <col class="col-desc">
         <col class="col-scope">
         <col class="col-qty">
+        <col class="col-unit">
         <col class="col-price">
         <col class="col-total">
     </colgroup>
     <thead>
     <tr class="po-thead-meta">
-        <th colspan="6">
+        <th colspan="7">
             P.O. {{ $purchaseOrder->po_number }}
             @if ($purchaseOrder->ordered_at)
                 · {{ $purchaseOrder->ordered_at->format('d-m-Y') }}
@@ -39,6 +40,7 @@
         <th class="col-desc">{!! nl2br(e($printLabels->t('description'))) !!}</th>
         <th class="col-scope">{!! nl2br(e($printLabels->t('scope_of_work'))) !!}</th>
         <th class="col-qty">{{ $printLabels->t('quantity') }}</th>
+        <th class="col-unit">{{ $printLabels->t('unit') }}</th>
         <th class="col-price">{!! nl2br(e($printLabels->t('price_per_unit'))) !!}{{ $currencySuffix }}</th>
         <th class="col-total">{{ $printLabels->t('line_total') }}{{ $currencySuffix }}</th>
     </tr>
@@ -57,6 +59,7 @@
             <td class="po-cell-text">{{ $line->description }}</td>
             <td class="po-cell-text">{{ $scopeOfWork }}</td>
             <td class="po-cell-num po-cell-qty">{{ number_format($line->quantity, 3) }}</td>
+            <td class="po-cell-num">{{ $line->unit ?: '—' }}</td>
             <td class="po-cell-num po-cell-money">{{ number_format($line->unit_price, 2) }}</td>
             <td class="po-cell-num po-cell-money">{{ number_format($line->line_total, 2) }}</td>
         </tr>
@@ -69,12 +72,14 @@
             <td></td>
             <td></td>
             <td></td>
+            <td></td>
         </tr>
     @endfor
     @if ($itemCount === 0 && $emptyRowCount === 0)
         @for ($i = 0; $i < $minItemRows; $i++)
             <tr>
                 <td>&nbsp;</td>
+                <td></td>
                 <td></td>
                 <td></td>
                 <td></td>
