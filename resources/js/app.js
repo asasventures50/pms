@@ -1,4 +1,5 @@
 import './bootstrap';
+import './input-direction';
 
 import Alpine from 'alpinejs';
 
