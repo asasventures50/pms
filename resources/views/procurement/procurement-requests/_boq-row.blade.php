@@ -14,9 +14,8 @@
                class="admin-filter-control w-full min-w-[7rem]">
     </td>
     <td class="px-2 py-2 align-top">
-        <input type="text" name="items[{{ $index }}][description]" value="{{ old("items.$index.description", $row['description'] ?? '') }}"
-               data-name="description" required
-               class="admin-filter-control w-full min-w-[12rem] @error("items.$index.description") border-red-500 @enderror">
+        <textarea name="items[{{ $index }}][description]" rows="3" data-name="description" required
+                  class="admin-filter-control w-full min-w-[12rem] resize-y @error("items.$index.description") border-red-500 @enderror">{{ old("items.$index.description", $row['description'] ?? '') }}</textarea>
         @error("items.$index.description")<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
     </td>
     <td class="px-2 py-2 align-top">
