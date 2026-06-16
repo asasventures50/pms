@@ -5,6 +5,7 @@
     $buyerCompany = $buyerCompany ?? BuyerCompany::forDisplay($document ?? null);
     $variant = $variant ?? 'admin-show';
     $poCompany = $poCompany ?? PrCompany::AsasVentures;
+    $contactPerson = $contactPerson ?? null;
 @endphp
 
 @if ($variant === 'po-print')
@@ -54,6 +55,12 @@
                     <dt class="shrink-0 font-medium">Email</dt>
                     <dd>{{ $buyerCompany['email'] ?? '—' }}</dd>
                 </div>
+                @if ($contactPerson)
+                    <div class="flex flex-col gap-1 border-b border-slate-900 pb-1 sm:flex-row sm:gap-3">
+                        <dt class="shrink-0 font-medium">Contact person</dt>
+                        <dd>{{ $contactPerson }}</dd>
+                    </div>
+                @endif
                 <div class="flex flex-col gap-1 border-b border-slate-900 pb-1 sm:flex-row sm:gap-3 sm:col-span-2">
                     <dt class="shrink-0 font-medium">Address</dt>
                     <dd class="whitespace-pre-wrap">{{ $buyerCompany['address'] ?? '—' }}</dd>

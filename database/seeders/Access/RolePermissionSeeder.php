@@ -29,5 +29,11 @@ class RolePermissionSeeder extends Seeder
             ['label' => 'Procurement Officer']
         );
         $officer->syncPermissions(PermissionCatalog::procurementOfficerPermissions());
+
+        $prRequester = Role::query()->updateOrCreate(
+            ['name' => PermissionCatalog::PR_REQUESTER_ROLE],
+            ['label' => 'PR Requester']
+        );
+        $prRequester->syncPermissions(PermissionCatalog::prRequesterPermissions());
     }
 }

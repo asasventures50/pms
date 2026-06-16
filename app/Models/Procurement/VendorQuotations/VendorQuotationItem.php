@@ -19,25 +19,39 @@ class VendorQuotationItem extends Model
         'rfq_item_id',
         'sort_order',
         'item_number',
+        'quantity_quoted',
         'compliance',
         'alternative_if_no',
         'item_description_if_no',
         'brand_origin',
+        'brand',
+        'model',
+        'country_of_origin',
         'unit_price',
         'currency',
         'total_price',
+        'discount',
+        'tax_rate',
         'tax',
+        'delivery_charges',
+        'installation',
         'lead_time',
         'warranty',
+        'remarks',
     ];
 
     protected function casts(): array
     {
         return [
             'compliance' => QuotationCompliance::class,
+            'quantity_quoted' => 'decimal:3',
             'unit_price' => 'decimal:2',
             'total_price' => 'decimal:2',
+            'discount' => 'decimal:2',
+            'tax_rate' => 'decimal:2',
             'tax' => 'decimal:2',
+            'delivery_charges' => 'decimal:2',
+            'installation' => 'decimal:2',
         ];
     }
 

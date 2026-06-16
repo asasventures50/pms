@@ -14,6 +14,7 @@ use App\Services\Procurement\Rfqs\AvailableProcurementRequestItemsForRfqQuery;
 use App\Services\Procurement\Rfqs\RfqCodeGenerator;
 use App\Services\Procurement\Rfqs\RfqGeneralTermsService;
 use App\Services\Procurement\Rfqs\RfqPayloadResolver;
+use App\Services\Procurement\Rfqs\RfqHeaderNormalizer;
 use App\Services\Procurement\Rfqs\RfqPersistenceService;
 use App\Support\Procurement\RfqTerms;
 use Illuminate\Http\JsonResponse;
@@ -80,6 +81,7 @@ class RfqController extends Controller
         }
 
         RfqPayloadResolver::finalizeForStore($validated);
+        $validated = RfqHeaderNormalizer::normalize($validated);
         $validated['created_by'] = $request->user()->id;
         $validated['status'] ??= RfqStatus::Draft->value;
         $validated['issue_date'] ??= now()->toDateString();
@@ -98,6 +100,7 @@ class RfqController extends Controller
             'creator',
             'items.procurementRequestItem.documents',
             'vendorQuotations.vendor',
+            'selectedVendorQuotation',
         ]);
 
         return view('procurement.rfqs.show', [
@@ -167,6 +170,7 @@ class RfqController extends Controller
         }
 
         RfqPayloadResolver::finalizeForUpdate($validated);
+        $validated = RfqHeaderNormalizer::normalize($validated);
 
         $this->persistence->update($rfq, $validated, $items);
 

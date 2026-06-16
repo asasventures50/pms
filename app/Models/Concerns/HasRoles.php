@@ -6,6 +6,7 @@ use App\Models\Access\Permission;
 use App\Models\Access\Role;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
 use App\Models\Procurement\PurchaseOrders\PurchaseOrder;
+use App\Models\Procurement\Rfqs\Rfq;
 use App\Support\Access\PermissionCatalog;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Collection;
@@ -122,6 +123,70 @@ trait HasRoles
 
         return $this->hasPermission('purchase-orders.view')
             || $this->hasPermission('purchase-orders.view-own');
+    }
+
+    public function canViewAllQuotationComparisons(): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        $granted = $this->resolvePermissionNames();
+
+        return $granted->contains('rfqs.view')
+            || $granted->contains('quotation-comparison.view');
+    }
+
+    public function scopesQuotationComparisonsToOwn(): bool
+    {
+        if ($this->canViewAllQuotationComparisons()) {
+            return false;
+        }
+
+        return $this->resolvePermissionNames()->contains('quotation-comparison.view-own');
+    }
+
+    public function canViewQuotationComparison(Rfq $rfq): bool
+    {
+        if ($this->canViewAllQuotationComparisons()) {
+            return true;
+        }
+
+        if ($this->scopesQuotationComparisonsToOwn()) {
+            return $this->ownsLinkedProcurementRequestForRfq($rfq);
+        }
+
+        return $this->hasPermission('quotation-comparison.view-own')
+            && $this->ownsLinkedProcurementRequestForRfq($rfq);
+    }
+
+    public function canSelectQuotationForRfq(Rfq $rfq): bool
+    {
+        if (! $this->hasPermission('quotation-comparison.select')) {
+            return false;
+        }
+
+        if ($this->isSuperAdmin() || $this->hasPermission('rfqs.update')) {
+            return true;
+        }
+
+        return $this->ownsLinkedProcurementRequestForRfq($rfq);
+    }
+
+    public function ownsLinkedProcurementRequestForRfq(Rfq $rfq): bool
+    {
+        if (! $rfq->relationLoaded('items')) {
+            $rfq->load('items.procurementRequestItem.procurementRequest');
+        }
+
+        foreach ($rfq->items as $item) {
+            $procurementRequest = $item->procurementRequestItem?->procurementRequest;
+            if ($procurementRequest && (int) $procurementRequest->created_by === (int) $this->id) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function syncRoles(array $roleNames): void

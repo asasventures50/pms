@@ -21,6 +21,7 @@ use App\Http\Controllers\Procurement\Projects\ZoneQuickStoreController;
 use App\Http\Controllers\Procurement\PurchaseOrders\PurchaseOrderController;
 use App\Http\Controllers\Procurement\Rfqs\RfqController;
 use App\Http\Controllers\Procurement\Rfqs\RfqGeneralTermController;
+use App\Http\Controllers\Procurement\Rfqs\RfqQuotationComparisonController;
 use App\Http\Controllers\Procurement\VendorQuotations\VendorQuotationController;
 use App\Http\Controllers\Procurement\Vendors\VendorRegistrationController;
 use App\Http\Controllers\Procurement\Vendors\VendorWebController;
@@ -198,6 +199,16 @@ Route::middleware(['auth'])->group(function () {
         ->middlewareFor(['index', 'show'], 'permission:rfqs.view')
         ->middlewareFor(['create', 'store'], 'permission:rfqs.create')
         ->middlewareFor(['edit', 'update', 'destroy'], 'permission:rfqs.update');
+
+    Route::get('rfqs/{rfq}/comparison', [RfqQuotationComparisonController::class, 'show'])
+        ->name('rfqs.comparison.show');
+
+    Route::post('rfqs/{rfq}/comparison/select', [RfqQuotationComparisonController::class, 'select'])
+        ->name('rfqs.comparison.select');
+
+    Route::get('rfqs/{rfq}/quotations/{quotation}/print', [VendorQuotationController::class, 'print'])
+        ->middleware('permission:vendor-quotations.view|rfqs.view')
+        ->name('rfqs.quotations.print');
 
     Route::resource('rfqs.quotations', VendorQuotationController::class)
         ->parameters(['quotations' => 'quotation'])

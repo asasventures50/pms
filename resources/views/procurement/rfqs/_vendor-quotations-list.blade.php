@@ -23,11 +23,14 @@
                 @php
                     $total = (float) ($quotation->grand_total ?? 0);
                     $isLowest = $lowestTotal !== null && abs($total - $lowestTotal) < 0.001;
+                    $isSelected = (int) ($rfq->selected_vendor_quotation_id ?? 0) === (int) $quotation->id;
                 @endphp
-                <tr class="{{ $isLowest ? 'bg-emerald-50/60' : '' }}">
+                <tr class="{{ $isSelected ? 'bg-emerald-100/70' : ($isLowest ? 'bg-emerald-50/60' : '') }}">
                     <td class="px-3 py-2">
                         <span class="font-mono">{{ $quotation->quotation_number }}</span>
-                        @if ($isLowest)
+                        @if ($isSelected)
+                            <span class="ml-1.5 rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Selected</span>
+                        @elseif ($isLowest)
                             <span class="ml-1.5 rounded-full bg-emerald-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-900">Lowest</span>
                         @endif
                     </td>

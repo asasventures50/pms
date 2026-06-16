@@ -31,6 +31,7 @@ class Rfq extends Model
         'company_address',
         'company_website',
         'rfq_number',
+        'revision_number',
         'vendor_id',
         'vendor_company_name',
         'vendor_contact',
@@ -39,10 +40,15 @@ class Rfq extends Model
         'vendor_address',
         'issue_date',
         'submission_deadline',
+        'submission_deadline_at',
+        'submission_timezone',
         'quotation_validity',
         'payment_method',
         'grand_total',
         'status',
+        'selected_vendor_quotation_id',
+        'selected_by',
+        'selected_at',
         'terms',
         'terms_locale',
         'payment_terms',
@@ -58,8 +64,11 @@ class Rfq extends Model
             'status' => RfqStatus::class,
             'issue_date' => 'date',
             'submission_deadline' => 'date',
+            'submission_deadline_at' => 'datetime',
+            'revision_number' => 'integer',
             'vendor_rep_signed_at' => 'date',
             'grand_total' => 'decimal:2',
+            'selected_at' => 'datetime',
             'terms' => 'array',
             'payment_terms' => 'array',
         ];
@@ -83,5 +92,15 @@ class Rfq extends Model
     public function vendorQuotations(): HasMany
     {
         return $this->hasMany(VendorQuotation::class)->latest();
+    }
+
+    public function selectedVendorQuotation(): BelongsTo
+    {
+        return $this->belongsTo(VendorQuotation::class, 'selected_vendor_quotation_id');
+    }
+
+    public function selectedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'selected_by');
     }
 }

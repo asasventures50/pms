@@ -48,6 +48,24 @@
             'rfq' => $rfq,
             'canAddQuotation' => $canAddQuotation,
         ])
+        @php
+            $canViewComparison = auth()->user()->canViewQuotationComparison($rfq);
+        @endphp
+        @if ($canViewComparison && $rfq->vendorQuotations->count() > 0)
+            <div class="mt-4 flex flex-wrap items-center gap-3 border-t border-emerald-200 pt-4">
+                <a href="{{ route('rfqs.comparison.show', $rfq) }}"
+                   class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">
+                    Compare quotations
+                </a>
+                @if ($rfq->selectedVendorQuotation)
+                    <p class="text-sm text-slate-700">
+                        Selected:
+                        <span class="font-mono font-medium text-emerald-800">{{ $rfq->selectedVendorQuotation->quotation_number }}</span>
+                        ({{ $rfq->selectedVendorQuotation->vendor_company_name ?? '—' }})
+                    </p>
+                @endif
+            </div>
+        @endif
     </section>
 
     <article class="rfq-document mx-auto max-w-4xl border-2 border-slate-900 bg-white p-6 text-slate-900 shadow-sm sm:p-8 print:border print:shadow-none">
@@ -58,10 +76,23 @@
                 <span class="shrink-0 font-medium">RFQ No:</span>
                 <span class="font-mono">{{ $rfq->rfq_number }}</span>
             </div>
+            @if (($rfq->revision_number ?? 0) > 0)
+                <div class="flex flex-col gap-1 border-b border-slate-900 pb-1 sm:flex-row sm:gap-3">
+                    <span class="shrink-0 font-medium">Revision:</span>
+                    <span>{{ $rfq->revision_number }}</span>
+                </div>
+            @endif
             <div class="grid gap-4 sm:grid-cols-2">
                 <div class="flex flex-col gap-1 border-b border-slate-900 pb-1 sm:flex-row sm:gap-3">
                     <span class="shrink-0 font-medium">Submission Deadline:</span>
-                    <span>{{ $rfq->submission_deadline?->format('Y-m-d') ?? '—' }}</span>
+                    <span>
+                        @if ($rfq->submission_deadline_at)
+                            {{ $rfq->submission_deadline_at->timezone($rfq->submission_timezone ?? config('app.timezone'))->format('Y-m-d H:i') }}
+                            ({{ $rfq->submission_timezone ?? config('app.timezone') }})
+                        @else
+                            {{ $rfq->submission_deadline?->format('Y-m-d') ?? '—' }}
+                        @endif
+                    </span>
                 </div>
                 <div class="flex flex-col gap-1 border-b border-slate-900 pb-1 sm:flex-row sm:gap-3">
                     <span class="shrink-0 font-medium">Issue Date:</span>

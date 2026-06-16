@@ -9,7 +9,7 @@
     $termsLocale = old('terms_locale', $rfq?->terms_locale ?? RfqTermsLocale::default()->value);
 @endphp
 
-<section class="mt-8" @if ($editable) id="rfq-terms-section" @endif>
+<section @class(['mt-8' => ! ($editable ?? false)]) @if ($editable) id="rfq-terms-section" @endif>
     <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
             <h3 class="text-sm font-bold uppercase tracking-wide text-slate-900">Terms &amp; conditions</h3>
@@ -62,7 +62,7 @@
             'addButtonId' => 'rfq-add-custom-term',
             'rowClass' => 'rfq-custom-term-row',
             'removeClass' => 'rfq-remove-custom-term',
-            'inputClass' => 'rfq-doc-field',
+            'inputClass' => 'admin-filter-control',
             'scopeLabel' => 'this RFQ only',
             'headingTag' => 'h4',
         ])

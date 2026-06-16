@@ -4,7 +4,7 @@
     $termsLocale = old('terms_locale', $rfq?->terms_locale ?? 'en');
 @endphp
 
-<section class="mt-8" @if ($editable) id="rfq-payment-terms-section" @endif>
+<section @class(['mt-8' => ! ($editable ?? false)]) @if ($editable) id="rfq-payment-terms-section" @endif>
     <div>
         <h3 class="text-sm font-bold uppercase tracking-wide text-slate-900">Payment terms</h3>
         @if ($editable)
@@ -20,7 +20,7 @@
                 <li class="rfq-payment-term-row flex gap-2">
                     <span class="shrink-0 pt-2 text-sm text-slate-800">-</span>
                     <input type="text" name="payment_terms[{{ $index }}]" value="{{ $term }}"
-                           class="rfq-doc-field rfq-payment-term-input min-w-0 flex-1 text-sm @error('payment_terms.'.$index) border-red-500 @enderror"
+                           class="admin-filter-control rfq-payment-term-input min-w-0 flex-1 text-sm @error('payment_terms.'.$index) border-red-500 @enderror"
                            @if($termsLocale === 'ar') dir="rtl" @endif>
                     <button type="button" class="rfq-remove-payment-term shrink-0 rounded-lg px-2 py-1 text-sm font-medium text-red-700 hover:bg-red-50 print:hidden">Remove</button>
                 </li>
@@ -34,7 +34,7 @@
             <li class="rfq-payment-term-row flex gap-2">
                 <span class="shrink-0 pt-2 text-sm text-slate-800">-</span>
                 <input type="text" data-name="payment_terms[]" value=""
-                       class="rfq-doc-field rfq-payment-term-input min-w-0 flex-1 text-sm">
+                       class="admin-filter-control rfq-payment-term-input min-w-0 flex-1 text-sm">
                 <button type="button" class="rfq-remove-payment-term shrink-0 rounded-lg px-2 py-1 text-sm font-medium text-red-700 hover:bg-red-50">Remove</button>
             </li>
         </template>

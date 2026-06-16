@@ -58,7 +58,7 @@
                             @if (auth()->user()->hasPermission('roles.update'))
                                 <a href="{{ route('roles.edit', $role) }}" class="font-medium text-slate-700 hover:text-slate-900">Edit</a>
                             @endif
-                            @if (auth()->user()->hasPermission('roles.delete') && ! in_array($role->name, ['super-admin', 'procurement-officer'], true))
+                            @if (auth()->user()->hasPermission('roles.delete') && ! in_array($role->name, ['super-admin', 'procurement-officer', 'pr-requester'], true))
                                 <span class="mx-1 text-slate-300">|</span>
                                 <form action="{{ route('roles.destroy', $role) }}" method="post" class="inline" onsubmit="return confirm('Delete this role?');">
                                     @csrf

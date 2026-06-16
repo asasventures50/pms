@@ -25,9 +25,13 @@ class StoreRfqRequest extends FormRequest
     {
         return [
             'rfq_number' => ['nullable', 'string', 'max:100', Rule::unique('rfqs', 'rfq_number')],
+            'revision_number' => ['nullable', 'integer', 'min:0', 'max:999'],
             'issue_date' => ['nullable', 'date'],
             'submission_deadline' => ['nullable', 'date', 'after_or_equal:issue_date'],
+            'submission_deadline_time' => ['nullable', 'date_format:H:i'],
+            'submission_timezone' => ['nullable', 'string', 'max:64', 'timezone'],
             'quotation_validity' => ['nullable', 'string', 'max:100'],
+            'quotation_validity_preset' => ['nullable', 'string', 'in:30,60,90,custom'],
             'vendor_id' => ['nullable', 'integer', Rule::exists('vendors', 'id')->whereNull('deleted_at')],
             'vendor_company_name' => ['nullable', 'string', 'max:255'],
             'vendor_contact' => ['nullable', 'string', 'max:255'],

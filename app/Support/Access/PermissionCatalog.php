@@ -11,6 +11,8 @@ final class PermissionCatalog
 
     public const PROCUREMENT_OFFICER_ROLE = 'procurement-officer';
 
+    public const PR_REQUESTER_ROLE = 'pr-requester';
+
     /**
      * @return array<string, array{label: string, group: string}>
      */
@@ -39,6 +41,10 @@ final class PermissionCatalog
             'vendor-quotations.view' => ['label' => 'View vendor quotations', 'group' => 'RFQs'],
             'vendor-quotations.create' => ['label' => 'Create vendor quotations', 'group' => 'RFQs'],
             'vendor-quotations.update' => ['label' => 'Update vendor quotations', 'group' => 'RFQs'],
+
+            'quotation-comparison.view' => ['label' => 'View all quotation comparisons', 'group' => 'RFQs'],
+            'quotation-comparison.view-own' => ['label' => 'View quotation comparisons for own PRs', 'group' => 'RFQs'],
+            'quotation-comparison.select' => ['label' => 'Select preferred vendor quotation', 'group' => 'RFQs'],
 
             'rfq-terms.view' => ['label' => 'View RFQ general terms', 'group' => 'RFQs'],
             'rfq-terms.manage' => ['label' => 'Manage RFQ general terms', 'group' => 'RFQs'],
@@ -89,6 +95,22 @@ final class PermissionCatalog
             static fn (string $name) => ! str_starts_with($name, 'users.')
                 && ! str_starts_with($name, 'roles.')
         ));
+    }
+
+    /**
+     * Permissions for employees who create PRs and choose vendor quotations.
+     *
+     * @return list<string>
+     */
+    public static function prRequesterPermissions(): array
+    {
+        return [
+            'procurement-requests.view-own',
+            'procurement-requests.create',
+            'quotation-comparison.view-own',
+            'quotation-comparison.select',
+            'vendor-quotations.view',
+        ];
     }
 
     /**

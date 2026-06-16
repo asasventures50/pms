@@ -95,6 +95,8 @@
 
         @include('procurement.procurement-requests._show-sections', ['procurementRequest' => $procurementRequest, 'formData' => $formData])
 
+        @include('procurement.procurement-requests._related-rfqs', ['relatedRfqs' => $relatedRfqs ?? collect()])
+
         <p class="text-xs text-slate-500 print:hidden">Status: {{ ucfirst($procurementRequest->status->value) }}</p>
     </article>
 @endsection

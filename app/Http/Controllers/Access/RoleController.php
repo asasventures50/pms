@@ -129,6 +129,7 @@ class RoleController extends Controller
         return in_array($role->name, [
             PermissionCatalog::SUPER_ADMIN_ROLE,
             PermissionCatalog::PROCUREMENT_OFFICER_ROLE,
+            PermissionCatalog::PR_REQUESTER_ROLE,
         ], true);
     }
 }

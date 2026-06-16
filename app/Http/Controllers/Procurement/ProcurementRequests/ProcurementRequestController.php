@@ -20,6 +20,7 @@ use App\Services\Procurement\ProcurementRequests\ProcurementRequestPersistenceSe
 use App\Services\Procurement\ProcurementRequests\ProcurementRequestPrintLabels;
 use App\Services\Procurement\ProcurementRequests\ProcurementRequestRequestorResolver;
 use App\Services\Procurement\ProcurementRequests\ProcurementRequestSupportingDocumentStorage;
+use App\Services\Procurement\Rfqs\RelatedRfqsForProcurementRequestQuery;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -131,6 +132,7 @@ class ProcurementRequestController extends Controller
         return view('procurement.procurement-requests.show', [
             'procurementRequest' => $procurementRequest,
             'formData' => $this->formData->resolve($procurementRequest),
+            'relatedRfqs' => app(RelatedRfqsForProcurementRequestQuery::class)->forProcurementRequest($procurementRequest),
         ]);
     }
 

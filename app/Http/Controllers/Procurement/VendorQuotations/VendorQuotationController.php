@@ -13,6 +13,9 @@ use App\Models\Procurement\VendorQuotations\VendorQuotation;
 use App\Services\Procurement\Vendors\VendorSelectOptions;
 use App\Services\Procurement\VendorQuotations\VendorQuotationCodeGenerator;
 use App\Services\Procurement\VendorQuotations\VendorQuotationPersistenceService;
+use App\Services\Procurement\VendorQuotations\VendorQuotationRfqContext;
+use App\Services\Procurement\VendorQuotations\VendorQuotationSignatureStorage;
+use App\Support\Procurement\VendorQuotations\VendorQuotationDeclarations;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -20,6 +23,7 @@ class VendorQuotationController extends Controller
 {
     public function __construct(
         private readonly VendorQuotationPersistenceService $persistence,
+        private readonly VendorQuotationSignatureStorage $signatureStorage,
     ) {}
 
     public function create(Rfq $rfq): View
@@ -42,6 +46,9 @@ class VendorQuotationController extends Controller
             'lineItems' => $this->defaultLineItemsFromRfq($rfq),
             'complianceOptions' => QuotationCompliance::cases(),
             'documentTypes' => VendorQuotationDocumentType::cases(),
+            'rfqContext' => VendorQuotationRfqContext::resolve($rfq),
+            'buyerCompany' => BuyerCompany::forDisplay($rfq),
+            'declarations' => VendorQuotationDeclarations::all(),
         ]);
     }
 
@@ -57,7 +64,7 @@ class VendorQuotationController extends Controller
             return back()->withInput()->withErrors(['items' => 'Add pricing for at least one RFQ line item.']);
         }
 
-        unset($validated['items'], $validated['remove_documents']);
+        unset($validated['items'], $validated['remove_documents'], $validated['vendor_rep_signature_file'], $validated['remove_signature']);
 
         $validated['quotation_number'] ??= app(VendorQuotationCodeGenerator::class)->nextForRfq($rfq);
         $validated['created_by'] = $request->user()->id;
@@ -70,6 +77,8 @@ class VendorQuotationController extends Controller
             $request->input('remove_documents', []),
         );
 
+        $this->syncSignatureFromRequest($request, $quotation);
+
         return redirect()
             ->route('rfqs.quotations.show', [$rfq, $quotation])
             ->with('success', 'Vendor quotation saved. You can add another offer to compare prices.');
@@ -79,20 +88,14 @@ class VendorQuotationController extends Controller
     {
         $this->ensureQuotationBelongsToRfq($rfq, $quotation);
 
-        $quotation->load([
-            'vendor',
-            'creator',
-            'items.rfqItem.procurementRequestItem.procurementRequest',
-        ]);
+        return view('procurement.vendor-quotations.show', $this->quotationDocumentViewData($rfq, $quotation));
+    }
 
-        $rfq->load('vendorQuotations.vendor');
+    public function print(Rfq $rfq, VendorQuotation $quotation): View
+    {
+        $this->ensureQuotationBelongsToRfq($rfq, $quotation);
 
-        return view('procurement.vendor-quotations.show', [
-            'rfq' => $rfq,
-            'quotation' => $quotation,
-            'buyerCompany' => BuyerCompany::forDisplay($rfq),
-            'documentTypes' => VendorQuotationDocumentType::cases(),
-        ]);
+        return view('procurement.vendor-quotations.print', $this->quotationDocumentViewData($rfq, $quotation));
     }
 
     public function edit(Rfq $rfq, VendorQuotation $quotation): View
@@ -110,6 +113,9 @@ class VendorQuotationController extends Controller
             'lineItems' => $this->lineItemsForForm($rfq, $quotation),
             'complianceOptions' => QuotationCompliance::cases(),
             'documentTypes' => VendorQuotationDocumentType::cases(),
+            'rfqContext' => VendorQuotationRfqContext::resolve($rfq),
+            'buyerCompany' => BuyerCompany::forDisplay($rfq),
+            'declarations' => VendorQuotationDeclarations::all(),
         ]);
     }
 
@@ -127,7 +133,7 @@ class VendorQuotationController extends Controller
             return back()->withInput()->withErrors(['items' => 'Add pricing for at least one RFQ line item.']);
         }
 
-        unset($validated['items'], $validated['remove_documents']);
+        unset($validated['items'], $validated['remove_documents'], $validated['vendor_rep_signature_file'], $validated['remove_signature']);
 
         $this->persistence->update(
             $quotation,
@@ -136,6 +142,8 @@ class VendorQuotationController extends Controller
             $this->documentUploadsFromRequest($request),
             $request->input('remove_documents', []),
         );
+
+        $this->syncSignatureFromRequest($request, $quotation->fresh());
 
         return redirect()
             ->route('rfqs.quotations.show', [$rfq, $quotation])
@@ -170,16 +178,26 @@ class VendorQuotationController extends Controller
             'quantity' => $row->quantity,
             'unit' => $row->unit,
             'delivery_location' => $row->procurementRequestItem?->delivery_location,
+            'request_lead_time' => $row->request_lead_time,
+            'quantity_quoted' => $row->quantity,
             'compliance' => '',
             'alternative_if_no' => '',
             'item_description_if_no' => '',
+            'brand' => '',
+            'model' => '',
+            'country_of_origin' => '',
             'brand_origin' => '',
             'unit_price' => '',
             'currency' => '',
             'total_price' => '',
+            'discount' => '',
+            'tax_rate' => '',
             'tax' => '',
+            'delivery_charges' => '',
+            'installation' => '',
             'lead_time' => '',
             'warranty' => '',
+            'remarks' => '',
         ])->all();
     }
 
@@ -200,16 +218,26 @@ class VendorQuotationController extends Controller
                 'quantity' => $rfqItem->quantity,
                 'unit' => $rfqItem->unit,
                 'delivery_location' => $rfqItem->procurementRequestItem?->delivery_location,
+                'request_lead_time' => $rfqItem->request_lead_time,
+                'quantity_quoted' => $quoted?->quantity_quoted ?? $rfqItem->quantity,
                 'compliance' => $quoted?->compliance?->value ?? '',
                 'alternative_if_no' => $quoted?->alternative_if_no ?? '',
                 'item_description_if_no' => $quoted?->item_description_if_no ?? '',
+                'brand' => $quoted?->brand ?? '',
+                'model' => $quoted?->model ?? '',
+                'country_of_origin' => $quoted?->country_of_origin ?? '',
                 'brand_origin' => $quoted?->brand_origin ?? '',
                 'unit_price' => $quoted?->unit_price ?? '',
                 'currency' => $quoted?->currency ?? '',
                 'total_price' => $quoted?->total_price ?? '',
+                'discount' => $quoted?->discount ?? '',
+                'tax_rate' => $quoted?->tax_rate ?? '',
                 'tax' => $quoted?->tax ?? '',
+                'delivery_charges' => $quoted?->delivery_charges ?? '',
+                'installation' => $quoted?->installation ?? '',
                 'lead_time' => $quoted?->lead_time ?? '',
                 'warranty' => $quoted?->warranty ?? '',
+                'remarks' => $quoted?->remarks ?? '',
             ];
         })->all();
     }
@@ -219,10 +247,50 @@ class VendorQuotationController extends Controller
      */
     private function documentUploadsFromRequest(StoreVendorQuotationRequest $request): array
     {
+        $uploads = [];
+
+        foreach (VendorQuotationDocumentType::cases() as $type) {
+            $uploads[$type->value] = $request->file($type->inputName());
+        }
+
+        return $uploads;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function quotationDocumentViewData(Rfq $rfq, VendorQuotation $quotation): array
+    {
+        $quotation->load([
+            'vendor',
+            'creator',
+            'items.rfqItem.procurementRequestItem.procurementRequest',
+        ]);
+
+        $rfq->load('vendorQuotations.vendor');
+
         return [
-            VendorQuotationDocumentType::CommercialRegistration->value => $request->file('document_commercial_registration'),
-            VendorQuotationDocumentType::CompanyProfile->value => $request->file('document_company_profile'),
-            VendorQuotationDocumentType::TechnicalDatasheet->value => $request->file('document_technical_datasheet'),
+            'rfq' => $rfq,
+            'quotation' => $quotation,
+            'buyerCompany' => BuyerCompany::forDisplay($rfq),
+            'documentTypes' => VendorQuotationDocumentType::cases(),
+            'rfqContext' => VendorQuotationRfqContext::resolve($rfq),
+            'declarations' => VendorQuotationDeclarations::all(),
         ];
+    }
+
+    private function syncSignatureFromRequest(StoreVendorQuotationRequest $request, VendorQuotation $quotation): void
+    {
+        if ($request->boolean('remove_signature') && $quotation->vendor_rep_signature_path) {
+            $this->signatureStorage->delete($quotation->vendor_rep_signature_path);
+            $quotation->vendor_rep_signature_path = null;
+            $quotation->save();
+        }
+
+        if ($request->hasFile('vendor_rep_signature_file')) {
+            $path = $this->signatureStorage->store($quotation, $request->file('vendor_rep_signature_file'));
+            $quotation->vendor_rep_signature_path = $path;
+            $quotation->save();
+        }
     }
 }

@@ -465,5 +465,19 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error(e);
         }
     });
+
+    const validityPreset = document.getElementById('quotation_validity_preset');
+    const validityCustomWrap = document.getElementById('quotation_validity_custom_wrap');
+
+    function syncValidityCustomVisibility() {
+        if (! validityPreset || ! validityCustomWrap) {
+            return;
+        }
+
+        validityCustomWrap.classList.toggle('hidden', validityPreset.value !== 'custom');
+    }
+
+    validityPreset?.addEventListener('change', syncValidityCustomVisibility);
+    syncValidityCustomVisibility();
 });
 </script>

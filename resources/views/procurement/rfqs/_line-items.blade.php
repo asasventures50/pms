@@ -17,10 +17,10 @@
     }
 @endphp
 
-<section class="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-6">
+<section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
     <div>
-        <h3 class="text-sm font-semibold text-slate-900">Request details</h3>
-        <p class="mt-1 text-xs text-slate-500">Select a PR item per line. All item details and the required delivery date come from the procurement request.</p>
+        <h3 class="text-sm font-semibold text-slate-900">Request lines</h3>
+        <p class="mt-1 text-xs text-slate-500">Select a PR item per line. Item details and delivery date come from the procurement request.</p>
     </div>
 
     @error('items')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
