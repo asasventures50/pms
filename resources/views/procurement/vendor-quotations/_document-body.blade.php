@@ -14,7 +14,9 @@
         : null;
 @endphp
 
-@include('procurement.vendor-quotations._document-header')
+@include('procurement.vendor-quotations._document-header', [
+    'rfqContext' => $rfqContext,
+])
 
 <section class="mt-4 text-sm">
     <h3 class="text-sm font-bold uppercase tracking-wide text-slate-900">RFQ information</h3>

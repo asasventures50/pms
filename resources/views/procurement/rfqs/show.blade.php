@@ -69,7 +69,7 @@
     </section>
 
     <article class="rfq-document mx-auto max-w-4xl border-2 border-slate-900 bg-white p-6 text-slate-900 shadow-sm sm:p-8 print:border print:shadow-none">
-        @include('procurement.rfqs._document-header')
+        @include('procurement.rfqs._document-header', ['rfq' => $rfq])
 
         <div class="mt-6 space-y-4 text-sm">
             <div class="flex flex-col gap-1 border-b border-slate-900 pb-1 sm:flex-row sm:gap-3">

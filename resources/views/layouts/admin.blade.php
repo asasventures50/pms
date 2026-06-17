@@ -9,7 +9,7 @@
 </head>
 <body class="min-h-full text-slate-900 antialiased">
     <div class="min-h-full">
-        <header class="border-b border-slate-200 bg-white">
+        <header class="border-b border-slate-200 bg-white print:hidden">
             <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
                 <nav class="flex flex-wrap items-center gap-4 text-sm" aria-label="Main">
                     @if (request()->routeIs('dashboard'))
@@ -105,21 +105,21 @@
             </div>
         </header>
 
-        <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 print:max-w-none print:px-0 print:py-0">
             @if (session('success'))
-                <div class="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900" role="status">
+                <div class="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 print:hidden" role="status">
                     {{ session('success') }}
                 </div>
             @endif
 
             @if (session('error'))
-                <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900" role="alert">
+                <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900 print:hidden" role="alert">
                     {{ session('error') }}
                 </div>
             @endif
 
             @if ($errors->any())
-                <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900" role="alert">
+                <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900 print:hidden" role="alert">
                     <p class="font-medium">Please fix the following:</p>
                     <ul class="mt-2 list-inside list-disc space-y-1">
                         @foreach ($errors->all() as $message)
@@ -135,7 +135,7 @@
 
     {{-- Logout dialog: uses display:none when closed (no overlay blocking the page). --}}
     <div id="admin-logout-dialog"
-         class="fixed inset-0 z-50 hidden"
+         class="fixed inset-0 z-50 hidden print:hidden"
          role="dialog"
          aria-modal="true"
          aria-labelledby="admin-logout-dialog-title"

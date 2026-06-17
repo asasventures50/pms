@@ -98,6 +98,7 @@ class RfqController extends Controller
         $rfq->load([
             'vendor',
             'creator',
+            'items.procurementRequestItem.procurementRequest',
             'items.procurementRequestItem.documents',
             'vendorQuotations.vendor',
             'selectedVendorQuotation',

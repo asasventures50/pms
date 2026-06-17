@@ -3,70 +3,28 @@
 @section('title', $quotation->quotation_number)
 
 @push('styles')
-    @vite(['resources/css/app.css'])
-    <style>
-        body.po-print-body {
-            margin: 0;
-            background: #f8fafc;
-            color: #0f172a;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        .vq-print-page {
-            max-width: 72rem;
-            margin: 0 auto;
-            padding: 16px;
-            box-sizing: border-box;
-        }
-
-        @media print {
-            @page {
-                margin: 12mm;
-            }
-
-            html,
-            body.po-print-body {
-                height: auto;
-                margin: 0;
-                padding: 0;
-                background: #fff;
-            }
-
-            .vq-print-page {
-                max-width: none;
-                padding: 0;
-            }
-
-            .print-toolbar {
-                display: none !important;
-            }
-
-            .vq-document {
-                box-shadow: none !important;
-            }
-        }
-    </style>
+    @include('procurement.vendor-quotations.print._styles')
 @endpush
 
 @section('content')
     <div class="print-toolbar vq-print-page">
-        <p class="mb-3 text-sm text-slate-600">
-            <strong class="font-mono">{{ $quotation->quotation_number }}</strong> — Vendor quotation print preview
+        <p style="margin:0 0 12px;font-size:13px;color:#475569;">
+            <strong style="font-family:monospace;">{{ $quotation->quotation_number }}</strong> — Vendor quotation print preview
         </p>
-        <div class="mb-4 flex flex-wrap items-center gap-2">
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:16px;">
             <button type="button" onclick="window.print()"
-                    class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">
+                    style="padding:8px 16px;background:#0f172a;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;">
                 Print
             </button>
             <a href="{{ route('rfqs.quotations.show', [$rfq, $quotation]) }}"
-               class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">
+               style="padding:8px 16px;border:1px solid #cbd5e1;background:#fff;color:#1e293b;border-radius:6px;font-size:13px;text-decoration:none;">
                 Back to quotation
             </a>
         </div>
     </div>
 
     <div class="vq-print-page">
-        <article class="vq-document mx-auto max-w-6xl border-2 border-slate-900 bg-white p-4 text-slate-900 shadow-sm sm:p-6 print:border print:shadow-none">
+        <article class="vq-document">
             @include('procurement.vendor-quotations._document-body', [
                 'rfq' => $rfq,
                 'quotation' => $quotation,
@@ -78,3 +36,13 @@
         </article>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        window.addEventListener('load', function () {
+            if (!window.matchMedia('print').matches) {
+                window.print();
+            }
+        });
+    </script>
+@endpush
