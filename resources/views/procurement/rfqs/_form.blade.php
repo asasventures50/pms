@@ -81,8 +81,8 @@
                 <label for="quotation_validity_preset" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Quotation validity</label>
                 <select name="quotation_validity_preset" id="quotation_validity_preset"
                         class="admin-filter-control mt-1 @error('quotation_validity_preset') border-red-500 @enderror">
-                    @foreach (VendorQuotationValidityOptions::dayOptions() as $days => $label)
-                        <option value="{{ $days }}" @selected($validityPreset === (string) $days)>{{ $label }}</option>
+                    @foreach (VendorQuotationValidityOptions::dayOptions() as $days => $validityLabel)
+                        <option value="{{ $days }}" @selected($validityPreset === (string) $days)>{{ $validityLabel }}</option>
                     @endforeach
                     <option value="custom" @selected($validityPreset === 'custom')>Custom</option>
                 </select>
