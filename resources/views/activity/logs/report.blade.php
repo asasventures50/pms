@@ -266,7 +266,6 @@
 
             .activity-report__section {
                 margin-bottom: 28px;
-                page-break-inside: avoid;
             }
 
             .activity-report__section-title {
@@ -380,7 +379,7 @@
                     padding: 0;
                 }
 
-                .activity-report__section {
+                .activity-report__stats div {
                     break-inside: avoid;
                 }
             }
