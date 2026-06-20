@@ -94,6 +94,36 @@
                     </ul>
                 @endif
 
+                @if ($userReport['statistics'])
+                    <h3 class="activity-report__subsection-title">Timing statistics</h3>
+                    <dl class="activity-report__stats">
+                        <div>
+                            <dt>Events</dt>
+                            <dd>{{ $userReport['statistics']['event_count'] }}</dd>
+                        </div>
+                        @if ($userReport['statistics']['total_span'])
+                            <div>
+                                <dt>Total period</dt>
+                                <dd>{{ $userReport['statistics']['total_span'] }}</dd>
+                            </div>
+                        @endif
+                        @if ($userReport['statistics']['average_gap'])
+                            <div>
+                                <dt>Average gap between events</dt>
+                                <dd>{{ $userReport['statistics']['average_gap'] }}</dd>
+                            </div>
+                            <div>
+                                <dt>Longest gap</dt>
+                                <dd>{{ $userReport['statistics']['longest_gap'] }}</dd>
+                            </div>
+                            <div>
+                                <dt>Shortest gap</dt>
+                                <dd>{{ $userReport['statistics']['shortest_gap'] }}</dd>
+                            </div>
+                        @endif
+                    </dl>
+                @endif
+
                 @if ($userReport['timeline'] !== [])
                     <h3 class="activity-report__subsection-title">Timeline</h3>
                     <ol class="activity-report__timeline">
@@ -101,6 +131,9 @@
                             <li>
                                 <span class="activity-report__timeline-when">{{ $entry['when'] }}</span>
                                 <span class="activity-report__timeline-label">{{ $entry['label'] }}</span>
+                                @if ($entry['gap_from_previous'])
+                                    <span class="activity-report__timeline-gap">+ {{ $entry['gap_from_previous'] }} after previous</span>
+                                @endif
                             </li>
                         @endforeach
                     </ol>
@@ -268,13 +301,52 @@
                 margin-bottom: 4px;
             }
 
+            .activity-report__stats {
+                display: grid;
+                gap: 10px 24px;
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                margin: 0;
+            }
+
+            .activity-report__stats div {
+                padding: 10px 12px;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                background: #f8fafc;
+            }
+
+            .activity-report__stats dt {
+                margin: 0;
+                font-size: 0.72rem;
+                font-weight: 700;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+                color: #64748b;
+            }
+
+            .activity-report__stats dd {
+                margin: 4px 0 0;
+                font-size: 0.95rem;
+                font-weight: 600;
+                color: #0f172a;
+            }
+
             .activity-report__timeline {
                 margin: 0;
                 padding-left: 1.25rem;
             }
 
             .activity-report__timeline li {
-                margin-bottom: 6px;
+                margin-bottom: 8px;
+            }
+
+            .activity-report__timeline-gap {
+                display: block;
+                margin-top: 2px;
+                padding-left: 8.75rem;
+                font-size: 0.78rem;
+                font-style: italic;
+                color: #64748b;
             }
 
             .activity-report__timeline-when {

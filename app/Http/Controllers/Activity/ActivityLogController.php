@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Activity\ActivityLog;
 use App\Models\User;
 use App\Services\Activity\ActivityLogFilter;
+use App\Services\Activity\ActivityLogInsights;
 use App\Services\Activity\ActivityLogReportBuilder;
 use App\Support\TableSort;
 use Illuminate\Http\Request;
@@ -16,6 +17,7 @@ class ActivityLogController extends Controller
     public function __construct(
         protected ActivityLogFilter $filter,
         protected ActivityLogReportBuilder $reportBuilder,
+        protected ActivityLogInsights $insights,
     ) {}
 
     public function index(Request $request): View
@@ -24,10 +26,19 @@ class ActivityLogController extends Controller
         $sort = TableSort::resolve($request, ['created_at', 'action'], 'created_at', 'desc');
 
         $query = $this->filter->apply($request);
+        $filteredQuery = clone $query;
         $query->orderBy($sort['column'], $sort['direction'])->orderByDesc('id');
 
+        $logs = $query->paginate($perPage)->appends($request->query());
+        $filters = $this->normalizedFilters($request);
+
         return view('activity.logs.index', [
-            'logs' => $query->paginate($perPage)->appends($request->query()),
+            'logs' => $logs,
+            'insights' => $this->insights->forQuery($filteredQuery),
+            'pageGaps' => $this->insights->gapsForPage($logs),
+            'insightsService' => $this->insights,
+            'filterSummary' => $this->filter->summary($filters),
+            'filters' => $filters,
             'users' => User::query()->orderBy('name')->get(['id', 'name', 'email']),
             'actions' => ActivityLog::query()
                 ->select('action')
@@ -37,6 +48,30 @@ class ActivityLogController extends Controller
             'sortColumn' => $sort['column'],
             'sortDirection' => $sort['direction'],
         ]);
+    }
+
+    /**
+     * @return array{
+     *     user: string,
+     *     action: string,
+     *     q: string,
+     *     date_from: string,
+     *     date_to: string,
+     *     time_from: string,
+     *     time_to: string
+     * }
+     */
+    private function normalizedFilters(Request $request): array
+    {
+        return [
+            'user' => (string) $request->query('user', ''),
+            'action' => trim((string) $request->query('action', '')),
+            'q' => trim((string) $request->query('q', '')),
+            'date_from' => (string) $request->query('date_from', ''),
+            'date_to' => (string) $request->query('date_to', ''),
+            'time_from' => (string) $request->query('time_from', ''),
+            'time_to' => (string) $request->query('time_to', ''),
+        ];
     }
 
     public function report(Request $request): View
