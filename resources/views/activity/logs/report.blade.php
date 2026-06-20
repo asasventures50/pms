@@ -36,8 +36,16 @@
                         <input type="date" id="date_from" name="date_from" value="{{ $filters['date_from'] ?? '' }}" class="activity-report__control">
                     </div>
                     <div>
+                        <label for="time_from" class="activity-report__label">From time</label>
+                        <input type="time" id="time_from" name="time_from" value="{{ $filters['time_from'] ?? '' }}" class="activity-report__control">
+                    </div>
+                    <div>
                         <label for="date_to" class="activity-report__label">To date</label>
                         <input type="date" id="date_to" name="date_to" value="{{ $filters['date_to'] ?? '' }}" class="activity-report__control">
+                    </div>
+                    <div>
+                        <label for="time_to" class="activity-report__label">To time</label>
+                        <input type="time" id="time_to" name="time_to" value="{{ $filters['time_to'] ?? '' }}" class="activity-report__control">
                     </div>
                     <div class="activity-report__filters-wide">
                         <label for="q" class="activity-report__label">Search</label>
@@ -55,11 +63,17 @@
         </div>
 
         <header class="activity-report__header print-only-header">
-            <h1 class="activity-report__doc-title">Activity report</h1>
-            <p class="activity-report__doc-meta">{{ $filterSummary }}</p>
-            <p class="activity-report__doc-meta">
-                Printed {{ now()->format('d-m-Y H:i') }} · {{ $totalEvents }} {{ str('event')->plural($totalEvents) }}
-            </p>
+            <div class="activity-report__brand">
+                <img src="{{ asset('images/po/logo.png') }}" alt="ASAS Ventures" class="activity-report__logo">
+                <div>
+                    <h1 class="activity-report__doc-title">Activity report</h1>
+                    <p class="activity-report__doc-meta">{{ $filterSummary }}</p>
+                    <p class="activity-report__doc-meta">
+                        Printed {{ now()->format('d-m-Y H:i') }} ({{ config('app.timezone') }})
+                        · {{ $totalEvents }} {{ str('event')->plural($totalEvents) }}
+                    </p>
+                </div>
+            </div>
         </header>
 
         @forelse ($userReports as $userReport)
@@ -203,6 +217,18 @@
                 margin-bottom: 24px;
                 padding-bottom: 16px;
                 border-bottom: 2px solid #0f172a;
+            }
+
+            .activity-report__brand {
+                display: flex;
+                align-items: center;
+                gap: 20px;
+            }
+
+            .activity-report__logo {
+                width: 120px;
+                height: auto;
+                flex-shrink: 0;
             }
 
             .activity-report__section {

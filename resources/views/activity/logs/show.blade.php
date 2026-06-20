@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="mb-6">
-        <a href="{{ route('activity-logs.index', request()->only(['user', 'action', 'q', 'date_from', 'date_to'])) }}"
+        <a href="{{ route('activity-logs.index', request()->only(['user', 'action', 'q', 'date_from', 'date_to', 'time_from', 'time_to'])) }}"
            class="text-sm font-medium text-slate-600 hover:text-slate-900">&larr; Back to activity log</a>
         <h1 class="mt-3 text-2xl font-semibold tracking-tight text-slate-900">Activity details</h1>
         <p class="mt-1 text-sm text-slate-600">{{ $log->description ?? $log->action }}</p>

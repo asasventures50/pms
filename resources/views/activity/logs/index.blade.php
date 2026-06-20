@@ -37,8 +37,16 @@
                 <input type="date" id="date_from" name="date_from" value="{{ request('date_from') }}" class="admin-filter-control">
             </div>
             <div>
+                <label for="time_from" class="block text-xs font-medium uppercase tracking-wide text-slate-500">From time</label>
+                <input type="time" id="time_from" name="time_from" value="{{ request('time_from') }}" class="admin-filter-control">
+            </div>
+            <div>
                 <label for="date_to" class="block text-xs font-medium uppercase tracking-wide text-slate-500">To date</label>
                 <input type="date" id="date_to" name="date_to" value="{{ request('date_to') }}" class="admin-filter-control">
+            </div>
+            <div>
+                <label for="time_to" class="block text-xs font-medium uppercase tracking-wide text-slate-500">To time</label>
+                <input type="time" id="time_to" name="time_to" value="{{ request('time_to') }}" class="admin-filter-control">
             </div>
             <div class="md:col-span-2 lg:col-span-4">
                 <label for="q" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Search</label>
@@ -49,7 +57,7 @@
         </div>
         <div class="flex flex-wrap items-center gap-3">
             <button type="submit" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">Apply</button>
-            <a href="{{ route('activity-logs.report', request()->only(['user', 'action', 'q', 'date_from', 'date_to'])) }}"
+            <a href="{{ route('activity-logs.report', request()->only(['user', 'action', 'q', 'date_from', 'date_to', 'time_from', 'time_to'])) }}"
                target="_blank" rel="noopener"
                class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">
                 Print report
