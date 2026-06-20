@@ -36,7 +36,7 @@ trait LogsActivity
 
     public function activityLogLabel(): string
     {
-        foreach (['po_number', 'rfq_number', 'quotation_number', 'vendor_code', 'name', 'title'] as $attribute) {
+        foreach (['po_number', 'rfq_number', 'quotation_number', 'vendor_code', 'request_number', 'name', 'title'] as $attribute) {
             if (! empty($this->{$attribute})) {
                 return (string) $this->{$attribute};
             }

@@ -11,9 +11,9 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Geo\CityController;
 use App\Http\Controllers\Geo\CountryController;
 use App\Http\Controllers\LandingController;
-use App\Http\Controllers\Procurement\Categories\CategoryController;
 use App\Http\Controllers\Procurement\Catalog\CategoryQuickStoreController;
 use App\Http\Controllers\Procurement\Catalog\SubcategoryQuickStoreController;
+use App\Http\Controllers\Procurement\Categories\CategoryController;
 use App\Http\Controllers\Procurement\ProcurementRequests\ProcurementRequestController;
 use App\Http\Controllers\Procurement\Projects\ProjectController;
 use App\Http\Controllers\Procurement\Projects\ProjectQuickStoreController;
@@ -63,6 +63,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('activity-logs', [ActivityLogController::class, 'index'])
         ->middleware('permission:activity-logs.view')
         ->name('activity-logs.index');
+
+    Route::get('activity-logs/report', [ActivityLogController::class, 'report'])
+        ->middleware('permission:activity-logs.view')
+        ->name('activity-logs.report');
 
     Route::get('activity-logs/{activityLog}', [ActivityLogController::class, 'show'])
         ->middleware('permission:activity-logs.view')

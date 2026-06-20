@@ -5,44 +5,25 @@ namespace App\Http\Controllers\Activity;
 use App\Http\Controllers\Controller;
 use App\Models\Activity\ActivityLog;
 use App\Models\User;
+use App\Services\Activity\ActivityLogFilter;
+use App\Services\Activity\ActivityLogReportBuilder;
 use App\Support\TableSort;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ActivityLogController extends Controller
 {
+    public function __construct(
+        protected ActivityLogFilter $filter,
+        protected ActivityLogReportBuilder $reportBuilder,
+    ) {}
+
     public function index(Request $request): View
     {
         $perPage = max(1, min(100, (int) $request->query('per_page', 25)));
         $sort = TableSort::resolve($request, ['created_at', 'action'], 'created_at', 'desc');
 
-        $query = ActivityLog::query()->with('user');
-
-        if ($request->filled('user')) {
-            $query->where('user_id', (int) $request->query('user'));
-        }
-
-        if ($request->filled('action')) {
-            $query->where('action', $request->string('action'));
-        }
-
-        if ($request->filled('q')) {
-            $term = '%'.$request->string('q').'%';
-            $query->where(function ($q) use ($term) {
-                $q->where('description', 'like', $term)
-                    ->orWhere('action', 'like', $term)
-                    ->orWhere('ip_address', 'like', $term);
-            });
-        }
-
-        if ($request->filled('date_from')) {
-            $query->whereDate('created_at', '>=', $request->string('date_from'));
-        }
-
-        if ($request->filled('date_to')) {
-            $query->whereDate('created_at', '<=', $request->string('date_to'));
-        }
-
+        $query = $this->filter->apply($request);
         $query->orderBy($sort['column'], $sort['direction'])->orderByDesc('id');
 
         return view('activity.logs.index', [
@@ -55,6 +36,28 @@ class ActivityLogController extends Controller
                 ->pluck('action'),
             'sortColumn' => $sort['column'],
             'sortDirection' => $sort['direction'],
+        ]);
+    }
+
+    public function report(Request $request): View
+    {
+        $filters = $this->filter->validatedFilters($request);
+        $logs = $this->filter->apply($request)
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->get();
+
+        return view('activity.logs.report', [
+            'filters' => $filters,
+            'filterSummary' => $this->filter->summary($filters),
+            'totalEvents' => $logs->count(),
+            'userReports' => $this->reportBuilder->build($logs),
+            'users' => User::query()->orderBy('name')->get(['id', 'name', 'email']),
+            'actions' => ActivityLog::query()
+                ->select('action')
+                ->distinct()
+                ->orderBy('action')
+                ->pluck('action'),
         ]);
     }
 

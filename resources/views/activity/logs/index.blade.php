@@ -5,7 +5,7 @@
 @section('content')
     <div class="mb-6">
         <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Activity Log</h1>
-        <p class="mt-1 text-sm text-slate-600">Track user sign-ins and changes to vendors, purchase orders, and RFQs.</p>
+        <p class="mt-1 text-sm text-slate-600">Track user sign-ins and changes to vendors, procurement requests, purchase orders, and RFQs.</p>
     </div>
 
     <form method="get" action="{{ route('activity-logs.index') }}" class="mb-6 space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -49,6 +49,11 @@
         </div>
         <div class="flex flex-wrap items-center gap-3">
             <button type="submit" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">Apply</button>
+            <a href="{{ route('activity-logs.report', request()->only(['user', 'action', 'q', 'date_from', 'date_to'])) }}"
+               target="_blank" rel="noopener"
+               class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">
+                Print report
+            </a>
             <a href="{{ route('activity-logs.index') }}" class="text-sm font-medium text-slate-600 hover:text-slate-900">Reset</a>
         </div>
     </form>

@@ -4,6 +4,7 @@ namespace App\Models\Procurement\ProcurementRequests;
 
 use App\Enums\Procurement\ProcurementRequests\CompliancePrequalificationLevel;
 use App\Enums\Procurement\ProcurementRequests\ProcurementRequestStatus;
+use App\Models\Concerns\LogsActivity;
 use App\Models\Procurement\Projects\Project;
 use App\Models\Procurement\Projects\Zone;
 use App\Models\Procurement\Vendors\Category;
@@ -17,7 +18,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProcurementRequest extends Model
 {
-    use SoftDeletes;
+    use LogsActivity, SoftDeletes;
+
+    protected static string $activityLogKey = 'pr';
 
     protected $table = 'procurement_requests';
 
