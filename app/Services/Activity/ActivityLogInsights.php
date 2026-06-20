@@ -18,7 +18,6 @@ class ActivityLogInsights
      * @return array{
      *     total_events: int,
      *     unique_users: int,
-     *     top_actions: list<array{action: string, count: int, label: string}>,
      *     first_at: Carbon|null,
      *     last_at: Carbon|null,
      *     total_span: string|null,
@@ -31,21 +30,6 @@ class ActivityLogInsights
 
         $totalEvents = (clone $base)->count();
         $uniqueUsers = (int) (clone $base)->whereNotNull('user_id')->distinct()->count('user_id');
-
-        $topActions = (clone $base)
-            ->select('action')
-            ->selectRaw('count(*) as total')
-            ->groupBy('action')
-            ->orderByDesc('total')
-            ->limit(5)
-            ->get()
-            ->map(fn ($row) => [
-                'action' => (string) $row->action,
-                'count' => (int) $row->total,
-                'label' => $this->reportBuilder->summarizeAction((string) $row->action, (int) $row->total),
-            ])
-            ->values()
-            ->all();
 
         $bounds = (clone $base)
             ->selectRaw('min(created_at) as first_at, max(created_at) as last_at')
@@ -70,7 +54,6 @@ class ActivityLogInsights
         return [
             'total_events' => $totalEvents,
             'unique_users' => $uniqueUsers,
-            'top_actions' => $topActions,
             'first_at' => $firstAt,
             'last_at' => $lastAt,
             'total_span' => $totalSpan,

@@ -12,51 +12,49 @@
         $groupedLogs = $insightsService->groupByDay(collect($logs->items()));
     @endphp
 
-    <div class="mb-8 overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 text-white shadow-lg sm:p-8">
-        <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div class="max-w-2xl">
-                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-300">Audit trail</p>
-                <h1 class="mt-2 text-3xl font-semibold tracking-tight">Activity Log</h1>
-                <p class="mt-2 text-sm leading-relaxed text-slate-300">
-                    Monitor sign-ins and changes across vendors, procurement requests, purchase orders, and RFQs.
+    <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div class="max-w-2xl">
+            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600">Audit trail</p>
+            <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-900">Activity Log</h1>
+            <p class="mt-2 text-sm leading-relaxed text-slate-700">
+                Monitor sign-ins and changes across vendors, procurement requests, purchase orders, and RFQs.
+            </p>
+            @if ($filtersActive)
+                <p class="mt-3 inline-flex rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-medium text-slate-800">
+                    {{ $filterSummary }}
                 </p>
-                @if ($filtersActive)
-                    <p class="mt-3 inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs text-slate-200">
-                        {{ $filterSummary }}
-                    </p>
-                @endif
-            </div>
-            <div class="flex flex-wrap gap-2">
-                <a href="{{ route('activity-logs.report', $reportQuery) }}"
-                   target="_blank" rel="noopener"
-                   class="inline-flex items-center justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-100">
-                    Print report
+            @endif
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <a href="{{ route('activity-logs.report', $reportQuery) }}"
+               target="_blank" rel="noopener"
+               class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800">
+                Print report
+            </a>
+            @if ($filtersActive)
+                <a href="{{ route('activity-logs.index') }}"
+                   class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-800 hover:bg-slate-50">
+                    Clear filters
                 </a>
-                @if ($filtersActive)
-                    <a href="{{ route('activity-logs.index') }}"
-                       class="inline-flex items-center justify-center rounded-xl border border-white/20 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10">
-                        Clear filters
-                    </a>
-                @endif
-            </div>
+            @endif
         </div>
     </div>
 
     <div class="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Matching events</p>
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-600">Matching events</p>
             <p class="mt-2 text-3xl font-semibold text-slate-900">{{ number_format($insights['total_events']) }}</p>
-            <p class="mt-1 text-sm text-slate-500">In current filter scope</p>
+            <p class="mt-1 text-sm text-slate-700">In current filter scope</p>
         </div>
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Active users</p>
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-600">Active users</p>
             <p class="mt-2 text-3xl font-semibold text-slate-900">{{ number_format($insights['unique_users']) }}</p>
-            <p class="mt-1 text-sm text-slate-500">Users with recorded activity</p>
+            <p class="mt-1 text-sm text-slate-700">Users with recorded activity</p>
         </div>
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Time span</p>
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-600">Time span</p>
             <p class="mt-2 text-2xl font-semibold text-slate-900">{{ $insights['total_span'] ?? '—' }}</p>
-            <p class="mt-1 text-sm text-slate-500">
+            <p class="mt-1 text-sm text-slate-700">
                 @if ($insights['first_at'] && $insights['last_at'])
                     {{ $insights['first_at']->format('d M H:i') }} → {{ $insights['last_at']->format('d M H:i') }}
                 @else
@@ -65,46 +63,23 @@
             </p>
         </div>
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Average gap</p>
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-600">Average gap</p>
             <p class="mt-2 text-2xl font-semibold text-slate-900">{{ $insights['average_gap'] ?? '—' }}</p>
-            <p class="mt-1 text-sm text-slate-500">Between consecutive events</p>
+            <p class="mt-1 text-sm text-slate-700">Between consecutive events</p>
         </div>
     </div>
-
-    @if ($insights['top_actions'] !== [])
-        <section class="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h2 class="text-sm font-semibold text-slate-900">Top actions</h2>
-                    <p class="text-sm text-slate-500">Most frequent activity types in this view</p>
-                </div>
-            </div>
-            <div class="mt-4 flex flex-wrap gap-2">
-                @foreach ($insights['top_actions'] as $topAction)
-                    <a href="{{ route('activity-logs.index', array_merge($reportQuery, ['action' => $topAction['action'], 'page' => null])) }}"
-                       class="group inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm hover:border-slate-300 hover:bg-white">
-                        @include('activity.logs._action-badge', [
-                            'action' => $topAction['action'],
-                            'tone' => $insightsService->actionTone($topAction['action']),
-                        ])
-                        <span class="font-medium text-slate-700 group-hover:text-slate-900">{{ $topAction['label'] }}</span>
-                    </a>
-                @endforeach
-            </div>
-        </section>
-    @endif
 
     <form method="get" action="{{ route('activity-logs.index') }}" class="mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="border-b border-slate-200 bg-slate-50 px-5 py-4">
             <h2 class="text-sm font-semibold text-slate-900">Filters</h2>
-            <p class="text-sm text-slate-500">Narrow the feed by user, action, date, or time</p>
+            <p class="text-sm text-slate-700">Narrow the feed by user, action, date, or time</p>
         </div>
         <div class="space-y-4 p-5">
             <input type="hidden" name="sort_by" value="{{ $sortColumn }}">
             <input type="hidden" name="sort_direction" value="{{ $sortDirection }}">
             <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <div>
-                    <label for="user" class="block text-xs font-medium uppercase tracking-wide text-slate-500">User</label>
+                    <label for="user" class="block text-xs font-medium uppercase tracking-wide text-slate-700">User</label>
                     <select id="user" name="user" class="admin-filter-control mt-1">
                         <option value="">All users</option>
                         @foreach ($users as $userOption)
@@ -115,7 +90,7 @@
                     </select>
                 </div>
                 <div>
-                    <label for="action" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Action</label>
+                    <label for="action" class="block text-xs font-medium uppercase tracking-wide text-slate-700">Action</label>
                     <select id="action" name="action" class="admin-filter-control mt-1">
                         <option value="">All actions</option>
                         @foreach ($actions as $actionOption)
@@ -124,23 +99,23 @@
                     </select>
                 </div>
                 <div>
-                    <label for="date_from" class="block text-xs font-medium uppercase tracking-wide text-slate-500">From date</label>
+                    <label for="date_from" class="block text-xs font-medium uppercase tracking-wide text-slate-700">From date</label>
                     <input type="date" id="date_from" name="date_from" value="{{ $filters['date_from'] }}" class="admin-filter-control mt-1">
                 </div>
                 <div>
-                    <label for="time_from" class="block text-xs font-medium uppercase tracking-wide text-slate-500">From time</label>
+                    <label for="time_from" class="block text-xs font-medium uppercase tracking-wide text-slate-700">From time</label>
                     <input type="time" id="time_from" name="time_from" value="{{ $filters['time_from'] }}" class="admin-filter-control mt-1">
                 </div>
                 <div>
-                    <label for="date_to" class="block text-xs font-medium uppercase tracking-wide text-slate-500">To date</label>
+                    <label for="date_to" class="block text-xs font-medium uppercase tracking-wide text-slate-700">To date</label>
                     <input type="date" id="date_to" name="date_to" value="{{ $filters['date_to'] }}" class="admin-filter-control mt-1">
                 </div>
                 <div>
-                    <label for="time_to" class="block text-xs font-medium uppercase tracking-wide text-slate-500">To time</label>
+                    <label for="time_to" class="block text-xs font-medium uppercase tracking-wide text-slate-700">To time</label>
                     <input type="time" id="time_to" name="time_to" value="{{ $filters['time_to'] }}" class="admin-filter-control mt-1">
                 </div>
                 <div class="md:col-span-2 xl:col-span-2">
-                    <label for="q" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Search</label>
+                    <label for="q" class="block text-xs font-medium uppercase tracking-wide text-slate-700">Search</label>
                     <input type="search" id="q" name="q" value="{{ $filters['q'] }}"
                            placeholder="Description, action, or IP"
                            class="admin-filter-control mt-1">
@@ -156,7 +131,7 @@
     <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h2 class="text-lg font-semibold text-slate-900">Activity feed</h2>
-            <p class="text-sm text-slate-500">
+            <p class="text-sm text-slate-700">
                 Showing {{ $logs->firstItem() ?? 0 }}–{{ $logs->lastItem() ?? 0 }} of {{ number_format($logs->total()) }}
                 · sorted by {{ $sortColumn }} ({{ $sortDirection }})
             </p>
@@ -170,7 +145,7 @@
     @if ($logs->isEmpty())
         <div class="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center shadow-sm">
             <p class="text-base font-medium text-slate-900">No activity recorded yet</p>
-            <p class="mt-2 text-sm text-slate-500">Try widening your filters or check back after users start working.</p>
+            <p class="mt-2 text-sm text-slate-700">Try widening your filters or check back after users start working.</p>
         </div>
     @else
         <div class="space-y-8">
@@ -180,11 +155,11 @@
                 @endphp
                 <section>
                     <div class="mb-4 flex items-center gap-3">
-                        <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                        <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-700">
                             {{ $insightsService->dayHeading($dayDate) }}
                         </h3>
                         <div class="h-px flex-1 bg-slate-200"></div>
-                        <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+                        <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-800">
                             {{ $dayLogs->count() }} {{ Str::plural('event', $dayLogs->count()) }}
                         </span>
                     </div>
@@ -216,7 +191,7 @@
                                                     'action' => $log->action,
                                                     'tone' => $tone,
                                                 ])
-                                                <span class="font-mono text-xs text-slate-500">{{ $log->created_at?->format('H:i:s') }}</span>
+                                                <span class="font-mono text-xs text-slate-600">{{ $log->created_at?->format('H:i:s') }}</span>
                                                 @if (isset($pageGaps[$log->id]))
                                                     <span class="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
                                                         + {{ $pageGaps[$log->id] }} since previous
@@ -228,7 +203,7 @@
                                                 {{ $log->description ?? 'Activity recorded' }}
                                             </p>
 
-                                            <div class="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-600">
+                                            <div class="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-700">
                                                 @if ($log->user)
                                                     <span class="inline-flex items-center gap-2">
                                                         <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-900 text-xs font-semibold text-white">
@@ -236,15 +211,15 @@
                                                         </span>
                                                         <span>
                                                             <span class="font-medium text-slate-900">{{ $log->user->name }}</span>
-                                                            <span class="block text-xs text-slate-500">{{ $log->user->email }}</span>
+                                                            <span class="block text-xs text-slate-600">{{ $log->user->email }}</span>
                                                         </span>
                                                     </span>
                                                 @else
-                                                    <span class="text-slate-400">Unknown user</span>
+                                                    <span class="text-slate-600">Unknown user</span>
                                                 @endif
 
                                                 @if ($log->ip_address)
-                                                    <span class="font-mono text-xs text-slate-500">IP {{ $log->ip_address }}</span>
+                                                    <span class="font-mono text-xs text-slate-600">IP {{ $log->ip_address }}</span>
                                                 @endif
                                             </div>
                                         </div>
