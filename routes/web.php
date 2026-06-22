@@ -18,6 +18,7 @@ use App\Http\Controllers\Procurement\ProcurementRequests\ProcurementRequestContr
 use App\Http\Controllers\Procurement\Projects\ProjectController;
 use App\Http\Controllers\Procurement\Projects\ProjectQuickStoreController;
 use App\Http\Controllers\Procurement\Projects\ZoneQuickStoreController;
+use App\Http\Controllers\Procurement\Invoices\InvoiceController;
 use App\Http\Controllers\Procurement\PurchaseOrders\PurchaseOrderController;
 use App\Http\Controllers\Procurement\Rfqs\RfqController;
 use App\Http\Controllers\Procurement\Rfqs\RfqGeneralTermController;
@@ -188,6 +189,18 @@ Route::middleware(['auth'])->group(function () {
         ->middlewareFor(['index', 'show'], 'permission:purchase-orders.view|purchase-orders.view-own')
         ->middlewareFor(['create', 'store'], 'permission:purchase-orders.create')
         ->middlewareFor(['edit', 'update', 'destroy'], 'permission:purchase-orders.update');
+
+    Route::get('purchase-orders/{purchase_order}/invoice-items', [InvoiceController::class, 'purchaseOrderItems'])
+        ->middleware('permission:invoices.create')
+        ->name('purchase-orders.invoice-items');
+
+    Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])
+        ->middleware('permission:invoices.create')
+        ->name('invoices.print');
+
+    Route::resource('invoices', InvoiceController::class)
+        ->only(['index', 'create', 'store'])
+        ->middleware('permission:invoices.create');
 
     Route::get('rfq-terms/print', [RfqGeneralTermController::class, 'print'])
         ->middleware('permission:rfq-terms.view')

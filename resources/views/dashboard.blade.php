@@ -13,10 +13,10 @@
         </p>
     </div>
 
-    @if (auth()->user()->hasPermission('procurement-requests.view') || auth()->user()->hasPermission('purchase-orders.view'))
+    @if (auth()->user()->hasPermission('procurement-requests.view') || auth()->user()->hasPermission('purchase-orders.view') || auth()->user()->hasPermission('invoices.create'))
         <section class="mb-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 class="text-base font-semibold text-slate-900">Procurement</h2>
-            <p class="mt-1 text-sm text-slate-600">Open procurement requests or purchase orders.</p>
+            <p class="mt-1 text-sm text-slate-600">Open procurement requests, purchase orders, or invoices.</p>
             <div class="mt-4 flex flex-wrap gap-3">
                 @if (auth()->user()->hasPermission('procurement-requests.view'))
                     <a href="{{ route('procurement-requests.index') }}"
@@ -28,6 +28,12 @@
                     <a href="{{ route('purchase-orders.index') }}"
                        class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-slate-800">
                         PO — Purchase Orders
+                    </a>
+                @endif
+                @if (auth()->user()->hasPermission('invoices.create'))
+                    <a href="{{ route('invoices.index') }}"
+                       class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50">
+                        Invoices
                     </a>
                 @endif
             </div>

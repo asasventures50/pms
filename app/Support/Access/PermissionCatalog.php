@@ -34,6 +34,8 @@ final class PermissionCatalog
             'purchase-orders.create' => ['label' => 'Create purchase orders', 'group' => 'Purchase orders'],
             'purchase-orders.update' => ['label' => 'Update purchase orders', 'group' => 'Purchase orders'],
 
+            'invoices.create' => ['label' => 'Add invoice', 'group' => 'Invoices'],
+
             'rfqs.view' => ['label' => 'View RFQs', 'group' => 'RFQs'],
             'rfqs.create' => ['label' => 'Create RFQs', 'group' => 'RFQs'],
             'rfqs.update' => ['label' => 'Update RFQs', 'group' => 'RFQs'],
