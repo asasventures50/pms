@@ -273,6 +273,7 @@ class InvoiceController extends Controller
             round((float) ($validated['administrative_fees'] ?? 0), 2),
             round((float) ($validated['logistics_fees'] ?? 0), 2),
             $validated['notes'] ?? [],
+            $validated['custom_fees'] ?? [],
         );
 
         if ($invoice !== null) {
@@ -323,6 +324,7 @@ class InvoiceController extends Controller
             'supervision_fees' => (float) $invoice->supervision_fees,
             'administrative_fees' => (float) $invoice->administrative_fees,
             'logistics_fees' => (float) $invoice->logistics_fees,
+            'custom_fees' => $invoice->customFeesForDisplay(),
         ];
     }
 }

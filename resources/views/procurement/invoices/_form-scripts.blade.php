@@ -8,6 +8,8 @@
         const notesSection = document.getElementById('invoice-notes-section');
         const notesList = document.getElementById('invoice-notes-list');
         const addNoteBtn = document.getElementById('invoice-add-note-btn');
+        const customFeesList = document.getElementById('invoice-custom-fees-list');
+        const addCustomFeeBtn = document.getElementById('invoice-add-custom-fee-btn');
         const linesBody = document.getElementById('invoice-lines-body');
         const selectAll = document.getElementById('invoice-select-all-lines');
         const mergeToolbar = document.getElementById('invoice-merge-toolbar');
@@ -194,6 +196,105 @@
 
         updateNoteRemoveButtons();
 
+        function reindexCustomFeeInputs() {
+            const rows = customFeesList?.querySelectorAll('[data-invoice-custom-fee-row]') || [];
+            rows.forEach(function (row, index) {
+                const labelInput = row.querySelector('[data-invoice-custom-fee-label]');
+                const amountInput = row.querySelector('[data-invoice-custom-fee-amount]');
+                if (labelInput) {
+                    labelInput.name = 'custom_fees[' + index + '][label]';
+                }
+                if (amountInput) {
+                    amountInput.name = 'custom_fees[' + index + '][amount]';
+                }
+            });
+        }
+
+        function setupCustomFeeAmountInput(input) {
+            input.addEventListener('input', updateGrandTotalPreview);
+        }
+
+        function addCustomFeeRow(label, amount) {
+            if (!customFeesList) {
+                return;
+            }
+
+            const row = document.createElement('div');
+            row.className = 'invoice-custom-fee-row flex flex-wrap items-end gap-2 sm:flex-nowrap';
+            row.setAttribute('data-invoice-custom-fee-row', '');
+
+            const labelWrap = document.createElement('div');
+            labelWrap.className = 'min-w-0 flex-1';
+
+            const labelFieldLabel = document.createElement('label');
+            labelFieldLabel.className = 'block text-xs font-medium text-slate-600';
+            labelFieldLabel.textContent = 'البيان';
+
+            const labelInput = document.createElement('input');
+            labelInput.type = 'text';
+            labelInput.value = label || '';
+            labelInput.placeholder = 'مثال: أجور واتعاب';
+            labelInput.setAttribute('data-invoice-custom-fee-label', '');
+            labelInput.className = 'admin-filter-control mt-1 w-full';
+
+            labelWrap.appendChild(labelFieldLabel);
+            labelWrap.appendChild(labelInput);
+
+            const amountWrap = document.createElement('div');
+            amountWrap.className = 'w-36 shrink-0';
+
+            const amountFieldLabel = document.createElement('label');
+            amountFieldLabel.className = 'block text-xs font-medium text-slate-600';
+            amountFieldLabel.textContent = 'المبلغ';
+
+            const amountInput = document.createElement('input');
+            amountInput.type = 'number';
+            amountInput.value = amount ?? '';
+            amountInput.min = '0';
+            amountInput.step = '0.01';
+            amountInput.setAttribute('data-invoice-custom-fee-amount', '');
+            amountInput.className = 'admin-filter-control mt-1 w-full text-right';
+            setupCustomFeeAmountInput(amountInput);
+
+            amountWrap.appendChild(amountFieldLabel);
+            amountWrap.appendChild(amountInput);
+
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.setAttribute('data-invoice-remove-custom-fee', '');
+            removeBtn.className = 'shrink-0 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50';
+            removeBtn.title = 'حذف البند';
+            removeBtn.textContent = '×';
+            removeBtn.addEventListener('click', function () {
+                row.remove();
+                reindexCustomFeeInputs();
+                updateGrandTotalPreview();
+            });
+
+            row.appendChild(labelWrap);
+            row.appendChild(amountWrap);
+            row.appendChild(removeBtn);
+            customFeesList.appendChild(row);
+            reindexCustomFeeInputs();
+        }
+
+        customFeesList?.querySelectorAll('[data-invoice-remove-custom-fee]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const row = btn.closest('[data-invoice-custom-fee-row]');
+                row?.remove();
+                reindexCustomFeeInputs();
+                updateGrandTotalPreview();
+            });
+        });
+
+        customFeesList?.querySelectorAll('[data-invoice-custom-fee-amount]').forEach(setupCustomFeeAmountInput);
+
+        addCustomFeeBtn?.addEventListener('click', function () {
+            addCustomFeeRow('', '');
+        });
+
+        reindexCustomFeeInputs();
+
         function selectedCheckboxes() {
             return linesBody?.querySelectorAll('input[type="checkbox"][data-po-item-id]:checked') || [];
         }
@@ -315,6 +416,9 @@
         function feesSubtotal() {
             let total = 0;
             feeInputs.forEach(function (input) {
+                total += parseFloat(input.value || 0);
+            });
+            (customFeesList?.querySelectorAll('[data-invoice-custom-fee-amount]') || []).forEach(function (input) {
                 total += parseFloat(input.value || 0);
             });
             return total;

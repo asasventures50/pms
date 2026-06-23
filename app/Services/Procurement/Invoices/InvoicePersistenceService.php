@@ -64,7 +64,8 @@ class InvoicePersistenceService
             (float) ($header['transport_fees'] ?? 0)
             + (float) ($header['supervision_fees'] ?? 0)
             + (float) ($header['administrative_fees'] ?? 0)
-            + (float) ($header['logistics_fees'] ?? 0),
+            + (float) ($header['logistics_fees'] ?? 0)
+            + (float) collect($header['custom_fees'] ?? [])->sum('amount'),
             2,
         );
 
@@ -108,6 +109,7 @@ class InvoicePersistenceService
         float $administrativeFees,
         float $logisticsFees,
         array $notes,
+        array $customFees = [],
     ): array {
         $vendorNames = $purchaseOrders
             ->map(fn (PurchaseOrder $po) => trim((string) ($po->vendor_company_name ?? $po->vendor?->name ?? '')))
@@ -127,6 +129,25 @@ class InvoicePersistenceService
             ->values()
             ->all();
 
+        $cleanCustomFees = collect($customFees)
+            ->map(function (mixed $fee): ?array {
+                if (! is_array($fee)) {
+                    return null;
+                }
+
+                $label = trim((string) ($fee['label'] ?? ''));
+                $amount = round((float) ($fee['amount'] ?? 0), 2);
+
+                if ($label === '' || $amount <= 0) {
+                    return null;
+                }
+
+                return ['label' => $label, 'amount' => $amount];
+            })
+            ->filter()
+            ->values()
+            ->all();
+
         return [
             'created_by' => $createdBy,
             'recipient_name' => $recipientName,
@@ -141,6 +162,7 @@ class InvoicePersistenceService
             'logistics_fees' => $logisticsFees,
             'merged_lines' => $mergedLines,
             'notes' => $cleanNotes !== [] ? $cleanNotes : null,
+            'custom_fees' => $cleanCustomFees !== [] ? $cleanCustomFees : null,
         ];
     }
 }

@@ -29,6 +29,7 @@ class Invoice extends Model
         'supervision_fees',
         'administrative_fees',
         'logistics_fees',
+        'custom_fees',
         'total_price',
         'merged_lines',
         'notes',
@@ -39,6 +40,7 @@ class Invoice extends Model
         return [
             'invoiced_at' => 'date',
             'notes' => 'array',
+            'custom_fees' => 'array',
             'transport_fees' => 'decimal:2',
             'supervision_fees' => 'decimal:2',
             'administrative_fees' => 'decimal:2',
@@ -90,13 +92,53 @@ class Invoice extends Model
 
     public function feesSubtotal(): float
     {
-        return round(
-            (float) $this->transport_fees
+        $fixed = (float) $this->transport_fees
             + (float) $this->supervision_fees
             + (float) $this->administrative_fees
-            + (float) $this->logistics_fees,
-            2,
-        );
+            + (float) $this->logistics_fees;
+        $custom = (float) collect($this->customFeesForDisplay())->sum('amount');
+
+        return round($fixed + $custom, 2);
+    }
+
+    /**
+     * @return list<array{label: string, amount: float}>
+     */
+    public function customFeesForDisplay(): array
+    {
+        return collect($this->custom_fees ?? [])
+            ->map(function (mixed $fee): ?array {
+                if (! is_array($fee)) {
+                    return null;
+                }
+
+                $label = trim((string) ($fee['label'] ?? ''));
+                $amount = round((float) ($fee['amount'] ?? 0), 2);
+
+                if ($label === '' || $amount <= 0) {
+                    return null;
+                }
+
+                return ['label' => $label, 'amount' => $amount];
+            })
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{label: string, amount: float}>
+     */
+    public function feeRowsForPrint(): array
+    {
+        $fixed = array_values(array_filter([
+            ['label' => 'أجور نقل و مواصلات', 'amount' => (float) $this->transport_fees],
+            ['label' => 'أجور متابعة و اشراف', 'amount' => (float) $this->supervision_fees],
+            ['label' => 'مصاريف و اجور ادارية', 'amount' => (float) $this->administrative_fees],
+            ['label' => 'مصاريف و اجور لوجستية', 'amount' => (float) $this->logistics_fees],
+        ], static fn (array $fee): bool => $fee['amount'] > 0));
+
+        return array_merge($fixed, $this->customFeesForDisplay());
     }
 
     /**

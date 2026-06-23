@@ -3,12 +3,7 @@
 
     $currency = $invoice->displayCurrency();
     $currencySuffix = $currency ? ' ('.$currency.')' : '';
-    $feeRows = array_values(array_filter([
-        ['label' => 'أجور نقل و مواصلات', 'amount' => (float) $invoice->transport_fees],
-        ['label' => 'أجور متابعة و اشراف', 'amount' => (float) $invoice->supervision_fees],
-        ['label' => 'مصاريف و اجور ادارية', 'amount' => (float) $invoice->administrative_fees],
-        ['label' => 'مصاريف و اجور لوجستية', 'amount' => (float) $invoice->logistics_fees],
-    ], static fn (array $fee): bool => $fee['amount'] > 0));
+    $feeRows = $invoice->feeRowsForPrint();
     $nextLineNumber = ((int) $invoice->items->max('line_number')) + 1;
     $projectZoneResolver = $projectZoneResolver ?? null;
     $poItemsById = $poItemsById ?? collect();
