@@ -59,7 +59,7 @@ enum PrCompany: string
                 'email' => 'asasventures.sy@gmail.com',
                 'fax' => '011-3344953',
                 'commercial_registry' => 'مسجلة في السجل التجاري تحت الرقم: ۲۰۹۹۹',
-                'company_legal_type' => 'نوع الشركة : شركة محدودة المسؤولية ورأسمالها خمسون مليون ليرة سورية',
+                'company_legal_type' => 'شركة محدودة المسؤولية ورأسمالها خمسون مليون ليرة سورية',
             ],
             self::QassiounJourney => [
                 'name' => 'Qassioun Journey',
