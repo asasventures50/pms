@@ -1,12 +1,13 @@
 @php
-    $oldPoIds = collect(old('purchase_order_ids', []))->map(fn ($id) => (int) $id)->all();
-    $oldItemIds = collect(old('purchase_order_item_ids', []))->map(fn ($id) => (int) $id)->all();
-    $oldMergeGroups = old('merge_groups', []);
-    $oldNotes = collect(old('notes', []))->map(fn ($note) => (string) $note)->filter()->values()->all();
+    $defaults = $invoiceDefaults ?? [];
+    $oldPoIds = collect(old('purchase_order_ids', $defaults['purchase_order_ids'] ?? []))->map(fn ($id) => (int) $id)->all();
+    $oldItemIds = collect(old('purchase_order_item_ids', $defaults['purchase_order_item_ids'] ?? []))->map(fn ($id) => (int) $id)->all();
+    $oldMergeGroups = old('merge_groups', $defaults['merge_groups'] ?? []);
+    $oldNotes = collect(old('notes', $defaults['notes'] ?? []))->map(fn ($note) => (string) $note)->filter()->values()->all();
     if ($oldNotes === []) {
         $oldNotes = [''];
     }
-    $currencyCode = strtoupper(trim((string) old('currency_code', 'USD')));
+    $currencyCode = strtoupper(trim((string) old('currency_code', $defaults['currency_code'] ?? 'USD')));
     if (strlen($currencyCode) !== 3) {
         $currencyCode = 'USD';
     }
@@ -47,19 +48,12 @@
             <div>
                 <label for="recipient_name" class="block text-xs font-medium uppercase tracking-wide text-slate-500">اسم المستلم</label>
                 <input type="text" name="recipient_name" id="recipient_name"
-                       value="{{ old('recipient_name') }}"
+                       value="{{ old('recipient_name', $defaults['recipient_name'] ?? '') }}"
                        placeholder="e.g. اسم الشخص / اسم الشركة"
                        class="admin-filter-control mt-1 w-full @error('recipient_name') border-red-500 @enderror">
                 @error('recipient_name')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
-            <div>
-                <label for="project_manager_name" class="block text-xs font-medium uppercase tracking-wide text-slate-500">اسم مدير المشروع</label>
-                <input type="text" name="project_manager_name" id="project_manager_name"
-                       value="{{ old('project_manager_name') }}"
-                       placeholder="يظهر فوق خانة التوقيع بالطباعة"
-                       class="admin-filter-control mt-1 w-full @error('project_manager_name') border-red-500 @enderror">
-                @error('project_manager_name')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-            </div>
+
         </div>
     </section>
 
@@ -161,7 +155,7 @@
                 <div>
                     <label for="{{ $field }}" class="block text-xs font-medium text-slate-600">{{ $label }}</label>
                     <input type="number" name="{{ $field }}" id="{{ $field }}"
-                           value="{{ old($field, '0') }}"
+                           value="{{ old($field, $defaults[$field] ?? '0') }}"
                            min="0" step="0.01"
                            data-invoice-fee-input
                            class="admin-filter-control mt-1 w-full text-right @error($field) border-red-500 @enderror">

@@ -23,36 +23,73 @@ class InvoicePersistenceService
     {
         return DB::transaction(function () use ($header, $purchaseOrderIds, $lines) {
             $header['invoice_number'] = $header['invoice_number'] ?? $this->codeGenerator->next();
-            $linesSubtotal = round((float) collect($lines)->sum('line_total'), 2);
-            $feesSubtotal = round(
-                (float) ($header['transport_fees'] ?? 0)
-                + (float) ($header['supervision_fees'] ?? 0)
-                + (float) ($header['administrative_fees'] ?? 0)
-                + (float) ($header['logistics_fees'] ?? 0),
-                2,
-            );
-            $header['total_price'] = round($linesSubtotal + $feesSubtotal, 2);
+            $header['total_price'] = $this->calculateTotalPrice($header, $lines);
 
             $invoice = Invoice::query()->create($header);
             $invoice->purchaseOrders()->sync($purchaseOrderIds);
-
-            foreach (array_values($lines) as $index => $row) {
-                InvoiceItem::query()->create([
-                    'invoice_id' => $invoice->id,
-                    'sort_order' => $index,
-                    'line_number' => $row['line_number'],
-                    'description' => $row['description'],
-                    'project_zone' => $row['project_zone'] ?? null,
-                    'quantity' => $row['quantity'],
-                    'unit' => $row['unit'] ?? null,
-                    'unit_price' => $row['unit_price'],
-                    'line_total' => $row['line_total'],
-                    'source_purchase_order_item_ids' => $row['source_purchase_order_item_ids'] ?? null,
-                ]);
-            }
+            $this->syncItems($invoice, $lines);
 
             return $invoice->load(['items', 'purchaseOrders', 'creator']);
         });
+    }
+
+    /**
+     * @param  array<string, mixed>  $header
+     * @param  list<int>  $purchaseOrderIds
+     * @param  list<array<string, mixed>>  $lines
+     */
+    public function update(Invoice $invoice, array $header, array $purchaseOrderIds, array $lines): Invoice
+    {
+        return DB::transaction(function () use ($invoice, $header, $purchaseOrderIds, $lines) {
+            unset($header['invoice_number'], $header['created_by']);
+            $header['total_price'] = $this->calculateTotalPrice($header, $lines);
+
+            $invoice->update($header);
+            $invoice->purchaseOrders()->sync($purchaseOrderIds);
+            $invoice->items()->delete();
+            $this->syncItems($invoice, $lines);
+
+            return $invoice->load(['items', 'purchaseOrders', 'creator']);
+        });
+    }
+
+    /**
+     * @param  array<string, mixed>  $header
+     * @param  list<array<string, mixed>>  $lines
+     */
+    private function calculateTotalPrice(array $header, array $lines): float
+    {
+        $linesSubtotal = round((float) collect($lines)->sum('line_total'), 2);
+        $feesSubtotal = round(
+            (float) ($header['transport_fees'] ?? 0)
+            + (float) ($header['supervision_fees'] ?? 0)
+            + (float) ($header['administrative_fees'] ?? 0)
+            + (float) ($header['logistics_fees'] ?? 0),
+            2,
+        );
+
+        return round($linesSubtotal + $feesSubtotal, 2);
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $lines
+     */
+    private function syncItems(Invoice $invoice, array $lines): void
+    {
+        foreach (array_values($lines) as $index => $row) {
+            InvoiceItem::query()->create([
+                'invoice_id' => $invoice->id,
+                'sort_order' => $index,
+                'line_number' => $row['line_number'],
+                'description' => $row['description'],
+                'project_zone' => $row['project_zone'] ?? null,
+                'quantity' => $row['quantity'],
+                'unit' => $row['unit'] ?? null,
+                'unit_price' => $row['unit_price'],
+                'line_total' => $row['line_total'],
+                'source_purchase_order_item_ids' => $row['source_purchase_order_item_ids'] ?? null,
+            ]);
+        }
     }
 
     /**

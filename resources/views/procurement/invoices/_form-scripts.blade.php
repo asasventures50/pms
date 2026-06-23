@@ -27,7 +27,7 @@
         let oldItemIds = [];
         let mergeGroups = [];
         let nextGroupId = 1;
-        let currencyTouched = @json(filled(old('currency_code')));
+        let currencyTouched = @json(filled(old('currency_code')) || filled(($invoiceDefaults ?? [])['currency_code'] ?? null));
 
         try {
             oldItemIds = JSON.parse(document.getElementById('invoice-old-item-ids')?.textContent || '[]');

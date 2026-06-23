@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Procurement\Invoices;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Procurement\Invoices\StoreInvoiceRequest;
+use App\Http\Requests\Procurement\Invoices\UpdateInvoiceRequest;
 use App\Models\Procurement\Invoices\Invoice;
 use App\Models\Procurement\PurchaseOrders\PurchaseOrder;
 use App\Models\Procurement\PurchaseOrders\PurchaseOrderItem;
@@ -60,6 +61,123 @@ class InvoiceController extends Controller
     }
 
     public function store(StoreInvoiceRequest $request): RedirectResponse
+    {
+        $payload = $this->resolveInvoicePayload($request);
+        if ($payload instanceof RedirectResponse) {
+            return $payload;
+        }
+
+        $invoice = $this->persistence->create($payload['header'], $payload['purchase_order_ids'], $payload['lines']);
+
+        return redirect()
+            ->route('invoices.print', $invoice)
+            ->with('success', 'Invoice created successfully.');
+    }
+
+    public function edit(Invoice $invoice): View
+    {
+        $invoice->load(['purchaseOrders', 'items']);
+
+        $purchaseOrders = PurchaseOrder::query()
+            ->orderByDesc('id')
+            ->get(['id', 'po_number', 'vendor_company_name', 'ordered_at']);
+
+        return view('procurement.invoices.edit', [
+            'invoice' => $invoice,
+            'purchaseOrders' => $purchaseOrders,
+            'invoiceDefaults' => $this->formDefaultsFromInvoice($invoice),
+        ]);
+    }
+
+    public function update(UpdateInvoiceRequest $request, Invoice $invoice): RedirectResponse
+    {
+        $payload = $this->resolveInvoicePayload($request, $invoice);
+        if ($payload instanceof RedirectResponse) {
+            return $payload;
+        }
+
+        $invoice = $this->persistence->update($invoice, $payload['header'], $payload['purchase_order_ids'], $payload['lines']);
+
+        return redirect()
+            ->route('invoices.print', $invoice)
+            ->with('success', 'Invoice updated successfully.');
+    }
+
+    public function print(Invoice $invoice): View
+    {
+        $invoice->load(['items', 'purchaseOrders.procurementRequest', 'creator']);
+
+        $sourcePoItemIds = $invoice->items
+            ->flatMap(fn ($item) => $item->source_purchase_order_item_ids ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        $poItemsById = PurchaseOrderItem::query()
+            ->whereIn('id', $sourcePoItemIds)
+            ->with([
+                'purchaseOrder.procurementRequest.items.project',
+                'purchaseOrder.procurementRequest.items.zone',
+                'purchaseOrder.procurementRequest.project',
+                'purchaseOrder.procurementRequest.zone',
+            ])
+            ->get()
+            ->keyBy('id');
+
+        $projectZoneResolver = InvoiceProjectZoneResolver::fromPurchaseOrderItems($poItemsById->values());
+
+        return view('procurement.invoices.print', [
+            'invoice' => $invoice,
+            'poItemsById' => $poItemsById,
+            'projectZoneResolver' => $projectZoneResolver,
+        ]);
+    }
+
+    public function purchaseOrderItems(PurchaseOrder $purchaseOrder): JsonResponse
+    {
+        $purchaseOrder->load([
+            'items',
+            'vendor',
+            'procurementRequest.items.project',
+            'procurementRequest.items.zone',
+            'procurementRequest.project',
+            'procurementRequest.zone',
+        ]);
+
+        $vendorName = trim((string) ($purchaseOrder->vendor_company_name ?? $purchaseOrder->vendor?->name ?? ''));
+        $currency = InvoiceCurrencyResolver::resolveWithSource($purchaseOrder);
+        $projectZoneResolver = new InvoiceProjectZoneResolver($purchaseOrder->procurementRequest);
+
+        return response()->json([
+            'id' => $purchaseOrder->id,
+            'po_number' => $purchaseOrder->po_number,
+            'vendor_company_name' => $vendorName,
+            'ordered_at' => $purchaseOrder->ordered_at?->format('Y-m-d'),
+            'currency_code' => $currency['code'],
+            'currency_source' => $currency['source'],
+            'items' => $purchaseOrder->items->map(fn ($item) => [
+                'id' => $item->id,
+                'purchase_order_id' => $purchaseOrder->id,
+                'po_number' => $purchaseOrder->po_number,
+                'line_code' => trim((string) ($item->item ?? '')),
+                'project_zone' => $projectZoneResolver->forPoItem($item),
+                'description' => $item->description,
+                'quantity' => (float) $item->quantity,
+                'unit' => $item->unit,
+                'unit_price' => (float) $item->unit_price,
+                'line_total' => (float) $item->line_total,
+            ])->values()->all(),
+        ]);
+    }
+
+    /**
+     * @return array{
+     *     header: array<string, mixed>,
+     *     purchase_order_ids: list<int>,
+     *     lines: list<array<string, mixed>>
+     * }|RedirectResponse
+     */
+    private function resolveInvoicePayload(StoreInvoiceRequest $request, ?Invoice $invoice = null): array|RedirectResponse
     {
         $validated = $request->validated();
 
@@ -147,77 +265,54 @@ class InvoiceController extends Controller
             $validated['notes'] ?? [],
         );
 
-        $invoice = $this->persistence->create($header, $purchaseOrderIds, $lines);
+        if ($invoice !== null) {
+            $header['created_by'] = $invoice->created_by;
+            $header['invoiced_at'] = $invoice->invoiced_at?->toDateString() ?? now()->toDateString();
+        }
 
-        return redirect()
-            ->route('invoices.print', $invoice)
-            ->with('success', 'Invoice created successfully.');
+        return [
+            'header' => $header,
+            'purchase_order_ids' => $purchaseOrderIds,
+            'lines' => $lines,
+        ];
     }
 
-    public function print(Invoice $invoice): View
+    /**
+     * @return array<string, mixed>
+     */
+    private function formDefaultsFromInvoice(Invoice $invoice): array
     {
-        $invoice->load(['items', 'purchaseOrders.procurementRequest', 'creator']);
-
-        $sourcePoItemIds = $invoice->items
-            ->flatMap(fn ($item) => $item->source_purchase_order_item_ids ?? [])
-            ->map(fn ($id) => (int) $id)
-            ->unique()
-            ->values();
-
-        $poItemsById = PurchaseOrderItem::query()
-            ->whereIn('id', $sourcePoItemIds)
-            ->with([
-                'purchaseOrder.procurementRequest.items.project',
-                'purchaseOrder.procurementRequest.items.zone',
-                'purchaseOrder.procurementRequest.project',
-                'purchaseOrder.procurementRequest.zone',
-            ])
-            ->get()
-            ->keyBy('id');
-
-        $projectZoneResolver = InvoiceProjectZoneResolver::fromPurchaseOrderItems($poItemsById->values());
-
-        return view('procurement.invoices.print', [
-            'invoice' => $invoice,
-            'poItemsById' => $poItemsById,
-            'projectZoneResolver' => $projectZoneResolver,
-        ]);
-    }
-
-    public function purchaseOrderItems(PurchaseOrder $purchaseOrder): JsonResponse
-    {
-        $purchaseOrder->load([
-            'items',
-            'vendor',
-            'procurementRequest.items.project',
-            'procurementRequest.items.zone',
-            'procurementRequest.project',
-            'procurementRequest.zone',
-        ]);
-
-        $vendorName = trim((string) ($purchaseOrder->vendor_company_name ?? $purchaseOrder->vendor?->name ?? ''));
-        $currency = InvoiceCurrencyResolver::resolveWithSource($purchaseOrder);
-        $projectZoneResolver = new InvoiceProjectZoneResolver($purchaseOrder->procurementRequest);
-
-        return response()->json([
-            'id' => $purchaseOrder->id,
-            'po_number' => $purchaseOrder->po_number,
-            'vendor_company_name' => $vendorName,
-            'ordered_at' => $purchaseOrder->ordered_at?->format('Y-m-d'),
-            'currency_code' => $currency['code'],
-            'currency_source' => $currency['source'],
-            'items' => $purchaseOrder->items->map(fn ($item) => [
-                'id' => $item->id,
-                'purchase_order_id' => $purchaseOrder->id,
-                'po_number' => $purchaseOrder->po_number,
-                'line_code' => trim((string) ($item->item ?? '')),
-                'project_zone' => $projectZoneResolver->forPoItem($item),
+        $mergeGroups = $invoice->items
+            ->map(fn ($item) => [
                 'description' => $item->description,
-                'quantity' => (float) $item->quantity,
-                'unit' => $item->unit,
-                'unit_price' => (float) $item->unit_price,
-                'line_total' => (float) $item->line_total,
-            ])->values()->all(),
-        ]);
+                'item_ids' => collect($item->source_purchase_order_item_ids ?? [])
+                    ->map(fn ($id) => (int) $id)
+                    ->values()
+                    ->all(),
+            ])
+            ->filter(fn (array $group) => count($group['item_ids']) >= 2)
+            ->values()
+            ->all();
+
+        $notes = $invoice->displayNotes();
+
+        return [
+            'purchase_order_ids' => $invoice->purchaseOrders->pluck('id')->all(),
+            'purchase_order_item_ids' => $invoice->items
+                ->flatMap(fn ($item) => $item->source_purchase_order_item_ids ?? [])
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->values()
+                ->all(),
+            'merge_groups' => $mergeGroups,
+            'recipient_name' => $invoice->recipient_name,
+            'project_manager_name' => $invoice->project_manager_name,
+            'notes' => $notes !== [] ? $notes : [''],
+            'currency_code' => $invoice->currency_code ?? 'USD',
+            'transport_fees' => (float) $invoice->transport_fees,
+            'supervision_fees' => (float) $invoice->supervision_fees,
+            'administrative_fees' => (float) $invoice->administrative_fees,
+            'logistics_fees' => (float) $invoice->logistics_fees,
+        ];
     }
 }
