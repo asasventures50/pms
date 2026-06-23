@@ -2,7 +2,7 @@
     $currency = $invoice->displayCurrency();
     $currencySuffix = $currency ? ' ('.$currency.')' : '';
     $feeRows = [
-        ['label' => 'أجور نقل و ماصلات', 'amount' => (float) $invoice->transport_fees],
+        ['label' => 'أجور نقل و مواصلات', 'amount' => (float) $invoice->transport_fees],
         ['label' => 'أجور متابعة و اشراف', 'amount' => (float) $invoice->supervision_fees],
         ['label' => 'مصاريف و اجور ادارية', 'amount' => (float) $invoice->administrative_fees],
         ['label' => 'مصاريف و اجور لوجستية', 'amount' => (float) $invoice->logistics_fees],

@@ -115,7 +115,7 @@
         <p class="mt-1 text-sm text-slate-500">Optional amounts added before the grand total on the printed invoice.</p>
         <div class="mt-4 grid max-w-2xl gap-4 sm:grid-cols-2">
             @foreach ([
-                'transport_fees' => 'أجور نقل و ماصلات',
+                'transport_fees' => 'أجور نقل و مواصلات',
                 'supervision_fees' => 'أجور متابعة و اشراف',
                 'administrative_fees' => 'مصاريف و اجور ادارية',
                 'logistics_fees' => 'مصاريف و اجور لوجستية',
