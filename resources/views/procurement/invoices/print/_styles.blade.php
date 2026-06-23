@@ -294,7 +294,7 @@
 
     .inv-bank-title {
         font-weight: 700;
-        font-size: 13px;
+        font-size: 15px;
         color: #111827;
         margin-bottom: 4px;
         line-height: 1.3;
