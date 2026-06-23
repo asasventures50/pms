@@ -281,9 +281,39 @@
         margin-bottom: 0;
     }
 
+    .inv-bank-block {
+        margin-bottom: 10px;
+        padding: 8px 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        background: #fafafa;
+        width: 100%;
+        box-sizing: border-box;
+        text-align: right;
+    }
+
+    .inv-bank-title {
+        font-weight: 700;
+        font-size: 13px;
+        color: #111827;
+        margin-bottom: 4px;
+        line-height: 1.3;
+    }
+
+    .inv-bank-line {
+        font-size: 12px;
+        line-height: 1.45;
+        color: #374151;
+    }
+
+    .inv-bank-line strong {
+        font-weight: 700;
+        color: #111827;
+    }
+
     .inv-pre-footer {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 16px;
         width: 100%;
         margin-top: 0;
@@ -305,34 +335,21 @@
         min-width: 0;
     }
 
-    .inv-pre-footer-bank {
-        text-align: right;
-    }
-
-    .inv-pre-footer-bank-title {
-        font-weight: 700;
-        font-size: 13px;
-        color: #111827;
-        margin-bottom: 4px;
-        line-height: 1.3;
-    }
-
-    .inv-pre-footer-bank-line {
-        font-size: 12px;
-        line-height: 1.45;
-        color: #374151;
-    }
-
-    .inv-pre-footer-bank-line strong {
-        font-weight: 700;
-        color: #111827;
-    }
-
     .inv-pre-footer-signature {
         display: flex;
         flex-direction: column;
         align-items: center;
         text-align: center;
+    }
+
+    .inv-pre-footer-signature--manager {
+        justify-self: start;
+        margin-inline-end: 2rem;
+    }
+
+    .inv-pre-footer-signature--recipient {
+        justify-self: end;
+        margin-inline-start: 2rem;
     }
 
     .inv-signature-label {
@@ -437,6 +454,7 @@
         .inv-recipient-block,
         .inv-table-frame,
         .inv-notes-block,
+        .inv-bank-block,
         .inv-pre-footer {
             break-inside: avoid-page;
             page-break-inside: avoid;
@@ -467,7 +485,7 @@
         }
 
         .inv-pre-footer {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             border-top: none;
             margin-top: 0;
             margin-bottom: 0;

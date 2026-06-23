@@ -4,6 +4,7 @@
         @include('procurement.invoices.print._recipient')
         @include('procurement.invoices.print._items')
         @include('procurement.invoices.print._notes')
+        @include('procurement.invoices.print._bank')
     </div>
     <div class="inv-print-bottom">
         @include('procurement.invoices.print._pre_footer')
