@@ -313,7 +313,7 @@
 
     .inv-pre-footer {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 16px;
         width: 100%;
         margin-top: 0;
@@ -342,21 +342,24 @@
         text-align: center;
     }
 
-    .inv-pre-footer-signature--manager {
+    .inv-pre-footer-signature--receive {
         justify-self: start;
-        margin-inline-end: 2rem;
     }
 
-    .inv-pre-footer-signature--recipient {
+    .inv-pre-footer-signature--accounts {
+        justify-self: center;
+    }
+
+    .inv-pre-footer-signature--general {
         justify-self: end;
-        margin-inline-start: 2rem;
     }
 
     .inv-signature-label {
         font-weight: 700;
         font-size: 13px;
         color: #111827;
-        line-height: 1.3;
+        line-height: 1.4;
+        max-width: 12rem;
     }
 
     .inv-signature-name {
@@ -485,7 +488,7 @@
         }
 
         .inv-pre-footer {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             border-top: none;
             margin-top: 0;
             margin-bottom: 0;
