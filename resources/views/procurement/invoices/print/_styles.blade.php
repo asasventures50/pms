@@ -184,48 +184,17 @@
         font-variant-numeric: tabular-nums;
     }
 
-    .inv-totals-wrap {
-        display: flex;
-        justify-content: flex-start;
-        margin-top: 0;
-        line-height: 0;
-    }
-
-    .inv-totals-table {
-        width: auto;
-        min-width: 16rem;
-        max-width: 22rem;
-        border-collapse: collapse;
-        margin-top: -1px;
-    }
-
-    .inv-totals-table td {
-        border: 1px solid #333;
-        padding: 7px 10px;
-        vertical-align: middle;
-        line-height: normal;
-    }
-
-    .inv-totals-table tr:first-child td {
-        border-top: none;
-    }
-
-    .inv-totals-label {
+    .inv-fee-label {
         font-weight: bold;
         text-align: right;
-        white-space: nowrap;
+        padding-inline-start: 12px;
     }
 
-    .inv-totals-value {
-        text-align: center;
-        direction: ltr;
+    .inv-fee-value {
         font-weight: bold;
-        white-space: nowrap;
-        font-variant-numeric: tabular-nums;
     }
 
-    .inv-totals-grand .inv-totals-label,
-    .inv-totals-grand .inv-totals-value {
+    .inv-totals-grand td {
         font-size: 13px;
         background: #f8fafc;
     }
@@ -233,21 +202,26 @@
     .inv-footer {
         flex-shrink: 0;
         margin-top: auto;
-        padding-top: 14px;
+        padding-top: 10px;
         border-top: 1px solid #ccc;
         text-align: center;
-        font-size: 11px;
-        line-height: 1.7;
-        color: #1e293b;
+        font-size: 9px;
+        line-height: 1.35;
+        color: #475569;
     }
 
-    .inv-footer-registry,
-    .inv-footer-legal-type {
-        margin-bottom: 4px;
+    .inv-footer-legal {
+        margin-bottom: 2px;
     }
 
     .inv-footer-contact {
-        margin-top: 8px;
+        margin-top: 4px;
+        white-space: nowrap;
+    }
+
+    .inv-footer-sep {
+        color: #94a3b8;
+        margin-inline: 4px;
     }
 
     @media print {
@@ -279,9 +253,7 @@
             display: table-header-group;
         }
 
-        .inv-items-table tbody tr,
-        .inv-totals-wrap,
-        .inv-totals-table tr {
+        .inv-items-table tbody tr {
             break-inside: avoid-page;
             page-break-inside: avoid;
         }

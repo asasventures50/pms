@@ -1,12 +1,13 @@
 @php
     $currency = $invoice->displayCurrency();
     $currencySuffix = $currency ? ' ('.$currency.')' : '';
-    $feeRows = [
+    $feeRows = array_values(array_filter([
         ['label' => 'أجور نقل و مواصلات', 'amount' => (float) $invoice->transport_fees],
         ['label' => 'أجور متابعة و اشراف', 'amount' => (float) $invoice->supervision_fees],
         ['label' => 'مصاريف و اجور ادارية', 'amount' => (float) $invoice->administrative_fees],
         ['label' => 'مصاريف و اجور لوجستية', 'amount' => (float) $invoice->logistics_fees],
-    ];
+    ], static fn (array $fee): bool => $fee['amount'] > 0));
+    $nextLineNumber = ((int) $invoice->items->max('line_number')) + 1;
 @endphp
 
 <div class="inv-tables-block">
@@ -32,21 +33,17 @@
             <td class="inv-cell-money">{{ number_format($line->line_total, 2) }}</td>
         </tr>
     @endforeach
+    @foreach ($feeRows as $fee)
+        <tr class="inv-fee-row">
+            <td class="inv-cell-num">{{ $nextLineNumber++ }}</td>
+            <td colspan="4" class="inv-fee-label">{{ $fee['label'] }}</td>
+            <td class="inv-cell-money inv-fee-value">{{ $invoice->formatMoneyAmount($fee['amount']) }}</td>
+        </tr>
+    @endforeach
+    <tr class="inv-totals-grand">
+        <td colspan="5" class="inv-fee-label">المجموع الكلي</td>
+        <td class="inv-cell-money inv-fee-value">{{ $invoice->formatMoneyAmount($invoice->total_price) }}</td>
+    </tr>
     </tbody>
 </table>
-
-<div class="inv-totals-wrap">
-    <table class="inv-totals-table">
-        @foreach ($feeRows as $fee)
-            <tr>
-                <td class="inv-totals-label">{{ $fee['label'] }}</td>
-                <td class="inv-totals-value">{{ $invoice->formatMoneyAmount($fee['amount']) }}</td>
-            </tr>
-        @endforeach
-        <tr class="inv-totals-grand">
-            <td class="inv-totals-label">المجموع الكلي</td>
-            <td class="inv-totals-value">{{ $invoice->formatMoneyAmount($invoice->total_price) }}</td>
-        </tr>
-    </table>
-</div>
 </div>
