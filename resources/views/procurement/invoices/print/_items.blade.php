@@ -11,6 +11,7 @@
 @endphp
 
 <div class="inv-tables-block">
+<div class="inv-table-frame">
 <table class="inv-items-table">
     <thead>
     <tr>
@@ -42,8 +43,9 @@
     @endforeach
     <tr class="inv-totals-grand">
         <td colspan="5" class="inv-fee-label">المجموع الكلي</td>
-        <td class="inv-cell-money inv-fee-value">{{ $invoice->formatMoneyAmount($invoice->total_price) }}</td>
+        <td class="inv-cell-money inv-grand-total-amount">{{ $invoice->formatMoneyAmount($invoice->total_price) }}</td>
     </tr>
     </tbody>
 </table>
+</div>
 </div>

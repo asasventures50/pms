@@ -4,7 +4,7 @@
         padding: 0;
         font-family: Arial, Tahoma, 'Segoe UI', sans-serif;
         font-size: 12px;
-        color: #000;
+        color: #111827;
         background: #e2e8f0;
     }
 
@@ -34,9 +34,9 @@
         display: grid;
         grid-template-columns: 1fr;
         align-items: center;
-        margin-bottom: 16px;
-        padding-bottom: 12px;
-        border-bottom: 1px solid #ccc;
+        margin-bottom: 20px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid #e5e7eb;
         position: relative;
         min-height: 72px;
     }
@@ -67,7 +67,9 @@
         justify-self: center;
         align-self: center;
         font-size: 22px;
-        font-weight: bold;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        color: #111827;
         text-align: center;
         width: 100%;
         pointer-events: none;
@@ -95,7 +97,8 @@
     }
 
     .inv-meta-label {
-        font-weight: bold;
+        font-weight: 600;
+        color: #4b5563;
         white-space: nowrap;
     }
 
@@ -104,9 +107,11 @@
     }
 
     .inv-recipient-block {
-        margin-bottom: 16px;
-        padding: 10px 12px;
-        border: 1px solid #333;
+        margin-bottom: 20px;
+        padding: 12px 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        background: #fafafa;
         font-size: 13px;
     }
 
@@ -120,7 +125,14 @@
     }
 
     .inv-tables-block {
-        margin-bottom: 16px;
+        margin-bottom: 20px;
+    }
+
+    .inv-table-frame {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #fff;
     }
 
     .inv-items-table {
@@ -132,17 +144,21 @@
 
     .inv-items-table th,
     .inv-items-table td {
-        border: 1px solid #333;
-        padding: 8px 10px;
+        border: none;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 14px 16px;
         vertical-align: middle;
         word-wrap: break-word;
     }
 
-    .inv-items-table th {
-        background: #f1f5f9;
-        font-weight: bold;
+    .inv-items-table thead th {
+        background: #f8fafc;
+        font-weight: 600;
         font-size: 11px;
+        letter-spacing: 0.04em;
+        color: #4b5563;
         text-align: center;
+        border-bottom: 1px solid #e5e7eb;
     }
 
     .inv-items-table .col-num {
@@ -171,43 +187,63 @@
 
     .inv-cell-num {
         text-align: center;
+        color: #6b7280;
+        font-size: 11px;
     }
 
     .inv-cell-text {
         text-align: right;
-        line-height: 1.5;
+        line-height: 1.6;
+        color: #111827;
     }
 
     .inv-cell-money {
         text-align: center;
         direction: ltr;
         font-variant-numeric: tabular-nums;
+        color: #111827;
     }
 
     .inv-fee-label {
-        font-weight: bold;
+        font-weight: 600;
         text-align: right;
-        padding-inline-start: 12px;
+        color: #374151;
     }
 
     .inv-fee-value {
-        font-weight: bold;
+        font-weight: 600;
+        color: #111827;
     }
 
     .inv-totals-grand td {
+        border-bottom: none;
+        border-top: 2px solid #1f2937;
+        padding-top: 16px;
+        padding-bottom: 16px;
+        background-color: #f3f4f6;
+    }
+
+    .inv-totals-grand .inv-fee-label {
         font-size: 13px;
-        background: #f8fafc;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .inv-grand-total-amount {
+        font-size: 16px;
+        font-weight: 700;
+        color: #111827;
     }
 
     .inv-footer {
         flex-shrink: 0;
         margin-top: auto;
-        padding-top: 10px;
-        border-top: 1px solid #ccc;
+        padding-top: 12px;
+        border-top: 1px solid #e5e7eb;
         text-align: center;
         font-size: 9px;
         line-height: 1.35;
-        color: #475569;
+        color: #6b7280;
     }
 
     .inv-footer-legal {
@@ -244,6 +280,7 @@
 
         .inv-header,
         .inv-recipient-block,
+        .inv-table-frame,
         .inv-footer {
             break-inside: avoid-page;
             page-break-inside: avoid;
@@ -256,6 +293,12 @@
         .inv-items-table tbody tr {
             break-inside: avoid-page;
             page-break-inside: avoid;
+        }
+
+        .inv-totals-grand td {
+            background-color: #f3f4f6 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
     }
 </style>
