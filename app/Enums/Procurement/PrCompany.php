@@ -39,7 +39,15 @@ enum PrCompany: string
     }
 
     /**
-     * @return array{name: string, address: string|null, phone: string|null, email: string|null, fax: string|null}
+     * @return array{
+     *     name: string,
+     *     address: string|null,
+     *     phone: string|null,
+     *     email: string|null,
+     *     fax: string|null,
+     *     commercial_registry: string|null,
+     *     company_legal_type: string|null
+     * }
      */
     public function details(): array
     {
@@ -47,29 +55,43 @@ enum PrCompany: string
             self::AsasVentures => [
                 'name' => 'ASAS Ventures',
                 'address' => 'Nouri Pasha, Arawda square, Damascus, Syria',
-                'phone' => '011-3344955/ 011-3344954',
+                'phone' => '011-3344954 / 011-3344955',
                 'email' => 'asasventures.sy@gmail.com',
                 'fax' => '011-3344953',
+                'commercial_registry' => 'مسجلة في السجل التجاري تحت الرقم: ۲۰۹۹۹',
+                'company_legal_type' => 'نوع الشركة : شركة محدودة المسؤولية ورأسمالها خمسون مليون ليرة سورية',
             ],
             self::QassiounJourney => [
                 'name' => 'Qassioun Journey',
                 'address' => 'Nouri Pasha, Arawda square, Damascus, Syria',
-                'phone' => '011-3344955/ 011-3344954',
+                'phone' => '011-3344954 / 011-3344955',
                 'email' => 'asasventures.sy@gmail.com',
                 'fax' => '011-3344953',
+                'commercial_registry' => null,
+                'company_legal_type' => null,
             ],
             self::Activation => [
                 'name' => 'Activation',
                 'address' => 'Nouri Pasha, Arawda square, Damascus, Syria',
-                'phone' => '011-3344955/ 011-3344954',
+                'phone' => '011-3344954 / 011-3344955',
                 'email' => 'asasventures.sy@gmail.com',
                 'fax' => '011-3344953',
+                'commercial_registry' => null,
+                'company_legal_type' => null,
             ],
         };
     }
 
     /**
-     * @return array{name: string, address: string|null, phone: string|null, email: string|null, fax: string|null}
+     * @return array{
+     *     name: string,
+     *     address: string|null,
+     *     phone: string|null,
+     *     email: string|null,
+     *     fax: string|null,
+     *     commercial_registry: string|null,
+     *     company_legal_type: string|null
+     * }
      */
     public static function forDisplay(?string $key): array
     {
@@ -141,7 +163,15 @@ enum PrCompany: string
      *     logo_url: string,
      *     logo_exists: bool,
      *     logo_fallback_html: string,
-     *     buyer: array{name: string, address: string|null, phone: string|null, email: string|null, fax: string|null}
+     *     buyer: array{
+     *         name: string,
+     *         address: string|null,
+     *         phone: string|null,
+     *         email: string|null,
+     *         fax: string|null,
+     *         commercial_registry: string|null,
+     *         company_legal_type: string|null
+     *     }
      * }
      */
     public function toPurchaseOrderApiPayload(): array

@@ -15,23 +15,37 @@
         box-sizing: border-box;
     }
 
+    .inv-print-document {
+        display: flex;
+        flex-direction: column;
+        min-height: calc(100vh - 32px);
+    }
+
+    .inv-print-main {
+        flex: 1 0 auto;
+    }
+
     .inv-print--rtl {
         direction: rtl;
         text-align: right;
     }
 
     .inv-header {
-        display: flex;
+        display: grid;
+        grid-template-columns: 1fr;
         align-items: center;
-        justify-content: space-between;
-        gap: 16px;
         margin-bottom: 16px;
         padding-bottom: 12px;
         border-bottom: 1px solid #ccc;
+        position: relative;
+        min-height: 72px;
     }
 
     .inv-header-logo {
-        flex-shrink: 0;
+        grid-column: 1;
+        grid-row: 1;
+        justify-self: start;
+        z-index: 1;
     }
 
     .inv-logo-img {
@@ -48,10 +62,15 @@
     }
 
     .inv-header-title {
+        grid-column: 1;
+        grid-row: 1;
+        justify-self: center;
+        align-self: center;
         font-size: 22px;
         font-weight: bold;
-        flex: 1;
         text-align: center;
+        width: 100%;
+        pointer-events: none;
     }
 
     .inv-ltr {
@@ -62,8 +81,9 @@
 
     .inv-meta-simple {
         display: flex;
-        flex-wrap: wrap;
-        gap: 12px 32px;
+        justify-content: space-between;
+        align-items: baseline;
+        width: 100%;
         margin-bottom: 20px;
         font-size: 12px;
     }
@@ -80,7 +100,7 @@
     }
 
     .inv-meta-value {
-        flex: 1;
+        white-space: nowrap;
     }
 
     .inv-recipient-block {
@@ -197,7 +217,7 @@
     }
 
     .inv-totals-value {
-        text-align: left;
+        text-align: center;
         direction: ltr;
         font-weight: bold;
         white-space: nowrap;
@@ -211,13 +231,23 @@
     }
 
     .inv-footer {
-        margin-top: 28px;
+        flex-shrink: 0;
+        margin-top: auto;
         padding-top: 14px;
         border-top: 1px solid #ccc;
         text-align: center;
         font-size: 11px;
         line-height: 1.7;
         color: #1e293b;
+    }
+
+    .inv-footer-registry,
+    .inv-footer-legal-type {
+        margin-bottom: 4px;
+    }
+
+    .inv-footer-contact {
+        margin-top: 8px;
     }
 
     @media print {
@@ -232,6 +262,10 @@
         .inv-print-page {
             max-width: none;
             padding: 0;
+        }
+
+        .inv-print-document {
+            min-height: 100vh;
         }
 
         .inv-header,
