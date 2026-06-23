@@ -217,7 +217,6 @@
 
     .inv-totals-grand td {
         border-bottom: none;
-        border-top: 2px solid #1f2937;
         padding-top: 16px;
         padding-bottom: 16px;
         background-color: #f3f4f6;
