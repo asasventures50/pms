@@ -22,6 +22,7 @@ use App\Models\Procurement\Vendors\Vendor;
 use App\Models\User;
 
 use App\Services\Procurement\PurchaseOrders\ProcurementRequestCommercialTermsForPurchaseOrder;
+use App\Services\Procurement\PurchaseOrders\ProcurementRequestLineUnitLookup;
 use App\Services\Procurement\PurchaseOrders\ProcurementRequestLinesForPurchaseOrderPresenter;
 use App\Services\Procurement\PurchaseOrders\ProcurementRequestOptionsForPurchaseOrderQuery;
 use App\Services\Procurement\PurchaseOrders\PurchaseOrderPrintLabels;
@@ -175,7 +176,10 @@ class PurchaseOrderController extends Controller
 
         $validated = $request->validated();
 
-        $items = PurchaseOrderPersistenceService::normalizeItems($validated['items'] ?? []);
+        $items = PurchaseOrderPersistenceService::normalizeItems(
+            $validated['items'] ?? [],
+            isset($validated['procurement_request_id']) ? (int) $validated['procurement_request_id'] : null,
+        );
 
         unset($validated['items']);
 
@@ -320,6 +324,8 @@ class PurchaseOrderController extends Controller
 
 
 
+        $unitsByLineCode = ProcurementRequestLineUnitLookup::unitsByLineCode($purchaseOrder->procurementRequest);
+
         $defaultItems = $purchaseOrder->items->map(fn ($row) => [
 
             'item' => $row->item,
@@ -328,7 +334,7 @@ class PurchaseOrderController extends Controller
 
             'quantity' => $row->quantity,
 
-            'unit' => $row->unit,
+            'unit' => ProcurementRequestLineUnitLookup::resolveForPurchaseOrderItem($row, $unitsByLineCode) ?? '',
 
             'unit_price' => $row->unit_price,
 
@@ -372,7 +378,10 @@ class PurchaseOrderController extends Controller
 
         $validated = $request->validated();
 
-        $items = PurchaseOrderPersistenceService::normalizeItems($validated['items'] ?? []);
+        $items = PurchaseOrderPersistenceService::normalizeItems(
+            $validated['items'] ?? [],
+            isset($validated['procurement_request_id']) ? (int) $validated['procurement_request_id'] : null,
+        );
 
         unset($validated['items']);
 

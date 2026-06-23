@@ -3,6 +3,7 @@
 namespace App\Services\Procurement\Invoices;
 
 use App\Models\Procurement\PurchaseOrders\PurchaseOrderItem;
+use App\Services\Procurement\PurchaseOrders\ProcurementRequestLineUnitLookup;
 use Illuminate\Support\Collection;
 
 class InvoiceLineBuilder
@@ -23,6 +24,7 @@ class InvoiceLineBuilder
     public function build(Collection $selectedItems, array $mergeGroups = []): array
     {
         $selectedItems = $selectedItems->values();
+        $unitsByLineCode = ProcurementRequestLineUnitLookup::unitsByLineCodeForPurchaseOrderItems($selectedItems);
         $groupForItem = [];
 
         foreach ($mergeGroups as $group) {
@@ -53,7 +55,7 @@ class InvoiceLineBuilder
                 continue;
             }
 
-            $lines[] = $this->individualLine($lineNumber++, $item);
+            $lines[] = $this->individualLine($lineNumber++, $item, $unitsByLineCode);
             $processed[] = $itemId;
         }
 
@@ -82,13 +84,15 @@ class InvoiceLineBuilder
     /**
      * @return array<string, mixed>
      */
-    private function individualLine(int $lineNumber, PurchaseOrderItem $item): array
+    private function individualLine(int $lineNumber, PurchaseOrderItem $item, array $unitsByLineCode): array
     {
+        $unit = ProcurementRequestLineUnitLookup::resolveForPurchaseOrderItem($item, $unitsByLineCode);
+
         return [
             'line_number' => $lineNumber,
             'description' => trim((string) ($item->description ?? '')),
             'quantity' => $item->quantity,
-            'unit' => filled($item->unit) ? trim((string) $item->unit) : null,
+            'unit' => $unit,
             'unit_price' => $item->unit_price,
             'line_total' => $item->line_total,
             'source_purchase_order_item_ids' => [(int) $item->id],

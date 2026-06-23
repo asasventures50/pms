@@ -1,5 +1,6 @@
 @php
     use App\Services\Procurement\Invoices\InvoiceProjectZoneResolver;
+    use App\Services\Procurement\PurchaseOrders\ProcurementRequestLineUnitLookup;
 
     $currency = $invoice->displayCurrency();
     $currencySuffix = $currency ? ' ('.$currency.')' : '';
@@ -7,6 +8,7 @@
     $nextLineNumber = ((int) $invoice->items->max('line_number')) + 1;
     $projectZoneResolver = $projectZoneResolver ?? null;
     $poItemsById = $poItemsById ?? collect();
+    $unitsByLineCode = $unitsByLineCode ?? [];
 @endphp
 
 <div class="inv-tables-block">
@@ -30,13 +32,26 @@
                 ? $projectZoneResolver->forInvoiceItem($line, $poItemsById)
                 : trim((string) ($line->project_zone ?? ''));
             $projectZone = $projectZone !== '' ? $projectZone : '—';
+            $unit = trim((string) ($line->unit ?? ''));
+            if ($unit === '') {
+                $sourcePoItem = collect($line->source_purchase_order_item_ids ?? [])
+                    ->map(fn ($id) => $poItemsById->get((int) $id))
+                    ->filter()
+                    ->first();
+                if ($sourcePoItem) {
+                    $unit = trim((string) (ProcurementRequestLineUnitLookup::resolveForPurchaseOrderItem(
+                        $sourcePoItem,
+                        $unitsByLineCode,
+                    ) ?? ''));
+                }
+            }
         @endphp
         <tr>
             <td class="inv-cell-num">{{ $line->line_number }}</td>
             <td class="inv-cell-project">{{ $projectZone }}</td>
             <td class="inv-cell-text">{{ $line->description }}</td>
             <td class="inv-cell-num">{{ number_format($line->quantity, 3) }}</td>
-            <td class="inv-cell-num">{{ $line->unit ?: '—' }}</td>
+            <td class="inv-cell-num">{{ $unit !== '' ? $unit : '—' }}</td>
             <td class="inv-cell-money">{{ number_format($line->unit_price, 2) }}</td>
             <td class="inv-cell-money">{{ number_format($line->line_total, 2) }}</td>
         </tr>

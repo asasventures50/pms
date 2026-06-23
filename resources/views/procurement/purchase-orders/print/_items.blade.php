@@ -53,13 +53,17 @@
         @php
             $prLine = $prItemsByLine[trim((string) ($line->item ?? ''))] ?? null;
             $scopeOfWork = trim((string) ($prLine?->scope_of_work ?? ''));
+            $unit = trim((string) ($line->unit ?? ''));
+            if ($unit === '' && $prLine) {
+                $unit = trim((string) ($prLine->unit ?? ''));
+            }
         @endphp
         <tr>
             <td class="po-cell-item">{{ $line->item }}</td>
             <td class="po-cell-text">{{ $line->description }}</td>
             <td class="po-cell-text">{{ $scopeOfWork }}</td>
             <td class="po-cell-num po-cell-qty">{{ number_format($line->quantity, 3) }}</td>
-            <td class="po-cell-num">{{ $line->unit ?: '—' }}</td>
+            <td class="po-cell-num">{{ $unit !== '' ? $unit : '—' }}</td>
             <td class="po-cell-num po-cell-money">{{ number_format($line->unit_price, 2) }}</td>
             <td class="po-cell-num po-cell-money">{{ number_format($line->line_total, 2) }}</td>
         </tr>

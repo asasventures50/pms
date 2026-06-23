@@ -3,6 +3,7 @@
 namespace App\Services\Procurement\PurchaseOrders;
 
 use App\Enums\Procurement\Rfqs\RfqTermsLocale;
+use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
 use App\Models\Procurement\PurchaseOrders\PurchaseOrder;
 use App\Models\Procurement\PurchaseOrders\PurchaseOrderItem;
 use App\Services\Procurement\Rfqs\RfqGeneralTermsService;
@@ -128,7 +129,7 @@ class PurchaseOrderPersistenceService
      * @param  list<array<string, mixed>>  $rawItems
      * @return list<array<string, mixed>>
      */
-    public static function normalizeItems(array $rawItems): array
+    public static function normalizeItems(array $rawItems, ?int $procurementRequestId = null): array
     {
         $normalized = [];
 
@@ -158,6 +159,17 @@ class PurchaseOrderPersistenceService
             ];
         }
 
-        return $normalized;
+        if ($procurementRequestId === null) {
+            return $normalized;
+        }
+
+        $procurementRequest = ProcurementRequest::query()
+            ->with('items')
+            ->find($procurementRequestId);
+
+        return ProcurementRequestLineUnitLookup::applyToPoItemRows(
+            $normalized,
+            ProcurementRequestLineUnitLookup::unitsByLineCode($procurementRequest),
+        );
     }
 }

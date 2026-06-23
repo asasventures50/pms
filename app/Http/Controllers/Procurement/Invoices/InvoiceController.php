@@ -12,6 +12,7 @@ use App\Services\Procurement\Invoices\InvoiceCurrencyResolver;
 use App\Services\Procurement\Invoices\InvoiceLineBuilder;
 use App\Services\Procurement\Invoices\InvoicePersistenceService;
 use App\Services\Procurement\Invoices\InvoiceProjectZoneResolver;
+use App\Services\Procurement\PurchaseOrders\ProcurementRequestLineUnitLookup;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -135,11 +136,13 @@ class InvoiceController extends Controller
             ->keyBy('id');
 
         $projectZoneResolver = InvoiceProjectZoneResolver::fromPurchaseOrderItems($poItemsById->values());
+        $unitsByLineCode = ProcurementRequestLineUnitLookup::unitsByLineCodeForPurchaseOrderItems($poItemsById->values());
 
         return view('procurement.invoices.print', [
             'invoice' => $invoice,
             'poItemsById' => $poItemsById,
             'projectZoneResolver' => $projectZoneResolver,
+            'unitsByLineCode' => $unitsByLineCode,
         ]);
     }
 
@@ -157,6 +160,7 @@ class InvoiceController extends Controller
         $vendorName = trim((string) ($purchaseOrder->vendor_company_name ?? $purchaseOrder->vendor?->name ?? ''));
         $currency = InvoiceCurrencyResolver::resolveWithSource($purchaseOrder);
         $projectZoneResolver = new InvoiceProjectZoneResolver($purchaseOrder->procurementRequest);
+        $unitsByLineCode = ProcurementRequestLineUnitLookup::unitsByLineCode($purchaseOrder->procurementRequest);
 
         return response()->json([
             'id' => $purchaseOrder->id,
@@ -173,7 +177,7 @@ class InvoiceController extends Controller
                 'project_zone' => $projectZoneResolver->forPoItem($item),
                 'description' => $item->description,
                 'quantity' => (float) $item->quantity,
-                'unit' => $item->unit,
+                'unit' => ProcurementRequestLineUnitLookup::resolveForPurchaseOrderItem($item, $unitsByLineCode),
                 'unit_price' => (float) $item->unit_price,
                 'line_total' => (float) $item->line_total,
             ])->values()->all(),
