@@ -59,8 +59,12 @@
     @foreach ($feeRows as $fee)
         <tr class="inv-fee-row">
             <td class="inv-cell-num">{{ $nextLineNumber++ }}</td>
-            <td colspan="5" class="inv-fee-label">{{ $fee['label'] }}</td>
-            <td class="inv-cell-money inv-fee-value">{{ $invoice->formatMoneyAmount($fee['amount']) }}</td>
+            <td class="inv-cell-project">{{ ($fee['project_zone'] ?? '') !== '' ? $fee['project_zone'] : '—' }}</td>
+            <td class="inv-cell-text">{{ $fee['description'] }}</td>
+            <td class="inv-cell-num">{{ number_format($fee['quantity'], 3) }}</td>
+            <td class="inv-cell-num">{{ ($fee['unit'] ?? '') !== '' ? $fee['unit'] : '—' }}</td>
+            <td class="inv-cell-money">{{ number_format($fee['unit_price'], 2) }}</td>
+            <td class="inv-cell-money">{{ number_format($fee['amount'], 2) }}</td>
         </tr>
     @endforeach
     <tr class="inv-totals-grand">

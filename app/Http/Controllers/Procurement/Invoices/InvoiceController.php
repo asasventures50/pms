@@ -272,10 +272,6 @@ class InvoiceController extends Controller
             (int) $request->user()->id,
             $mergeGroups !== [],
             $currencyCode,
-            round((float) ($validated['transport_fees'] ?? 0), 2),
-            round((float) ($validated['supervision_fees'] ?? 0), 2),
-            round((float) ($validated['administrative_fees'] ?? 0), 2),
-            round((float) ($validated['logistics_fees'] ?? 0), 2),
             $validated['notes'] ?? [],
             $validated['custom_fees'] ?? [],
         );
@@ -324,11 +320,7 @@ class InvoiceController extends Controller
             'project_manager_name' => $invoice->project_manager_name,
             'notes' => $notes !== [] ? $notes : [''],
             'currency_code' => $invoice->currency_code ?? 'USD',
-            'transport_fees' => (float) $invoice->transport_fees,
-            'supervision_fees' => (float) $invoice->supervision_fees,
-            'administrative_fees' => (float) $invoice->administrative_fees,
-            'logistics_fees' => (float) $invoice->logistics_fees,
-            'custom_fees' => $invoice->customFeesForDisplay(),
+            'custom_fees' => $invoice->feeRowsForEdit(),
         ];
     }
 }

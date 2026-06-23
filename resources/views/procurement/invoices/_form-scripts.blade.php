@@ -8,7 +8,7 @@
         const notesSection = document.getElementById('invoice-notes-section');
         const notesList = document.getElementById('invoice-notes-list');
         const addNoteBtn = document.getElementById('invoice-add-note-btn');
-        const customFeesList = document.getElementById('invoice-custom-fees-list');
+        const customFeesBody = document.getElementById('invoice-custom-fees-body');
         const addCustomFeeBtn = document.getElementById('invoice-add-custom-fee-btn');
         const linesBody = document.getElementById('invoice-lines-body');
         const selectAll = document.getElementById('invoice-select-all-lines');
@@ -22,7 +22,6 @@
         const currencyInput = document.getElementById('currency_code');
         const currencyHint = document.getElementById('invoice-currency-hint');
         const grandTotalPreview = document.getElementById('invoice-grand-total-preview');
-        const feeInputs = document.querySelectorAll('[data-invoice-fee-input]');
         const urlTemplate = poList?.getAttribute('data-items-url-template');
 
         let poItems = [];
@@ -73,7 +72,7 @@
             const code = (currencyInput?.value || '').trim().toUpperCase();
             const suffix = code ? ' (' + code + ')' : '';
 
-            document.querySelectorAll('[data-invoice-price-label]').forEach(function (el) {
+            document.querySelectorAll('[data-invoice-price-label], [data-invoice-fee-price-label], [data-invoice-fee-total-label]').forEach(function (el) {
                 const base = el.getAttribute('data-invoice-price-label-base') || '';
                 el.textContent = base + suffix;
             });
@@ -197,100 +196,160 @@
         updateNoteRemoveButtons();
 
         function reindexCustomFeeInputs() {
-            const rows = customFeesList?.querySelectorAll('[data-invoice-custom-fee-row]') || [];
+            const rows = customFeesBody?.querySelectorAll('[data-invoice-custom-fee-row]') || [];
             rows.forEach(function (row, index) {
-                const labelInput = row.querySelector('[data-invoice-custom-fee-label]');
-                const amountInput = row.querySelector('[data-invoice-custom-fee-amount]');
-                if (labelInput) {
-                    labelInput.name = 'custom_fees[' + index + '][label]';
+                const numCell = row.querySelector('[data-invoice-custom-fee-num]');
+                if (numCell) {
+                    numCell.textContent = String(index + 1);
                 }
-                if (amountInput) {
-                    amountInput.name = 'custom_fees[' + index + '][amount]';
-                }
+
+                const fields = [
+                    ['project_zone', '[data-invoice-custom-fee-project-zone]'],
+                    ['description', '[data-invoice-custom-fee-description]'],
+                    ['quantity', '[data-invoice-custom-fee-quantity]'],
+                    ['unit', '[data-invoice-custom-fee-unit]'],
+                    ['unit_price', '[data-invoice-custom-fee-unit-price]'],
+                ];
+
+                fields.forEach(function (pair) {
+                    const input = row.querySelector(pair[1]);
+                    if (input) {
+                        input.name = 'custom_fees[' + index + '][' + pair[0] + ']';
+                    }
+                });
             });
         }
 
-        function setupCustomFeeAmountInput(input) {
-            input.addEventListener('input', updateGrandTotalPreview);
+        function customFeeLineTotal(row) {
+            const quantity = parseFloat(row.querySelector('[data-invoice-custom-fee-quantity]')?.value || 0);
+            const unitPrice = parseFloat(row.querySelector('[data-invoice-custom-fee-unit-price]')?.value || 0);
+            return quantity > 0 && unitPrice >= 0 ? quantity * unitPrice : 0;
         }
 
-        function addCustomFeeRow(label, amount) {
-            if (!customFeesList) {
-                return;
+        function updateCustomFeeRowTotal(row) {
+            const totalCell = row.querySelector('[data-invoice-custom-fee-line-total]');
+            if (totalCell) {
+                totalCell.textContent = formatMoney(customFeeLineTotal(row));
             }
+        }
 
-            const row = document.createElement('div');
-            row.className = 'invoice-custom-fee-row flex flex-wrap items-end gap-2 sm:flex-nowrap';
-            row.setAttribute('data-invoice-custom-fee-row', '');
+        function setupCustomFeeRow(row) {
+            row.querySelectorAll('[data-invoice-custom-fee-quantity], [data-invoice-custom-fee-unit-price]').forEach(function (input) {
+                input.addEventListener('input', function () {
+                    updateCustomFeeRowTotal(row);
+                    updateGrandTotalPreview();
+                });
+            });
 
-            const labelWrap = document.createElement('div');
-            labelWrap.className = 'min-w-0 flex-1';
-
-            const labelFieldLabel = document.createElement('label');
-            labelFieldLabel.className = 'block text-xs font-medium text-slate-600';
-            labelFieldLabel.textContent = 'البيان';
-
-            const labelInput = document.createElement('input');
-            labelInput.type = 'text';
-            labelInput.value = label || '';
-            labelInput.placeholder = 'مثال: أجور واتعاب';
-            labelInput.setAttribute('data-invoice-custom-fee-label', '');
-            labelInput.className = 'admin-filter-control mt-1 w-full';
-
-            labelWrap.appendChild(labelFieldLabel);
-            labelWrap.appendChild(labelInput);
-
-            const amountWrap = document.createElement('div');
-            amountWrap.className = 'w-36 shrink-0';
-
-            const amountFieldLabel = document.createElement('label');
-            amountFieldLabel.className = 'block text-xs font-medium text-slate-600';
-            amountFieldLabel.textContent = 'المبلغ';
-
-            const amountInput = document.createElement('input');
-            amountInput.type = 'number';
-            amountInput.value = amount ?? '';
-            amountInput.min = '0';
-            amountInput.step = '0.01';
-            amountInput.setAttribute('data-invoice-custom-fee-amount', '');
-            amountInput.className = 'admin-filter-control mt-1 w-full text-right';
-            setupCustomFeeAmountInput(amountInput);
-
-            amountWrap.appendChild(amountFieldLabel);
-            amountWrap.appendChild(amountInput);
-
-            const removeBtn = document.createElement('button');
-            removeBtn.type = 'button';
-            removeBtn.setAttribute('data-invoice-remove-custom-fee', '');
-            removeBtn.className = 'shrink-0 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50';
-            removeBtn.title = 'حذف البند';
-            removeBtn.textContent = '×';
-            removeBtn.addEventListener('click', function () {
+            const removeBtn = row.querySelector('[data-invoice-remove-custom-fee]');
+            removeBtn?.addEventListener('click', function () {
                 row.remove();
                 reindexCustomFeeInputs();
                 updateGrandTotalPreview();
             });
 
-            row.appendChild(labelWrap);
-            row.appendChild(amountWrap);
-            row.appendChild(removeBtn);
-            customFeesList.appendChild(row);
+            updateCustomFeeRowTotal(row);
+        }
+
+        function addCustomFeeRow(fee) {
+            if (!customFeesBody) {
+                return;
+            }
+
+            fee = fee || {};
+
+            const row = document.createElement('tr');
+            row.setAttribute('data-invoice-custom-fee-row', '');
+
+            const numTd = document.createElement('td');
+            numTd.className = 'px-3 py-2 text-center text-slate-500';
+            numTd.setAttribute('data-invoice-custom-fee-num', '');
+            numTd.textContent = '0';
+            row.appendChild(numTd);
+
+            const projectTd = document.createElement('td');
+            projectTd.className = 'px-3 py-2';
+            const projectInput = document.createElement('input');
+            projectInput.type = 'text';
+            projectInput.value = fee.project_zone || '';
+            projectInput.placeholder = 'مثال: قاسيون';
+            projectInput.setAttribute('data-invoice-custom-fee-project-zone', '');
+            projectInput.className = 'admin-filter-control w-full min-w-[8rem]';
+            projectTd.appendChild(projectInput);
+            row.appendChild(projectTd);
+
+            const descTd = document.createElement('td');
+            descTd.className = 'px-3 py-2';
+            const descInput = document.createElement('input');
+            descInput.type = 'text';
+            descInput.value = fee.description || '';
+            descInput.placeholder = 'مثال: أجور متابعة و اشراف';
+            descInput.setAttribute('data-invoice-custom-fee-description', '');
+            descInput.className = 'admin-filter-control w-full min-w-[10rem]';
+            descTd.appendChild(descInput);
+            row.appendChild(descTd);
+
+            const qtyTd = document.createElement('td');
+            qtyTd.className = 'px-3 py-2';
+            const qtyInput = document.createElement('input');
+            qtyInput.type = 'number';
+            qtyInput.value = fee.quantity ?? '';
+            qtyInput.min = '0';
+            qtyInput.step = '0.001';
+            qtyInput.setAttribute('data-invoice-custom-fee-quantity', '');
+            qtyInput.className = 'admin-filter-control w-24 text-right';
+            qtyTd.appendChild(qtyInput);
+            row.appendChild(qtyTd);
+
+            const unitTd = document.createElement('td');
+            unitTd.className = 'px-3 py-2';
+            const unitInput = document.createElement('input');
+            unitInput.type = 'text';
+            unitInput.value = fee.unit || '';
+            unitInput.placeholder = 'مثال: يوم';
+            unitInput.setAttribute('data-invoice-custom-fee-unit', '');
+            unitInput.className = 'admin-filter-control w-24';
+            unitTd.appendChild(unitInput);
+            row.appendChild(unitTd);
+
+            const priceTd = document.createElement('td');
+            priceTd.className = 'px-3 py-2';
+            const priceInput = document.createElement('input');
+            priceInput.type = 'number';
+            priceInput.value = fee.unit_price ?? '';
+            priceInput.min = '0';
+            priceInput.step = '0.01';
+            priceInput.setAttribute('data-invoice-custom-fee-unit-price', '');
+            priceInput.className = 'admin-filter-control w-28 text-right';
+            priceTd.appendChild(priceInput);
+            row.appendChild(priceTd);
+
+            const totalTd = document.createElement('td');
+            totalTd.className = 'px-3 py-2 text-right font-medium text-slate-900 tabular-nums';
+            totalTd.setAttribute('data-invoice-custom-fee-line-total', '');
+            totalTd.textContent = '0.00';
+            row.appendChild(totalTd);
+
+            const actionTd = document.createElement('td');
+            actionTd.className = 'px-3 py-2 text-center';
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.setAttribute('data-invoice-remove-custom-fee', '');
+            removeBtn.className = 'rounded-lg border border-slate-300 px-2 py-1 text-sm text-slate-600 hover:bg-slate-50';
+            removeBtn.title = 'حذف البند';
+            removeBtn.textContent = '×';
+            actionTd.appendChild(removeBtn);
+            row.appendChild(actionTd);
+
+            customFeesBody.appendChild(row);
+            setupCustomFeeRow(row);
             reindexCustomFeeInputs();
         }
 
-        customFeesList?.querySelectorAll('[data-invoice-remove-custom-fee]').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                const row = btn.closest('[data-invoice-custom-fee-row]');
-                row?.remove();
-                reindexCustomFeeInputs();
-                updateGrandTotalPreview();
-            });
-        });
-
-        customFeesList?.querySelectorAll('[data-invoice-custom-fee-amount]').forEach(setupCustomFeeAmountInput);
+        customFeesBody?.querySelectorAll('[data-invoice-custom-fee-row]').forEach(setupCustomFeeRow);
 
         addCustomFeeBtn?.addEventListener('click', function () {
-            addCustomFeeRow('', '');
+            addCustomFeeRow({});
         });
 
         reindexCustomFeeInputs();
@@ -415,11 +474,8 @@
 
         function feesSubtotal() {
             let total = 0;
-            feeInputs.forEach(function (input) {
-                total += parseFloat(input.value || 0);
-            });
-            (customFeesList?.querySelectorAll('[data-invoice-custom-fee-amount]') || []).forEach(function (input) {
-                total += parseFloat(input.value || 0);
+            (customFeesBody?.querySelectorAll('[data-invoice-custom-fee-row]') || []).forEach(function (row) {
+                total += customFeeLineTotal(row);
             });
             return total;
         }
@@ -432,10 +488,6 @@
             const code = (currencyInput?.value || '').trim().toUpperCase();
             grandTotalPreview.textContent = formatMoney(total) + (code ? ' ' + code : '');
         }
-
-        feeInputs.forEach(function (input) {
-            input.addEventListener('input', updateGrandTotalPreview);
-        });
 
         function applyRowGroupStyles() {
             allLineCheckboxes().forEach(function (cb) {

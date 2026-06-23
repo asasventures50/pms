@@ -9,8 +9,11 @@
     }
     $oldCustomFees = collect(old('custom_fees', $defaults['custom_fees'] ?? []))
         ->map(fn ($fee) => [
-            'label' => trim((string) ($fee['label'] ?? '')),
-            'amount' => $fee['amount'] ?? '',
+            'project_zone' => trim((string) ($fee['project_zone'] ?? '')),
+            'description' => trim((string) ($fee['description'] ?? $fee['label'] ?? '')),
+            'quantity' => $fee['quantity'] ?? '',
+            'unit' => trim((string) ($fee['unit'] ?? '')),
+            'unit_price' => $fee['unit_price'] ?? ($fee['amount'] ?? ''),
         ])
         ->values()
         ->all();
@@ -150,62 +153,86 @@
     </section>
 
     <section id="invoice-fees-section" class="@unless(count($oldPoIds)) hidden @endunless">
-        <h2 class="text-lg font-semibold text-slate-900">Additional fees</h2>
-        <p class="mt-1 text-sm text-slate-500">Optional amounts added before the grand total on the printed invoice.</p>
-        <div class="mt-4 grid max-w-2xl gap-4 sm:grid-cols-2">
-            @foreach ([
-                'transport_fees' => 'أجور نقل و مواصلات',
-                'supervision_fees' => 'أجور متابعة و اشراف',
-                'administrative_fees' => 'مصاريف و اجور ادارية',
-                'logistics_fees' => 'مصاريف و اجور لوجستية',
-            ] as $field => $label)
-                <div>
-                    <label for="{{ $field }}" class="block text-xs font-medium text-slate-600">{{ $label }}</label>
-                    <input type="number" name="{{ $field }}" id="{{ $field }}"
-                           value="{{ old($field, $defaults[$field] ?? '0') }}"
-                           min="0" step="0.01"
-                           data-invoice-fee-input
-                           class="admin-filter-control mt-1 w-full text-right @error($field) border-red-500 @enderror">
-                    @error($field)<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
-                </div>
-            @endforeach
-        </div>
-        <div class="mt-6 border-t border-slate-200 pt-6">
-            <h3 class="text-sm font-semibold text-slate-900">رسوم إضافية أخرى</h3>
-            <p class="mt-1 text-sm text-slate-500">اختياري — أضف أي عدد من البنود (اسم + مبلغ). تظهر بالطباعة مرقّمة مع الجدول وتُجمع في المجموع الكلي.</p>
-            <div id="invoice-custom-fees-list" class="mt-4 max-w-2xl space-y-3">
+        <h2 class="text-lg font-semibold text-slate-900">رسوم إضافية</h2>
+        <p class="mt-1 text-sm text-slate-500">اختياري — أضف بنوداً يدوياً بنفس أعمدة جدول الفاتورة. تظهر بالطباعة مرقّمة بعد بنود P.O. وتُجمع في المجموع الكلي.</p>
+        <div class="mt-4 overflow-x-auto rounded-lg border border-slate-200">
+            <table class="min-w-full text-left text-sm">
+                <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <tr>
+                    <th class="px-3 py-2 w-10">م</th>
+                    <th class="px-3 py-2">المشروع / المنطقة</th>
+                    <th class="px-3 py-2">البيان</th>
+                    <th class="px-3 py-2">الكمية</th>
+                    <th class="px-3 py-2">الوحدة</th>
+                    <th class="px-3 py-2 text-right">
+                        <span data-invoice-fee-price-label data-invoice-price-label-base="سعر الوحدة">سعر الوحدة{{ $currencyCode ? ' ('.$currencyCode.')' : '' }}</span>
+                    </th>
+                    <th class="px-3 py-2 text-right">
+                        <span data-invoice-fee-total-label data-invoice-price-label-base="المجموع">المجموع{{ $currencyCode ? ' ('.$currencyCode.')' : '' }}</span>
+                    </th>
+                    <th class="px-3 py-2 w-10"></th>
+                </tr>
+                </thead>
+                <tbody id="invoice-custom-fees-body" class="divide-y divide-slate-100">
                 @foreach ($oldCustomFees as $index => $customFee)
-                    <div class="invoice-custom-fee-row flex flex-wrap items-end gap-2 sm:flex-nowrap" data-invoice-custom-fee-row>
-                        <div class="min-w-0 flex-1">
-                            <label class="block text-xs font-medium text-slate-600">البيان</label>
-                            <input type="text" name="custom_fees[{{ $index }}][label]"
-                                   value="{{ $customFee['label'] }}"
-                                   placeholder="مثال: أجور واتعاب"
-                                   data-invoice-custom-fee-label
-                                   class="admin-filter-control mt-1 w-full @error('custom_fees.'.$index.'.label') border-red-500 @enderror">
-                            @error('custom_fees.'.$index.'.label')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
-                        </div>
-                        <div class="w-36 shrink-0">
-                            <label class="block text-xs font-medium text-slate-600">المبلغ</label>
-                            <input type="number" name="custom_fees[{{ $index }}][amount]"
-                                   value="{{ $customFee['amount'] }}"
+                    <tr data-invoice-custom-fee-row>
+                        <td class="px-3 py-2 text-center text-slate-500" data-invoice-custom-fee-num>{{ $index + 1 }}</td>
+                        <td class="px-3 py-2">
+                            <input type="text" name="custom_fees[{{ $index }}][project_zone]"
+                                   value="{{ $customFee['project_zone'] }}"
+                                   placeholder="مثال: قاسيون"
+                                   data-invoice-custom-fee-project-zone
+                                   class="admin-filter-control w-full min-w-[8rem] @error('custom_fees.'.$index.'.project_zone') border-red-500 @enderror">
+                            @error('custom_fees.'.$index.'.project_zone')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                        </td>
+                        <td class="px-3 py-2">
+                            <input type="text" name="custom_fees[{{ $index }}][description]"
+                                   value="{{ $customFee['description'] }}"
+                                   placeholder="مثال: أجور متابعة و اشراف"
+                                   data-invoice-custom-fee-description
+                                   class="admin-filter-control w-full min-w-[10rem] @error('custom_fees.'.$index.'.description') border-red-500 @enderror">
+                            @error('custom_fees.'.$index.'.description')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                        </td>
+                        <td class="px-3 py-2">
+                            <input type="number" name="custom_fees[{{ $index }}][quantity]"
+                                   value="{{ $customFee['quantity'] }}"
+                                   min="0" step="0.001"
+                                   data-invoice-custom-fee-quantity
+                                   class="admin-filter-control w-24 text-right @error('custom_fees.'.$index.'.quantity') border-red-500 @enderror">
+                            @error('custom_fees.'.$index.'.quantity')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                        </td>
+                        <td class="px-3 py-2">
+                            <input type="text" name="custom_fees[{{ $index }}][unit]"
+                                   value="{{ $customFee['unit'] }}"
+                                   placeholder="مثال: يوم"
+                                   data-invoice-custom-fee-unit
+                                   class="admin-filter-control w-24 @error('custom_fees.'.$index.'.unit') border-red-500 @enderror">
+                            @error('custom_fees.'.$index.'.unit')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                        </td>
+                        <td class="px-3 py-2">
+                            <input type="number" name="custom_fees[{{ $index }}][unit_price]"
+                                   value="{{ $customFee['unit_price'] }}"
                                    min="0" step="0.01"
-                                   data-invoice-custom-fee-amount
-                                   class="admin-filter-control mt-1 w-full text-right @error('custom_fees.'.$index.'.amount') border-red-500 @enderror">
-                            @error('custom_fees.'.$index.'.amount')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
-                        </div>
-                        <button type="button" data-invoice-remove-custom-fee
-                                class="shrink-0 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
-                                title="حذف البند">×</button>
-                    </div>
+                                   data-invoice-custom-fee-unit-price
+                                   class="admin-filter-control w-28 text-right @error('custom_fees.'.$index.'.unit_price') border-red-500 @enderror">
+                            @error('custom_fees.'.$index.'.unit_price')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                        </td>
+                        <td class="px-3 py-2 text-right font-medium text-slate-900 tabular-nums" data-invoice-custom-fee-line-total>0.00</td>
+                        <td class="px-3 py-2 text-center">
+                            <button type="button" data-invoice-remove-custom-fee
+                                    class="rounded-lg border border-slate-300 px-2 py-1 text-sm text-slate-600 hover:bg-slate-50"
+                                    title="حذف البند">×</button>
+                        </td>
+                    </tr>
                 @endforeach
-            </div>
-            <button type="button" id="invoice-add-custom-fee-btn"
-                    class="mt-3 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">
-                + إضافة بند
-            </button>
-            @error('custom_fees')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
+                </tbody>
+            </table>
         </div>
+        <button type="button" id="invoice-add-custom-fee-btn"
+                class="mt-3 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">
+            + إضافة بند
+        </button>
+        @error('custom_fees')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
         <div class="mt-4 max-w-xs rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
             <div class="flex items-center justify-between gap-4">
                 <span class="font-medium text-slate-700">المجموع الكلي (preview)</span>

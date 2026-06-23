@@ -1,6 +1,6 @@
 <div class="inv-pre-footer">
     <div class="inv-pre-footer-col inv-pre-footer-signature inv-pre-footer-signature--receive">
-        <span class="inv-signature-label">تم استلام الفاتورة عن طريق</span>
+        <span class="inv-signature-label">استلام العميل للفاتورة</span>
         <div class="inv-signature-line"></div>
         <span class="inv-signature-caption"></span>
         <span class="inv-signature-caption"></span>

@@ -92,19 +92,19 @@ class Invoice extends Model
 
     public function feesSubtotal(): float
     {
-        $fixed = (float) $this->transport_fees
+        $legacyFixed = (float) $this->transport_fees
             + (float) $this->supervision_fees
             + (float) $this->administrative_fees
             + (float) $this->logistics_fees;
-        $custom = (float) collect($this->customFeesForDisplay())->sum('amount');
+        $custom = (float) collect($this->feeLinesForDisplay())->sum('amount');
 
-        return round($fixed + $custom, 2);
+        return round($legacyFixed + $custom, 2);
     }
 
     /**
-     * @return list<array{label: string, amount: float}>
+     * @return list<array{project_zone: string, description: string, quantity: float, unit: string, unit_price: float, amount: float}>
      */
-    public function customFeesForDisplay(): array
+    public function feeLinesForDisplay(): array
     {
         return collect($this->custom_fees ?? [])
             ->map(function (mixed $fee): ?array {
@@ -112,14 +112,27 @@ class Invoice extends Model
                     return null;
                 }
 
-                $label = trim((string) ($fee['label'] ?? ''));
-                $amount = round((float) ($fee['amount'] ?? 0), 2);
+                $description = trim((string) ($fee['description'] ?? $fee['label'] ?? ''));
+                $quantity = round((float) ($fee['quantity'] ?? 1), 3);
+                $unitPrice = round((float) ($fee['unit_price'] ?? 0), 2);
+                $amount = round((float) ($fee['amount'] ?? ($quantity * $unitPrice)), 2);
 
-                if ($label === '' || $amount <= 0) {
+                if ($description === '' || $amount <= 0) {
                     return null;
                 }
 
-                return ['label' => $label, 'amount' => $amount];
+                if ($quantity > 0 && $unitPrice > 0) {
+                    $amount = round($quantity * $unitPrice, 2);
+                }
+
+                return [
+                    'project_zone' => trim((string) ($fee['project_zone'] ?? '')),
+                    'description' => $description,
+                    'quantity' => $quantity,
+                    'unit' => trim((string) ($fee['unit'] ?? '')),
+                    'unit_price' => $unitPrice,
+                    'amount' => $amount,
+                ];
             })
             ->filter()
             ->values()
@@ -127,18 +140,45 @@ class Invoice extends Model
     }
 
     /**
-     * @return list<array{label: string, amount: float}>
+     * @return list<array{project_zone: string, description: string, quantity: float, unit: string, unit_price: float, amount: float}>
+     */
+    public function feeRowsForEdit(): array
+    {
+        $legacyRows = array_values(array_filter([
+            $this->legacyFeeRow('أجور نقل و مواصلات', (float) $this->transport_fees),
+            $this->legacyFeeRow('أجور متابعة و اشراف', (float) $this->supervision_fees),
+            $this->legacyFeeRow('مصاريف و اجور ادارية', (float) $this->administrative_fees),
+            $this->legacyFeeRow('مصاريف و اجور لوجستية', (float) $this->logistics_fees),
+        ]));
+
+        return array_merge($legacyRows, $this->feeLinesForDisplay());
+    }
+
+    /**
+     * @return list<array{project_zone: string, description: string, quantity: float, unit: string, unit_price: float, amount: float}>
      */
     public function feeRowsForPrint(): array
     {
-        $fixed = array_values(array_filter([
-            ['label' => 'أجور نقل و مواصلات', 'amount' => (float) $this->transport_fees],
-            ['label' => 'أجور متابعة و اشراف', 'amount' => (float) $this->supervision_fees],
-            ['label' => 'مصاريف و اجور ادارية', 'amount' => (float) $this->administrative_fees],
-            ['label' => 'مصاريف و اجور لوجستية', 'amount' => (float) $this->logistics_fees],
-        ], static fn (array $fee): bool => $fee['amount'] > 0));
+        return $this->feeRowsForEdit();
+    }
 
-        return array_merge($fixed, $this->customFeesForDisplay());
+    /**
+     * @return ?array{project_zone: string, description: string, quantity: float, unit: string, unit_price: float, amount: float}
+     */
+    private function legacyFeeRow(string $description, float $amount): ?array
+    {
+        if ($amount <= 0) {
+            return null;
+        }
+
+        return [
+            'project_zone' => '',
+            'description' => $description,
+            'quantity' => 1,
+            'unit' => '',
+            'unit_price' => $amount,
+            'amount' => $amount,
+        ];
     }
 
     /**

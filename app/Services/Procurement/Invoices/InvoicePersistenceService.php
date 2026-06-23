@@ -104,10 +104,6 @@ class InvoicePersistenceService
         int $createdBy,
         bool $mergedLines,
         string $currencyCode,
-        float $transportFees,
-        float $supervisionFees,
-        float $administrativeFees,
-        float $logisticsFees,
         array $notes,
         array $customFees = [],
     ): array {
@@ -135,14 +131,29 @@ class InvoicePersistenceService
                     return null;
                 }
 
-                $label = trim((string) ($fee['label'] ?? ''));
-                $amount = round((float) ($fee['amount'] ?? 0), 2);
+                $projectZone = trim((string) ($fee['project_zone'] ?? ''));
+                $description = trim((string) ($fee['description'] ?? $fee['label'] ?? ''));
+                $quantity = round((float) ($fee['quantity'] ?? 0), 3);
+                $unit = trim((string) ($fee['unit'] ?? ''));
+                $unitPrice = round((float) ($fee['unit_price'] ?? 0), 2);
 
-                if ($label === '' || $amount <= 0) {
+                if ($description === '' || $quantity <= 0 || $unitPrice < 0) {
                     return null;
                 }
 
-                return ['label' => $label, 'amount' => $amount];
+                $amount = round($quantity * $unitPrice, 2);
+                if ($amount <= 0) {
+                    return null;
+                }
+
+                return [
+                    'project_zone' => $projectZone !== '' ? $projectZone : null,
+                    'description' => $description,
+                    'quantity' => $quantity,
+                    'unit' => $unit !== '' ? $unit : null,
+                    'unit_price' => $unitPrice,
+                    'amount' => $amount,
+                ];
             })
             ->filter()
             ->values()
@@ -156,10 +167,10 @@ class InvoicePersistenceService
             'po_number' => $poNumbers->implode(', '),
             'vendor_company_name' => $vendorNames->isNotEmpty() ? $vendorNames->implode(' · ') : null,
             'currency_code' => InvoiceCurrencyResolver::normalizeCode($currencyCode) ?? InvoiceCurrencyResolver::DEFAULT,
-            'transport_fees' => $transportFees,
-            'supervision_fees' => $supervisionFees,
-            'administrative_fees' => $administrativeFees,
-            'logistics_fees' => $logisticsFees,
+            'transport_fees' => 0,
+            'supervision_fees' => 0,
+            'administrative_fees' => 0,
+            'logistics_fees' => 0,
             'merged_lines' => $mergedLines,
             'notes' => $cleanNotes !== [] ? $cleanNotes : null,
             'custom_fees' => $cleanCustomFees !== [] ? $cleanCustomFees : null,
