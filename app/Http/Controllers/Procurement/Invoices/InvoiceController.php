@@ -10,6 +10,7 @@ use App\Models\Procurement\PurchaseOrders\PurchaseOrderItem;
 use App\Services\Procurement\Invoices\InvoiceCurrencyResolver;
 use App\Services\Procurement\Invoices\InvoiceLineBuilder;
 use App\Services\Procurement\Invoices\InvoicePersistenceService;
+use App\Services\Procurement\Invoices\InvoiceProjectZoneResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -82,6 +83,12 @@ class InvoiceController extends Controller
 
         $selectedItems = PurchaseOrderItem::query()
             ->whereIn('id', $selectedIds)
+            ->with([
+                'purchaseOrder.procurementRequest.items.project',
+                'purchaseOrder.procurementRequest.items.zone',
+                'purchaseOrder.procurementRequest.project',
+                'purchaseOrder.procurementRequest.zone',
+            ])
             ->get()
             ->sortBy(fn (PurchaseOrderItem $item) => $selectedIds->search($item->id))
             ->values();
@@ -107,6 +114,17 @@ class InvoiceController extends Controller
             return back()->withInput()->withErrors(['purchase_order_item_ids' => 'Select at least one line item.']);
         }
 
+        $projectZoneResolver = InvoiceProjectZoneResolver::fromPurchaseOrderItems($selectedItems);
+        $lines = array_map(function (array $line) use ($projectZoneResolver, $selectedItems) {
+            $sourceIds = collect($line['source_purchase_order_item_ids'] ?? [])
+                ->map(fn ($id) => (int) $id)
+                ->all();
+            $sourceItems = $selectedItems->whereIn('id', $sourceIds)->values();
+            $line['project_zone'] = $projectZoneResolver->forPoItems($sourceItems);
+
+            return $line;
+        }, $lines);
+
         $primaryPurchaseOrder = $purchaseOrders->first();
         $currencyCode = InvoiceCurrencyResolver::resolveForStore(
             $validated['currency_code'] ?? null,
@@ -116,6 +134,9 @@ class InvoiceController extends Controller
         $header = InvoicePersistenceService::headerFromPurchaseOrders(
             $purchaseOrders,
             trim($validated['recipient_name']),
+            filled($validated['project_manager_name'] ?? null)
+                ? trim((string) $validated['project_manager_name'])
+                : null,
             (int) $request->user()->id,
             $mergeGroups !== [],
             $currencyCode,
@@ -123,6 +144,7 @@ class InvoiceController extends Controller
             round((float) ($validated['supervision_fees'] ?? 0), 2),
             round((float) ($validated['administrative_fees'] ?? 0), 2),
             round((float) ($validated['logistics_fees'] ?? 0), 2),
+            $validated['notes'] ?? [],
         );
 
         $invoice = $this->persistence->create($header, $purchaseOrderIds, $lines);
@@ -134,19 +156,48 @@ class InvoiceController extends Controller
 
     public function print(Invoice $invoice): View
     {
-        $invoice->load(['items', 'purchaseOrders', 'creator']);
+        $invoice->load(['items', 'purchaseOrders.procurementRequest', 'creator']);
+
+        $sourcePoItemIds = $invoice->items
+            ->flatMap(fn ($item) => $item->source_purchase_order_item_ids ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        $poItemsById = PurchaseOrderItem::query()
+            ->whereIn('id', $sourcePoItemIds)
+            ->with([
+                'purchaseOrder.procurementRequest.items.project',
+                'purchaseOrder.procurementRequest.items.zone',
+                'purchaseOrder.procurementRequest.project',
+                'purchaseOrder.procurementRequest.zone',
+            ])
+            ->get()
+            ->keyBy('id');
+
+        $projectZoneResolver = InvoiceProjectZoneResolver::fromPurchaseOrderItems($poItemsById->values());
 
         return view('procurement.invoices.print', [
             'invoice' => $invoice,
+            'poItemsById' => $poItemsById,
+            'projectZoneResolver' => $projectZoneResolver,
         ]);
     }
 
     public function purchaseOrderItems(PurchaseOrder $purchaseOrder): JsonResponse
     {
-        $purchaseOrder->load(['items', 'vendor', 'procurementRequest']);
+        $purchaseOrder->load([
+            'items',
+            'vendor',
+            'procurementRequest.items.project',
+            'procurementRequest.items.zone',
+            'procurementRequest.project',
+            'procurementRequest.zone',
+        ]);
 
         $vendorName = trim((string) ($purchaseOrder->vendor_company_name ?? $purchaseOrder->vendor?->name ?? ''));
         $currency = InvoiceCurrencyResolver::resolveWithSource($purchaseOrder);
+        $projectZoneResolver = new InvoiceProjectZoneResolver($purchaseOrder->procurementRequest);
 
         return response()->json([
             'id' => $purchaseOrder->id,
@@ -160,6 +211,7 @@ class InvoiceController extends Controller
                 'purchase_order_id' => $purchaseOrder->id,
                 'po_number' => $purchaseOrder->po_number,
                 'line_code' => trim((string) ($item->item ?? '')),
+                'project_zone' => $projectZoneResolver->forPoItem($item),
                 'description' => $item->description,
                 'quantity' => (float) $item->quantity,
                 'unit' => $item->unit,

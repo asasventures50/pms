@@ -5,6 +5,9 @@
         const poCheckboxes = poList?.querySelectorAll('[data-invoice-po-checkbox]') || [];
         const linesSection = document.getElementById('invoice-lines-section');
         const feesSection = document.getElementById('invoice-fees-section');
+        const notesSection = document.getElementById('invoice-notes-section');
+        const notesList = document.getElementById('invoice-notes-list');
+        const addNoteBtn = document.getElementById('invoice-add-note-btn');
         const linesBody = document.getElementById('invoice-lines-body');
         const selectAll = document.getElementById('invoice-select-all-lines');
         const mergeToolbar = document.getElementById('invoice-merge-toolbar');
@@ -112,6 +115,84 @@
         });
 
         updateCurrencyLabels();
+
+        function updateNoteRemoveButtons() {
+            const rows = notesList?.querySelectorAll('[data-invoice-note-row]') || [];
+            rows.forEach(function (row) {
+                const removeBtn = row.querySelector('[data-invoice-remove-note]');
+                if (removeBtn) {
+                    removeBtn.classList.toggle('hidden', rows.length <= 1);
+                }
+            });
+        }
+
+        function setupNoteTextarea(textarea) {
+            textarea.setAttribute('data-invoice-note-input', '');
+            textarea.rows = 3;
+            textarea.className = 'admin-filter-control invoice-note-textarea min-h-[4.5rem] resize-y flex-1';
+
+            function autoResize() {
+                textarea.style.height = 'auto';
+                textarea.style.height = Math.max(72, textarea.scrollHeight) + 'px';
+            }
+
+            textarea.addEventListener('input', autoResize);
+            autoResize();
+        }
+
+        function addNoteRow(value) {
+            if (!notesList) {
+                return;
+            }
+
+            const row = document.createElement('div');
+            row.className = 'invoice-note-row flex items-start gap-2';
+            row.setAttribute('data-invoice-note-row', '');
+
+            const input = document.createElement('textarea');
+            input.name = 'notes[]';
+            input.value = value || '';
+            input.placeholder = 'ملاحظة';
+            setupNoteTextarea(input);
+
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.setAttribute('data-invoice-remove-note', '');
+            removeBtn.className = 'rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50';
+            removeBtn.title = 'حذف الملاحظة';
+            removeBtn.textContent = '×';
+            removeBtn.addEventListener('click', function () {
+                row.remove();
+                if (notesList.querySelectorAll('[data-invoice-note-row]').length === 0) {
+                    addNoteRow('');
+                }
+                updateNoteRemoveButtons();
+            });
+
+            row.appendChild(input);
+            row.appendChild(removeBtn);
+            notesList.appendChild(row);
+            updateNoteRemoveButtons();
+        }
+
+        notesList?.querySelectorAll('[data-invoice-remove-note]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const row = btn.closest('[data-invoice-note-row]');
+                row?.remove();
+                if (notesList.querySelectorAll('[data-invoice-note-row]').length === 0) {
+                    addNoteRow('');
+                }
+                updateNoteRemoveButtons();
+            });
+        });
+
+        addNoteBtn?.addEventListener('click', function () {
+            addNoteRow('');
+        });
+
+        notesList?.querySelectorAll('[data-invoice-note-input]').forEach(setupNoteTextarea);
+
+        updateNoteRemoveButtons();
 
         function selectedCheckboxes() {
             return linesBody?.querySelectorAll('input[type="checkbox"][data-po-item-id]:checked') || [];
@@ -423,6 +504,11 @@
                 poTd.textContent = item.po_number || '—';
                 tr.appendChild(poTd);
 
+                const projectTd = document.createElement('td');
+                projectTd.className = 'px-3 py-3 text-sm text-slate-700';
+                projectTd.textContent = item.project_zone || '—';
+                tr.appendChild(projectTd);
+
                 const descTd = document.createElement('td');
                 descTd.className = 'px-3 py-3 text-slate-800';
                 descTd.textContent = item.description || '—';
@@ -492,6 +578,7 @@
             if (!urlTemplate || poIds.length === 0) {
                 linesSection?.classList.add('hidden');
                 feesSection?.classList.add('hidden');
+                notesSection?.classList.add('hidden');
                 poSummary?.classList.add('hidden');
                 mergeToolbar?.classList.add('hidden');
                 poItems = [];
@@ -541,6 +628,7 @@
 
             linesSection?.classList.remove('hidden');
             feesSection?.classList.remove('hidden');
+            notesSection?.classList.remove('hidden');
         }
 
         poCheckboxes.forEach(function (checkbox) {

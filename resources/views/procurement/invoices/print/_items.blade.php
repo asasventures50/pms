@@ -1,4 +1,6 @@
 @php
+    use App\Services\Procurement\Invoices\InvoiceProjectZoneResolver;
+
     $currency = $invoice->displayCurrency();
     $currencySuffix = $currency ? ' ('.$currency.')' : '';
     $feeRows = array_values(array_filter([
@@ -8,6 +10,8 @@
         ['label' => 'مصاريف و اجور لوجستية', 'amount' => (float) $invoice->logistics_fees],
     ], static fn (array $fee): bool => $fee['amount'] > 0));
     $nextLineNumber = ((int) $invoice->items->max('line_number')) + 1;
+    $projectZoneResolver = $projectZoneResolver ?? null;
+    $poItemsById = $poItemsById ?? collect();
 @endphp
 
 <div class="inv-tables-block">
@@ -16,6 +20,7 @@
     <thead>
     <tr>
         <th class="col-num">م</th>
+        <th class="col-project">المشروع / المنطقة</th>
         <th class="col-desc">البيان</th>
         <th class="col-qty">الكمية</th>
         <th class="col-unit">الوحدة</th>
@@ -25,8 +30,15 @@
     </thead>
     <tbody>
     @foreach ($invoice->items as $line)
+        @php
+            $projectZone = $projectZoneResolver instanceof InvoiceProjectZoneResolver
+                ? $projectZoneResolver->forInvoiceItem($line, $poItemsById)
+                : trim((string) ($line->project_zone ?? ''));
+            $projectZone = $projectZone !== '' ? $projectZone : '—';
+        @endphp
         <tr>
             <td class="inv-cell-num">{{ $line->line_number }}</td>
+            <td class="inv-cell-project">{{ $projectZone }}</td>
             <td class="inv-cell-text">{{ $line->description }}</td>
             <td class="inv-cell-num">{{ number_format($line->quantity, 3) }}</td>
             <td class="inv-cell-num">{{ $line->unit ?: '—' }}</td>
@@ -37,12 +49,12 @@
     @foreach ($feeRows as $fee)
         <tr class="inv-fee-row">
             <td class="inv-cell-num">{{ $nextLineNumber++ }}</td>
-            <td colspan="4" class="inv-fee-label">{{ $fee['label'] }}</td>
+            <td colspan="5" class="inv-fee-label">{{ $fee['label'] }}</td>
             <td class="inv-cell-money inv-fee-value">{{ $invoice->formatMoneyAmount($fee['amount']) }}</td>
         </tr>
     @endforeach
     <tr class="inv-totals-grand">
-        <td colspan="5" class="inv-fee-label">المجموع الكلي</td>
+        <td colspan="6" class="inv-fee-label">المجموع الكلي</td>
         <td class="inv-cell-money inv-grand-total-amount">{{ $invoice->formatMoneyAmount($invoice->total_price) }}</td>
     </tr>
     </tbody>

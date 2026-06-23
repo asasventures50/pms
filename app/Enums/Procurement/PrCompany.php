@@ -46,7 +46,8 @@ enum PrCompany: string
      *     email: string|null,
      *     fax: string|null,
      *     commercial_registry: string|null,
-     *     company_legal_type: string|null
+     *     company_legal_type: string|null,
+     *     bank: array{title: string, lines: list<string>}
      * }
      */
     public function details(): array
@@ -60,6 +61,14 @@ enum PrCompany: string
                 'fax' => '011-3344953',
                 'commercial_registry' => 'مسجلة في السجل التجاري تحت الرقم: ۲۰۹۹۹',
                 'company_legal_type' => 'شركة محدودة المسؤولية ورأسمالها خمسون مليون ليرة سورية',
+                'bank' => [
+                    'title' => 'معلومات البنك',
+                    'lines' => [
+                        'البنك: —',
+                        'اسم الحساب: ASAS Ventures',
+                        'رقم الحساب: —',
+                    ],
+                ],
             ],
             self::QassiounJourney => [
                 'name' => 'Qassioun Journey',
@@ -69,6 +78,10 @@ enum PrCompany: string
                 'fax' => '011-3344953',
                 'commercial_registry' => null,
                 'company_legal_type' => null,
+                'bank' => [
+                    'title' => 'معلومات البنك',
+                    'lines' => [],
+                ],
             ],
             self::Activation => [
                 'name' => 'Activation',
@@ -78,6 +91,10 @@ enum PrCompany: string
                 'fax' => '011-3344953',
                 'commercial_registry' => null,
                 'company_legal_type' => null,
+                'bank' => [
+                    'title' => 'معلومات البنك',
+                    'lines' => [],
+                ],
             ],
         };
     }

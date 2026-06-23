@@ -20,6 +20,7 @@ class Invoice extends Model
         'invoice_number',
         'created_by',
         'recipient_name',
+        'project_manager_name',
         'invoiced_at',
         'po_number',
         'vendor_company_name',
@@ -30,12 +31,14 @@ class Invoice extends Model
         'logistics_fees',
         'total_price',
         'merged_lines',
+        'notes',
     ];
 
     protected function casts(): array
     {
         return [
             'invoiced_at' => 'date',
+            'notes' => 'array',
             'transport_fees' => 'decimal:2',
             'supervision_fees' => 'decimal:2',
             'administrative_fees' => 'decimal:2',
@@ -94,5 +97,17 @@ class Invoice extends Model
             + (float) $this->logistics_fees,
             2,
         );
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function displayNotes(): array
+    {
+        return collect($this->notes ?? [])
+            ->map(static fn (mixed $note): string => trim((string) $note))
+            ->filter()
+            ->values()
+            ->all();
     }
 }

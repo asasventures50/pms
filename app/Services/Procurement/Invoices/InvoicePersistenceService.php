@@ -42,6 +42,7 @@ class InvoicePersistenceService
                     'sort_order' => $index,
                     'line_number' => $row['line_number'],
                     'description' => $row['description'],
+                    'project_zone' => $row['project_zone'] ?? null,
                     'quantity' => $row['quantity'],
                     'unit' => $row['unit'] ?? null,
                     'unit_price' => $row['unit_price'],
@@ -61,6 +62,7 @@ class InvoicePersistenceService
     public static function headerFromPurchaseOrders(
         Collection $purchaseOrders,
         string $recipientName,
+        ?string $projectManagerName,
         int $createdBy,
         bool $mergedLines,
         string $currencyCode,
@@ -68,6 +70,7 @@ class InvoicePersistenceService
         float $supervisionFees,
         float $administrativeFees,
         float $logisticsFees,
+        array $notes,
     ): array {
         $vendorNames = $purchaseOrders
             ->map(fn (PurchaseOrder $po) => trim((string) ($po->vendor_company_name ?? $po->vendor?->name ?? '')))
@@ -81,9 +84,16 @@ class InvoicePersistenceService
             ->unique()
             ->values();
 
+        $cleanNotes = collect($notes)
+            ->map(static fn (mixed $note): string => trim((string) $note))
+            ->filter()
+            ->values()
+            ->all();
+
         return [
             'created_by' => $createdBy,
             'recipient_name' => $recipientName,
+            'project_manager_name' => filled($projectManagerName) ? trim($projectManagerName) : null,
             'invoiced_at' => now()->toDateString(),
             'po_number' => $poNumbers->implode(', '),
             'vendor_company_name' => $vendorNames->isNotEmpty() ? $vendorNames->implode(' · ') : null,
@@ -93,6 +103,7 @@ class InvoicePersistenceService
             'administrative_fees' => $administrativeFees,
             'logistics_fees' => $logisticsFees,
             'merged_lines' => $mergedLines,
+            'notes' => $cleanNotes !== [] ? $cleanNotes : null,
         ];
     }
 }

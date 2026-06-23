@@ -6,13 +6,13 @@
         ]);
         $contactParts = [];
         if ($buyer['phone'] ?? null) {
-            $contactParts[] = 'هاتف: <span class="inv-ltr">'.$buyer['phone'].'</span>';
+            $contactParts[] = 'هاتف: <span class="inv-ltr" dir="ltr">'.$buyer['phone'].'</span>';
         }
         if ($buyer['email'] ?? null) {
-            $contactParts[] = 'بريد إلكتروني: <span class="inv-ltr">'.$buyer['email'].'</span>';
+            $contactParts[] = 'بريد إلكتروني: <span class="inv-ltr" dir="ltr">'.$buyer['email'].'</span>';
         }
         if ($buyer['fax'] ?? null) {
-            $contactParts[] = 'فاكس: <span class="inv-ltr">'.$buyer['fax'].'</span>';
+            $contactParts[] = 'فاكس: <span class="inv-ltr" dir="ltr">'.$buyer['fax'].'</span>';
         }
     @endphp
     @if (count($legalParts))

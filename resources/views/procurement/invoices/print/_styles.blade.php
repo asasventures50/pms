@@ -11,18 +11,17 @@
     .inv-print-page {
         max-width: 210mm;
         margin: 0 auto;
-        padding: 16px;
+        padding: 12px;
         box-sizing: border-box;
     }
 
     .inv-print-document {
         display: flex;
         flex-direction: column;
-        min-height: calc(100vh - 32px);
     }
 
     .inv-print-main {
-        flex: 1 0 auto;
+        flex: 0 1 auto;
     }
 
     .inv-print--rtl {
@@ -34,11 +33,11 @@
         display: grid;
         grid-template-columns: 1fr;
         align-items: center;
-        margin-bottom: 20px;
-        padding-bottom: 14px;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
         border-bottom: 1px solid #e5e7eb;
         position: relative;
-        min-height: 72px;
+        min-height: 60px;
     }
 
     .inv-header-logo {
@@ -86,7 +85,7 @@
         justify-content: space-between;
         align-items: baseline;
         width: 100%;
-        margin-bottom: 20px;
+        margin-bottom: 12px;
         font-size: 12px;
     }
 
@@ -107,8 +106,8 @@
     }
 
     .inv-recipient-block {
-        margin-bottom: 20px;
-        padding: 12px 16px;
+        margin-bottom: 12px;
+        padding: 8px 12px;
         border: 1px solid #e5e7eb;
         border-radius: 6px;
         background: #fafafa;
@@ -125,7 +124,7 @@
     }
 
     .inv-tables-block {
-        margin-bottom: 20px;
+        margin-bottom: 12px;
     }
 
     .inv-table-frame {
@@ -146,7 +145,7 @@
     .inv-items-table td {
         border: none;
         border-bottom: 1px solid #e5e7eb;
-        padding: 14px 16px;
+        padding: 8px 10px;
         vertical-align: middle;
         word-wrap: break-word;
     }
@@ -162,7 +161,11 @@
     }
 
     .inv-items-table .col-num {
-        width: 40px;
+        width: 36px;
+    }
+
+    .inv-items-table .col-project {
+        width: 110px;
     }
 
     .inv-items-table .col-desc {
@@ -182,7 +185,7 @@
     }
 
     .inv-items-table .col-total {
-        width: 90px;
+        width: 100px;
     }
 
     .inv-cell-num {
@@ -195,6 +198,13 @@
         text-align: right;
         line-height: 1.6;
         color: #111827;
+    }
+
+    .inv-cell-project {
+        text-align: right;
+        line-height: 1.5;
+        font-size: 11px;
+        color: #374151;
     }
 
     .inv-cell-money {
@@ -213,12 +223,13 @@
     .inv-fee-value {
         font-weight: 600;
         color: #111827;
+        white-space: nowrap;
     }
 
     .inv-totals-grand td {
         border-bottom: none;
-        padding-top: 16px;
-        padding-bottom: 16px;
+        padding-top: 10px;
+        padding-bottom: 10px;
         background-color: #f3f4f6;
     }
 
@@ -232,17 +243,152 @@
         font-size: 16px;
         font-weight: 700;
         color: #111827;
+        white-space: nowrap;
+    }
+
+    .inv-notes-block {
+        margin-bottom: 10px;
+        padding: 8px 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        background: #fafafa;
+        height: auto;
+        min-height: 0;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .inv-notes-title {
+        font-weight: 700;
+        font-size: 13px;
+        color: #111827;
+        margin-bottom: 4px;
+    }
+
+    .inv-notes-list {
+        margin: 0;
+        padding: 0 20px 0 0;
+        list-style-type: disc;
+    }
+
+    .inv-notes-list li {
+        margin-bottom: 4px;
+        line-height: 1.6;
+        color: #374151;
+    }
+
+    .inv-notes-list li:last-child {
+        margin-bottom: 0;
+    }
+
+    .inv-pre-footer {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        width: 100%;
+        margin-top: 0;
+        margin-bottom: 0;
+        padding: 8px 0 4px;
+        border-top: 1px solid #e5e7eb;
+        align-items: start;
+        break-inside: avoid-page;
+        page-break-inside: avoid;
+    }
+
+    .inv-print-bottom {
+        flex-shrink: 0;
+        width: 100%;
+        margin-top: 12px;
+    }
+
+    .inv-pre-footer-col {
+        min-width: 0;
+    }
+
+    .inv-pre-footer-bank {
+        text-align: right;
+    }
+
+    .inv-pre-footer-bank-title {
+        font-weight: 700;
+        font-size: 13px;
+        color: #111827;
+        margin-bottom: 4px;
+        line-height: 1.3;
+    }
+
+    .inv-pre-footer-bank-line {
+        font-size: 12px;
+        line-height: 1.45;
+        color: #374151;
+    }
+
+    .inv-pre-footer-bank-line strong {
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .inv-pre-footer-signature {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .inv-signature-label {
+        font-weight: 700;
+        font-size: 13px;
+        color: #111827;
+        line-height: 1.3;
+    }
+
+    .inv-signature-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: #111827;
+        margin-top: 4px;
+        margin-bottom: 0;
+        line-height: 1.3;
+    }
+
+    .inv-signature-line {
+        width: 12rem;
+        max-width: 100%;
+        margin-top: 4px;
+        flex-shrink: 0;
+        border-top: 2px solid #111827;
+    }
+
+    .inv-signature-caption {
+        width: 12rem;
+        max-width: 100%;
+        margin-top: 10px;
+        flex-shrink: 0;
+        font-size: 11px;
+        color: #374151;
+        text-align: right;
+        padding-inline-end: 6px;
+        line-height: 3;
+    }
+
+    .inv-signature-pad {
+        width: 12rem;
+        max-width: 100%;
+        height: 2.6em;
+        margin-top: 4px;
+        flex-shrink: 0;
+        box-sizing: border-box;
     }
 
     .inv-footer {
         flex-shrink: 0;
-        margin-top: auto;
-        padding-top: 12px;
+        padding: 8px 16px 10px;
         border-top: 1px solid #e5e7eb;
         text-align: center;
         font-size: 9px;
-        line-height: 1.35;
+        line-height: 1.45;
         color: #6b7280;
+        background: #fff;
     }
 
     .inv-footer-legal {
@@ -260,6 +406,10 @@
     }
 
     @media print {
+        @page {
+            margin: 10mm 10mm 10mm;
+        }
+
         body.po-print-body {
             background: #fff;
         }
@@ -271,16 +421,23 @@
         .inv-print-page {
             max-width: none;
             padding: 0;
+            padding-bottom: 0;
         }
 
         .inv-print-document {
-            min-height: 100vh;
+            min-height: 0;
+            padding-bottom: 0;
+        }
+
+        .inv-print-main {
+            padding-bottom: 62mm;
         }
 
         .inv-header,
         .inv-recipient-block,
         .inv-table-frame,
-        .inv-footer {
+        .inv-notes-block,
+        .inv-pre-footer {
             break-inside: avoid-page;
             page-break-inside: avoid;
         }
@@ -292,6 +449,39 @@
         .inv-items-table tbody tr {
             break-inside: avoid-page;
             page-break-inside: avoid;
+        }
+
+        .inv-print-bottom {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            background: #fff;
+            z-index: 1000;
+            padding: 0 10mm;
+            box-sizing: border-box;
+            margin-top: 0;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .inv-pre-footer {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            border-top: none;
+            margin-top: 0;
+            margin-bottom: 0;
+            padding: 6px 0 4px;
+            break-inside: avoid-page;
+            page-break-inside: avoid;
+        }
+
+        .inv-footer {
+            position: static;
+            margin: 0;
+            padding: 6px 0 4px;
+            border-top: 1px solid #e5e7eb;
+            background: #fff;
         }
 
         .inv-totals-grand td {

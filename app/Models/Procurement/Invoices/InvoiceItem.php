@@ -17,6 +17,7 @@ class InvoiceItem extends Model
         'sort_order',
         'line_number',
         'description',
+        'project_zone',
         'quantity',
         'unit',
         'unit_price',

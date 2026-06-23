@@ -2,6 +2,10 @@
     $oldPoIds = collect(old('purchase_order_ids', []))->map(fn ($id) => (int) $id)->all();
     $oldItemIds = collect(old('purchase_order_item_ids', []))->map(fn ($id) => (int) $id)->all();
     $oldMergeGroups = old('merge_groups', []);
+    $oldNotes = collect(old('notes', []))->map(fn ($note) => (string) $note)->filter()->values()->all();
+    if ($oldNotes === []) {
+        $oldNotes = [''];
+    }
     $currencyCode = strtoupper(trim((string) old('currency_code', 'USD')));
     if (strlen($currencyCode) !== 3) {
         $currencyCode = 'USD';
@@ -39,13 +43,23 @@
     <section>
         <h2 class="text-lg font-semibold text-slate-900">Recipient</h2>
         <p class="mt-1 text-sm text-slate-500">Shown at the top of the printed invoice (Arabic).</p>
-        <div class="mt-4 max-w-xl">
-            <label for="recipient_name" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Name</label>
-            <input type="text" name="recipient_name" id="recipient_name"
-                   value="{{ old('recipient_name') }}"
-                   placeholder="e.g. اسم الشخص / اسم الشركة"
-                   class="admin-filter-control mt-1 w-full @error('recipient_name') border-red-500 @enderror">
-            @error('recipient_name')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+        <div class="mt-4 grid max-w-xl gap-4 sm:grid-cols-2">
+            <div>
+                <label for="recipient_name" class="block text-xs font-medium uppercase tracking-wide text-slate-500">اسم المستلم</label>
+                <input type="text" name="recipient_name" id="recipient_name"
+                       value="{{ old('recipient_name') }}"
+                       placeholder="e.g. اسم الشخص / اسم الشركة"
+                       class="admin-filter-control mt-1 w-full @error('recipient_name') border-red-500 @enderror">
+                @error('recipient_name')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <label for="project_manager_name" class="block text-xs font-medium uppercase tracking-wide text-slate-500">اسم مدير المشروع</label>
+                <input type="text" name="project_manager_name" id="project_manager_name"
+                       value="{{ old('project_manager_name') }}"
+                       placeholder="يظهر فوق خانة التوقيع بالطباعة"
+                       class="admin-filter-control mt-1 w-full @error('project_manager_name') border-red-500 @enderror">
+                @error('project_manager_name')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
         </div>
     </section>
 
@@ -79,6 +93,7 @@
                 <tr>
                     <th class="px-3 py-2 w-10"></th>
                     <th class="px-3 py-2">P.O.</th>
+                    <th class="px-3 py-2">المشروع / المنطقة</th>
                     <th class="px-3 py-2">Description</th>
                     <th class="px-3 py-2">Qty</th>
                     <th class="px-3 py-2">Unit</th>
@@ -108,6 +123,29 @@
         <div id="invoice-merge-groups" class="mt-4 space-y-3"></div>
         <div id="invoice-merge-groups-inputs"></div>
         <div id="invoice-selected-item-ids"></div>
+    </section>
+
+    <section id="invoice-notes-section" class="@unless(count($oldPoIds)) hidden @endunless">
+        <h2 class="text-lg font-semibold text-slate-900">ملاحظات</h2>
+        <p class="mt-1 text-sm text-slate-500">اختياري — كل مربع = نقطة واحدة بالطباعة. يمكنك تكبير المربع من الزاوية، وكتابة أكثر من سطر داخل الملاحظة (Enter أو Shift+Enter).</p>
+        <div id="invoice-notes-list" class="mt-4 max-w-2xl space-y-3">
+            @foreach ($oldNotes as $index => $note)
+                <div class="invoice-note-row flex items-start gap-2" data-invoice-note-row>
+                    <textarea name="notes[]" rows="3" data-invoice-note-input
+                              placeholder="ملاحظة {{ $index + 1 }}"
+                              class="admin-filter-control invoice-note-textarea min-h-[4.5rem] resize-y flex-1 @error('notes.'.$index) border-red-500 @enderror">{{ $note }}</textarea>
+                    <button type="button" data-invoice-remove-note
+                            class="shrink-0 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 @if($loop->first && count($oldNotes) === 1) hidden @endif"
+                            title="حذف الملاحظة">×</button>
+                </div>
+            @endforeach
+        </div>
+        <button type="button" id="invoice-add-note-btn"
+                class="mt-3 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">
+            + إضافة ملاحظة
+        </button>
+        @error('notes')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
+        @error('notes.*')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
     </section>
 
     <section id="invoice-fees-section" class="@unless(count($oldPoIds)) hidden @endunless">
