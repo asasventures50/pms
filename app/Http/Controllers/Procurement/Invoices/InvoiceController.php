@@ -103,6 +103,16 @@ class InvoiceController extends Controller
             ->with('success', 'Invoice updated successfully.');
     }
 
+    public function destroy(Invoice $invoice): RedirectResponse
+    {
+        $invoiceNumber = $invoice->invoice_number;
+        $invoice->delete();
+
+        return redirect()
+            ->route('invoices.index')
+            ->with('success', "Invoice {$invoiceNumber} deleted successfully.");
+    }
+
     public function print(Invoice $invoice): View
     {
         $invoice->load(['items', 'purchaseOrders.procurementRequest', 'creator']);

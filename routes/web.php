@@ -199,7 +199,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('invoices.print');
 
     Route::resource('invoices', InvoiceController::class)
-        ->only(['index', 'create', 'store', 'edit', 'update'])
+        ->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])
         ->middleware('permission:invoices.create');
 
     Route::get('rfq-terms/print', [RfqGeneralTermController::class, 'print'])
