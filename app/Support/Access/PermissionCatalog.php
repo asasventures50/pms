@@ -36,6 +36,8 @@ final class PermissionCatalog
 
             'invoices.create' => ['label' => 'Add / Edit invoice', 'group' => 'Invoices'],
 
+            'schedule-of-works.create' => ['label' => 'Add / Edit schedule of works', 'group' => 'Schedule of works'],
+
             'rfqs.view' => ['label' => 'View RFQs', 'group' => 'RFQs'],
             'rfqs.create' => ['label' => 'Create RFQs', 'group' => 'RFQs'],
             'rfqs.update' => ['label' => 'Update RFQs', 'group' => 'RFQs'],

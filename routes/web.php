@@ -19,6 +19,7 @@ use App\Http\Controllers\Procurement\Projects\ProjectController;
 use App\Http\Controllers\Procurement\Projects\ProjectQuickStoreController;
 use App\Http\Controllers\Procurement\Projects\ZoneQuickStoreController;
 use App\Http\Controllers\Procurement\Invoices\InvoiceController;
+use App\Http\Controllers\Procurement\ScheduleOfWorks\ScheduleOfWorkController;
 use App\Http\Controllers\Procurement\PurchaseOrders\PurchaseOrderController;
 use App\Http\Controllers\Procurement\Rfqs\RfqController;
 use App\Http\Controllers\Procurement\Rfqs\RfqGeneralTermController;
@@ -201,6 +202,19 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('invoices', InvoiceController::class)
         ->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])
         ->middleware('permission:invoices.create');
+
+    Route::get('procurement-requests/{procurement_request}/schedule-of-work-items', [ScheduleOfWorkController::class, 'procurementRequestItems'])
+        ->middleware('permission:schedule-of-works.create')
+        ->name('procurement-requests.schedule-of-work-items');
+
+    Route::get('schedule-of-works/{schedule_of_work}/print', [ScheduleOfWorkController::class, 'print'])
+        ->middleware('permission:schedule-of-works.create')
+        ->name('schedule-of-works.print');
+
+    Route::resource('schedule-of-works', ScheduleOfWorkController::class)
+        ->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])
+        ->parameters(['schedule-of-works' => 'schedule_of_work'])
+        ->middleware('permission:schedule-of-works.create');
 
     Route::get('rfq-terms/print', [RfqGeneralTermController::class, 'print'])
         ->middleware('permission:rfq-terms.view')
