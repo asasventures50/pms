@@ -4,6 +4,7 @@ namespace App\Models\Procurement\ScheduleOfWorks;
 
 use App\Enums\Procurement\Rfqs\RfqTermsLocale;
 use App\Enums\Procurement\ScheduleOfWorks\ScheduleOfWorkScope;
+use App\Services\Procurement\ScheduleOfWorks\ScheduleOfWorkPrSectionsNormalizer;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
 use App\Models\Procurement\Vendors\Vendor;
 use App\Models\User;
@@ -30,6 +31,8 @@ class ScheduleOfWork extends Model
         'procurement_request_id',
         'currency_code',
         'scope_types',
+        'scope_of_work',
+        'pr_sections',
         'print_locale',
         'total_price',
         'notes',
@@ -41,6 +44,7 @@ class ScheduleOfWork extends Model
         return [
             'documented_at' => 'date',
             'scope_types' => 'array',
+            'pr_sections' => 'array',
             'notes' => 'array',
             'custom_fees' => 'array',
             'total_price' => 'decimal:2',
@@ -162,5 +166,13 @@ class ScheduleOfWork extends Model
     public function scopeTypesDisplay(bool $arabic = false): string
     {
         return ScheduleOfWorkScope::display($this->scope_types ?? [], $arabic);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function displayPrSections(): array
+    {
+        return ScheduleOfWorkPrSectionsNormalizer::normalize($this->pr_sections ?? []) ?? [];
     }
 }

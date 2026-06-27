@@ -27,7 +27,13 @@
 @endphp
 @if ($scopeDisplay !== '')
     <div class="inv-recipient-block" style="margin-bottom:12px;">
-        <span class="inv-recipient-label">{{ $printLabels->t('scope_of_work') }}:</span>
+        <span class="inv-recipient-label">{{ $printLabels->t('scope_types') }}:</span>
         <span>{{ $scopeDisplay }}</span>
+    </div>
+@endif
+@if (filled($schedule->scope_of_work))
+    <div class="inv-recipient-block" style="margin-bottom:12px;">
+        <span class="inv-recipient-label">{{ $printLabels->t('scope_of_work') }}:</span>
+        <span style="white-space:pre-wrap;">{{ $schedule->scope_of_work }}</span>
     </div>
 @endif

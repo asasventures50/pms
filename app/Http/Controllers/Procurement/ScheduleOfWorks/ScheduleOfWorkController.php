@@ -15,6 +15,7 @@ use App\Services\Procurement\PurchaseOrders\ProcurementRequestOptionsForPurchase
 use App\Services\Procurement\ScheduleOfWorks\ScheduleOfWorkPersistenceService;
 use App\Services\Procurement\ScheduleOfWorks\ScheduleOfWorkPrintLabels;
 use App\Services\Procurement\ScheduleOfWorks\ScheduleOfWorkPrItemsPresenter;
+use App\Services\Procurement\ScheduleOfWorks\ScheduleOfWorkPrSectionsNormalizer;
 use App\Services\Procurement\ScheduleOfWorks\ScheduleOfWorkTermsResolver;
 use App\Services\Procurement\Vendors\VendorSelectOptions;
 use Illuminate\Http\JsonResponse;
@@ -175,6 +176,8 @@ class ScheduleOfWorkController extends Controller
             'currency_code' => $schedule->currency_code ?? 'USD',
             'print_locale' => $schedule->print_locale ?? RfqTermsLocale::En->value,
             'scope_types' => ScheduleOfWorkScope::selectedValues($schedule->scope_types ?? []),
+            'scope_of_work' => $schedule->scope_of_work,
+            'pr_sections' => ScheduleOfWorkPrSectionsNormalizer::formDefaults($schedule->pr_sections),
             'items' => $schedule->items->map(fn ($item) => [
                 'project_zone' => $item->project_zone,
                 'description' => $item->description,

@@ -122,4 +122,33 @@ enum ScheduleOfWorkScope: string
             $selected,
         ));
     }
+
+    /**
+     * Maps procurement request scope type keys to SOW checkbox values.
+     *
+     * @param  list<string>  $procurementScopeTypeKeys  {@see ProcurementScopeType} values
+     * @return list<string>
+     */
+    public static function fromProcurementScopeTypeKeys(array $procurementScopeTypeKeys, bool $includeGlobal = false): array
+    {
+        $map = [
+            ProcurementScopeType::Contractor => self::Constructor->value,
+            ProcurementScopeType::Supplier => self::Support->value,
+            ProcurementScopeType::Studies => self::Studies->value,
+        ];
+
+        $selected = [];
+        foreach ($procurementScopeTypeKeys as $key) {
+            $normalized = trim((string) $key);
+            if ($normalized !== '' && isset($map[$normalized])) {
+                $selected[$map[$normalized]] = true;
+            }
+        }
+
+        if ($includeGlobal) {
+            $selected[self::Global->value] = true;
+        }
+
+        return self::selectedValues(array_keys($selected));
+    }
 }

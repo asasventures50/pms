@@ -125,6 +125,7 @@ class ScheduleOfWorkPersistenceService
         }
 
         $projectManager = trim((string) ($validated['project_manager_name'] ?? ''));
+        $scopeOfWork = trim((string) ($validated['scope_of_work'] ?? ''));
 
         return [
             'created_by' => $createdBy,
@@ -138,6 +139,8 @@ class ScheduleOfWorkPersistenceService
             'currency_code' => InvoiceCurrencyResolver::normalizeCode($validated['currency_code'] ?? null)
                 ?? InvoiceCurrencyResolver::DEFAULT,
             'scope_types' => ScheduleOfWorkScope::encode($validated['scope_types'] ?? []),
+            'scope_of_work' => $scopeOfWork !== '' ? $scopeOfWork : null,
+            'pr_sections' => ScheduleOfWorkPrSectionsNormalizer::normalize($validated['pr_sections'] ?? null),
             'print_locale' => $locale->value,
             'notes' => $cleanNotes !== [] ? $cleanNotes : null,
             'custom_fees' => null,

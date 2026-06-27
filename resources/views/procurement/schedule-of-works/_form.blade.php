@@ -1,7 +1,9 @@
 @php
     use App\Enums\Procurement\Rfqs\RfqTermsLocale;
+    use App\Services\Procurement\ScheduleOfWorks\ScheduleOfWorkPrSectionsNormalizer;
 
     $defaults = $formDefaults ?? [];
+    $prSections = ScheduleOfWorkPrSectionsNormalizer::formDefaults(old('pr_sections', $defaults['pr_sections'] ?? null));
     $oldScopeTypes = collect(old('scope_types', $defaults['scope_types'] ?? []))->map(fn ($v) => (string) $v)->all();
     $oldItems = collect(old('items', $defaults['items'] ?? []))
         ->map(fn ($row) => [
@@ -29,6 +31,34 @@
 @endphp
 
 <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
+    <section class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <h2 class="text-lg font-semibold text-slate-900">Linked P.R. (optional)</h2>
+        <p class="mt-1 text-sm text-slate-600">Choose a procurement request first to auto-fill matching fields below. Without a link, enter everything manually.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-2">
+            <select name="procurement_request_id" id="procurement_request_id"
+                    data-lines-url-template="{{ url('/procurement-requests/__ID__/schedule-of-work-items') }}"
+                    class="admin-filter-control min-w-[14rem] flex-1 @error('procurement_request_id') border-red-500 @enderror">
+                <option value="">— Not linked —</option>
+                @foreach (($procurementRequestOptions ?? []) as $option)
+                    <option value="{{ $option['id'] }}" @selected((string) $linkedPrId === (string) $option['id'])>
+                        {{ $option['label'] }}
+                    </option>
+                @endforeach
+            </select>
+            <button type="button" id="sow-import-pr-lines"
+                    class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled>
+                Re-import from P.R.
+            </button>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">
+            Link a P.R. to import matching sections below. Empty sections are not printed.
+        </p>
+        @error('procurement_request_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+    </section>
+
+    @include('procurement.schedule-of-works._form-pr-sections', ['prSections' => $prSections])
+
     <section>
         <h2 class="text-lg font-semibold text-slate-900">Scope of work <span class="text-red-600">*</span></h2>
         <p class="mt-1 text-sm text-slate-500">Select one or more. Terms &amp; conditions on print follow these scopes (same library as PO).</p>
@@ -36,6 +66,7 @@
             @foreach ($scopeOptions as $scope)
                 <label class="inline-flex items-center gap-2 text-sm text-slate-800">
                     <input type="checkbox" name="scope_types[]" value="{{ $scope->value }}"
+                           data-sow-scope-checkbox
                            class="rounded border-slate-300"
                            @checked(in_array($scope->value, $oldScopeTypes, true))>
                     <span>{{ $scope->labelEn() }}</span>
@@ -43,6 +74,16 @@
             @endforeach
         </div>
         @error('scope_types')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
+
+        <div class="mt-4 max-w-2xl">
+            <label for="scope_of_work" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+                Scope of work description
+            </label>
+            <p class="mt-0.5 text-xs text-slate-500">Same field as on the procurement request — detailed scope text for the printed document.</p>
+            <textarea name="scope_of_work" id="scope_of_work" rows="5"
+                      class="admin-filter-control mt-2 w-full resize-y @error('scope_of_work') border-red-500 @enderror">{{ old('scope_of_work', $defaults['scope_of_work'] ?? '') }}</textarea>
+            @error('scope_of_work')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+        </div>
     </section>
 
     <section>
@@ -103,30 +144,7 @@
         <div class="flex flex-wrap items-end justify-between gap-3">
             <h2 class="text-lg font-semibold text-slate-900">Line items <span class="text-red-600">*</span></h2>
         </div>
-        <p class="mt-1 text-sm text-slate-500">Enter lines manually, or optionally import selected lines from a procurement request.</p>
-
-        <div class="mt-4 max-w-3xl rounded-lg border border-slate-200 bg-slate-50 p-4">
-            <label for="procurement_request_id" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Import from P.R. (optional)</label>
-            <div class="mt-2 flex flex-wrap items-center gap-2">
-                <select name="procurement_request_id" id="procurement_request_id"
-                        data-lines-url-template="{{ url('/procurement-requests/__ID__/schedule-of-work-items') }}"
-                        class="admin-filter-control min-w-[14rem] flex-1 @error('procurement_request_id') border-red-500 @enderror">
-                    <option value="">— Not linked —</option>
-                    @foreach (($procurementRequestOptions ?? []) as $option)
-                        <option value="{{ $option['id'] }}" @selected((string) $linkedPrId === (string) $option['id'])>
-                            {{ $option['label'] }}
-                        </option>
-                    @endforeach
-                </select>
-                <button type="button" id="sow-import-pr-lines"
-                        class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                        disabled>
-                    Import from P.R.
-                </button>
-            </div>
-            <p class="mt-1 text-xs text-slate-500">Choose a P.R., then pick which lines to add. You can still edit imported rows before saving.</p>
-            @error('procurement_request_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-        </div>
+        <p class="mt-1 text-sm text-slate-500">Bill of quantities — same structure as P.R. BOQ.</p>
 
         <div class="mt-4 overflow-x-auto rounded-lg border border-slate-200">
             <table class="min-w-full text-left text-sm">

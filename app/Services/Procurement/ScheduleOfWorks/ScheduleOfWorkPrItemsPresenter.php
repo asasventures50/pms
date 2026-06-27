@@ -8,10 +8,27 @@ use App\Services\Procurement\Invoices\InvoiceProjectZoneResolver;
 
 class ScheduleOfWorkPrItemsPresenter
 {
+    public function __construct(
+        private readonly ScheduleOfWorkPrFormMapper $formMapper,
+    ) {}
+
     /**
      * @return array{
      *     request_number: string,
+     *     form: array{
+     *         recipient_name: string|null,
+     *         project_manager_name: string|null,
+     *         scope_of_work: string|null,
+     *         currency_code: string|null,
+     *         scope_types: list<string>,
+     *         notes: list<string>
+     *     },
      *     currency_code: string|null,
+     *     scope_types: list<string>,
+     *     notes: list<string>,
+     *     recipient_name: string|null,
+     *     project_manager_name: string|null,
+     *     scope_of_work: string|null,
      *     items: list<array{
      *         id: int,
      *         line_code: string,
@@ -35,16 +52,23 @@ class ScheduleOfWorkPrItemsPresenter
 
         $items = $procurementRequest->items
             ->sortBy(['sort_order', 'id'])
-            ->values()
-            ->map(fn (ProcurementRequestItem $line) => $this->toLine($procurementRequest, $line))
-            ->all();
+            ->values();
+
+        $form = $this->formMapper->map($procurementRequest);
 
         return [
             'request_number' => trim((string) ($procurementRequest->request_number ?? '')),
-            'currency_code' => filled($procurementRequest->currency_code)
-                ? strtoupper(trim((string) $procurementRequest->currency_code))
-                : null,
-            'items' => $items,
+            'form' => $form,
+            'currency_code' => $form['currency_code'],
+            'scope_types' => $form['scope_types'],
+            'notes' => $form['notes'],
+            'recipient_name' => $form['recipient_name'],
+            'project_manager_name' => $form['project_manager_name'],
+            'scope_of_work' => $form['scope_of_work'],
+            'pr_sections' => $form['pr_sections'] ?? null,
+            'items' => $items
+                ->map(fn (ProcurementRequestItem $line) => $this->toLine($procurementRequest, $line))
+                ->all(),
         ];
     }
 

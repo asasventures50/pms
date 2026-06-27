@@ -3,6 +3,7 @@
         @include('procurement.schedule-of-works.print._header')
         @include('procurement.schedule-of-works.print._recipient')
         @include('procurement.schedule-of-works.print._items')
+        @include('procurement.schedule-of-works.print._pr_sections')
         @include('procurement.schedule-of-works.print._notes')
         @include('procurement.schedule-of-works.print._bank')
         @include('procurement.schedule-of-works.print._terms', ['terms' => $terms ?? []])
