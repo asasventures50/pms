@@ -177,6 +177,8 @@ class InvoiceController extends Controller
                 'purchase_order_id' => $purchaseOrder->id,
                 'po_number' => $purchaseOrder->po_number,
                 'line_code' => trim((string) ($item->item ?? '')),
+                'project' => $projectZoneResolver->projectForPoItem($item),
+                'zone' => $projectZoneResolver->zoneForPoItem($item),
                 'project_zone' => $projectZoneResolver->forPoItem($item),
                 'description' => $item->description,
                 'quantity' => (float) $item->quantity,
@@ -218,7 +220,10 @@ class InvoiceController extends Controller
         array $validated,
         ?Invoice $invoice = null,
     ): array|RedirectResponse {
-        $lines = $this->buildManualLines($validated['manual_lines'] ?? []);
+        $lines = $this->buildManualLines(
+            $validated['manual_lines'] ?? [],
+            trim((string) ($validated['manual_project_name'] ?? '')),
+        );
 
         if ($lines === []) {
             return back()->withInput()->withErrors(['manual_lines' => 'Add at least one line item.']);
@@ -326,12 +331,15 @@ class InvoiceController extends Controller
         }
 
         $projectZoneResolver = InvoiceProjectZoneResolver::fromPurchaseOrderItems($selectedItems);
-        $lines = array_map(function (array $line) use ($projectZoneResolver, $selectedItems) {
+        $zoneOverrides = collect($validated['purchase_order_item_zones'] ?? [])
+            ->mapWithKeys(fn ($zone, $id) => [(int) $id => trim((string) $zone)])
+            ->all();
+        $lines = array_map(function (array $line) use ($projectZoneResolver, $selectedItems, $zoneOverrides) {
             $sourceIds = collect($line['source_purchase_order_item_ids'] ?? [])
                 ->map(fn ($id) => (int) $id)
                 ->all();
             $sourceItems = $selectedItems->whereIn('id', $sourceIds)->values();
-            $line['project_zone'] = $projectZoneResolver->forPoItems($sourceItems);
+            $line['project_zone'] = self::buildStoredProjectZone($sourceItems, $zoneOverrides, $projectZoneResolver);
 
             return $line;
         }, $lines);
@@ -371,17 +379,26 @@ class InvoiceController extends Controller
      * @param  list<array<string, mixed>>  $manualLines
      * @return list<array<string, mixed>>
      */
-    private function buildManualLines(array $manualLines): array
+    private function buildManualLines(array $manualLines, string $projectName = ''): array
     {
         $lines = [];
         $lineNumber = 1;
+        $projectName = trim($projectName);
 
         foreach ($manualLines as $row) {
             $description = trim((string) ($row['description'] ?? ''));
             $quantity = round((float) ($row['quantity'] ?? 0), 3);
             $unitPrice = round((float) ($row['unit_price'] ?? 0), 2);
             $unit = trim((string) ($row['unit'] ?? ''));
-            $projectZone = trim((string) ($row['project_zone'] ?? ''));
+            $zone = trim((string) ($row['zone'] ?? ''));
+
+            if ($zone === '') {
+                $stored = trim((string) ($row['project_zone'] ?? ''));
+                if ($stored !== '') {
+                    $parts = self::manualLineParts($stored);
+                    $zone = $parts['zone'] !== '' ? $parts['zone'] : $parts['project'];
+                }
+            }
 
             if ($description === '' || $quantity <= 0) {
                 continue;
@@ -390,7 +407,7 @@ class InvoiceController extends Controller
             $lines[] = [
                 'line_number' => $lineNumber++,
                 'description' => $description,
-                'project_zone' => $projectZone !== '' ? $projectZone : null,
+                'project_zone' => self::combineProjectZone($projectName, $zone),
                 'quantity' => $quantity,
                 'unit' => $unit !== '' ? $unit : null,
                 'unit_price' => $unitPrice,
@@ -403,6 +420,37 @@ class InvoiceController extends Controller
     }
 
     /**
+     * @return array{project: string, zone: string}
+     */
+    private static function manualLineParts(?string $stored): array
+    {
+        $stored = trim((string) $stored);
+
+        if ($stored === '') {
+            return ['project' => '', 'zone' => ''];
+        }
+
+        if (str_contains($stored, '/')) {
+            return InvoiceProjectZoneResolver::splitStoredLabel($stored);
+        }
+
+        return ['project' => '', 'zone' => $stored];
+    }
+
+    private static function combineProjectZone(string $project, string $zone): ?string
+    {
+        if ($project !== '' && $zone !== '') {
+            return "{$project}/{$zone}";
+        }
+
+        if ($project !== '') {
+            return $project;
+        }
+
+        return $zone !== '' ? $zone : null;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function formDefaultsFromInvoice(Invoice $invoice): array
@@ -412,13 +460,18 @@ class InvoiceController extends Controller
                 'source' => Invoice::SOURCE_MANUAL,
                 'manual_po_number' => $invoice->po_number,
                 'manual_vendor_name' => $invoice->vendor_company_name,
-                'manual_lines' => $invoice->items->map(fn ($item) => [
-                    'project_zone' => $item->project_zone ?? '',
-                    'description' => $item->description,
-                    'quantity' => $item->quantity,
-                    'unit' => $item->unit ?? '',
-                    'unit_price' => $item->unit_price,
-                ])->values()->all(),
+                'manual_project_name' => $this->manualProjectNameFromInvoice($invoice),
+                'manual_lines' => $invoice->items->map(function ($item) {
+                    $parts = self::manualLineParts($item->project_zone);
+
+                    return [
+                        'zone' => $parts['zone'],
+                        'description' => $item->description,
+                        'quantity' => $item->quantity,
+                        'unit' => $item->unit ?? '',
+                        'unit_price' => $item->unit_price,
+                    ];
+                })->values()->all(),
                 'recipient_name' => $invoice->recipient_name,
                 'project_manager_name' => $invoice->project_manager_name,
                 'notes' => ($notes = $invoice->displayNotes()) !== [] ? $notes : [''],
@@ -455,6 +508,95 @@ class InvoiceController extends Controller
             'notes' => $notes !== [] ? $notes : [''],
             'currency_code' => $invoice->currency_code ?? 'USD',
             'custom_fees' => $invoice->feeRowsForEdit(),
+            'purchase_order_item_zones' => $this->purchaseOrderItemZonesFromInvoice($invoice),
         ];
+    }
+
+    private function manualProjectNameFromInvoice(Invoice $invoice): string
+    {
+        $projects = [];
+
+        foreach ($invoice->items as $item) {
+            $project = self::manualLineParts($item->project_zone)['project'];
+
+            if ($project !== '') {
+                $projects[$project] = true;
+            }
+        }
+
+        return implode(' / ', array_keys($projects));
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function purchaseOrderItemZonesFromInvoice(Invoice $invoice): array
+    {
+        $zones = [];
+
+        foreach ($invoice->items as $item) {
+            $stored = trim((string) ($item->project_zone ?? ''));
+            $sourceIds = collect($item->source_purchase_order_item_ids ?? [])
+                ->map(fn ($id) => (int) $id)
+                ->filter()
+                ->values();
+
+            if ($sourceIds->isEmpty()) {
+                continue;
+            }
+
+            $zone = str_contains($stored, '/')
+                ? InvoiceProjectZoneResolver::splitStoredLabel($stored)['zone']
+                : '';
+
+            foreach ($sourceIds as $sourceId) {
+                if ($zone !== '') {
+                    $zones[$sourceId] = $zone;
+                }
+            }
+        }
+
+        return $zones;
+    }
+
+    /**
+     * @param  \Illuminate\Support\Collection<int, PurchaseOrderItem>  $sourceItems
+     * @param  array<int, string>  $zoneOverrides
+     */
+    private static function buildStoredProjectZone(
+        \Illuminate\Support\Collection $sourceItems,
+        array $zoneOverrides,
+        InvoiceProjectZoneResolver $resolver,
+    ): ?string {
+        $projects = [];
+        $zones = [];
+
+        foreach ($sourceItems as $item) {
+            $itemId = (int) $item->id;
+            $project = trim((string) ($resolver->projectForPoItem($item) ?? ''));
+            $defaultZone = trim((string) ($resolver->zoneForPoItem($item) ?? ''));
+            $zone = trim((string) ($zoneOverrides[$itemId] ?? $defaultZone));
+
+            if ($project !== '') {
+                $projects[$project] = true;
+            }
+
+            if ($zone !== '') {
+                $zones[$zone] = true;
+            }
+        }
+
+        $projectLabel = implode('; ', array_keys($projects));
+        $zoneLabel = implode('; ', array_keys($zones));
+
+        if ($projectLabel !== '' && $zoneLabel !== '') {
+            return "{$projectLabel}/{$zoneLabel}";
+        }
+
+        if ($projectLabel !== '') {
+            return $projectLabel;
+        }
+
+        return $zoneLabel !== '' ? $zoneLabel : null;
     }
 }

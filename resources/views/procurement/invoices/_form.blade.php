@@ -1,4 +1,6 @@
 @php
+    use App\Services\Procurement\Invoices\InvoiceProjectZoneResolver;
+
     $defaults = $invoiceDefaults ?? [];
     $source = old('source', $defaults['source'] ?? \App\Models\Procurement\Invoices\Invoice::SOURCE_PURCHASE_ORDER);
     $isManual = $source === \App\Models\Procurement\Invoices\Invoice::SOURCE_MANUAL;
@@ -6,18 +8,31 @@
     $oldItemIds = collect(old('purchase_order_item_ids', $defaults['purchase_order_item_ids'] ?? []))->map(fn ($id) => (int) $id)->all();
     $oldMergeGroups = old('merge_groups', $defaults['merge_groups'] ?? []);
     $oldManualLines = collect(old('manual_lines', $defaults['manual_lines'] ?? []))
-        ->map(fn ($line) => [
-            'project_zone' => trim((string) ($line['project_zone'] ?? '')),
-            'description' => trim((string) ($line['description'] ?? '')),
-            'quantity' => $line['quantity'] ?? '',
-            'unit' => trim((string) ($line['unit'] ?? '')),
-            'unit_price' => $line['unit_price'] ?? '',
-        ])
+        ->map(function ($line) {
+            $zone = trim((string) ($line['zone'] ?? ''));
+            if ($zone === '') {
+                $stored = trim((string) ($line['project_zone'] ?? ''));
+                if ($stored !== '') {
+                    $zone = str_contains($stored, '/')
+                        ? InvoiceProjectZoneResolver::splitStoredLabel($stored)['zone']
+                        : $stored;
+                }
+            }
+
+            return [
+                'zone' => $zone,
+                'description' => trim((string) ($line['description'] ?? '')),
+                'quantity' => $line['quantity'] ?? '',
+                'unit' => trim((string) ($line['unit'] ?? '')),
+                'unit_price' => $line['unit_price'] ?? '',
+            ];
+        })
         ->values()
         ->all();
     if ($oldManualLines === [] && $isManual) {
-        $oldManualLines = [['project_zone' => '', 'description' => '', 'quantity' => '', 'unit' => '', 'unit_price' => '']];
+        $oldManualLines = [['zone' => '', 'description' => '', 'quantity' => '', 'unit' => '', 'unit_price' => '']];
     }
+    $manualProjectName = old('manual_project_name', $defaults['manual_project_name'] ?? '');
     $showContentSections = $isManual || count($oldPoIds) > 0;
     $oldNotes = collect(old('notes', $defaults['notes'] ?? []))->map(fn ($note) => (string) $note)->filter()->values()->all();
     if ($oldNotes === []) {
@@ -115,6 +130,17 @@
                        class="admin-filter-control mt-1 w-full @error('manual_vendor_name') border-red-500 @enderror">
                 @error('manual_vendor_name')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
+            <div class="sm:col-span-2">
+                <label for="manual_project_name" class="block text-xs font-medium uppercase tracking-wide text-slate-500">المشروع</label>
+                <input type="text" name="manual_project_name" id="manual_project_name"
+                       value="{{ $manualProjectName }}"
+                       placeholder="مثال: تيست1"
+                       data-invoice-manual-field
+                       data-invoice-manual-project-name
+                       class="admin-filter-control mt-1 w-full @error('manual_project_name') border-red-500 @enderror">
+                <p class="mt-1 text-xs text-slate-500">يظهر في رأس الفاتورة المطبوعة — المنطقة تُدخل لكل بند في الجدول.</p>
+                @error('manual_project_name')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
         </div>
     </section>
 
@@ -166,7 +192,8 @@
                 <tr>
                     <th class="px-3 py-2 w-10"></th>
                     <th class="px-3 py-2">P.O.</th>
-                    <th class="px-3 py-2">المشروع / المنطقة</th>
+                    <th class="px-3 py-2">المشروع</th>
+                    <th class="px-3 py-2">المنطقة</th>
                     <th class="px-3 py-2">Description</th>
                     <th class="px-3 py-2">Qty</th>
                     <th class="px-3 py-2">Unit</th>
@@ -219,7 +246,8 @@
                 <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <tr>
                     <th class="px-3 py-2 w-10">م</th>
-                    <th class="px-3 py-2">المشروع / المنطقة</th>
+                    <th class="px-3 py-2">المشروع</th>
+                    <th class="px-3 py-2">المنطقة</th>
                     <th class="px-3 py-2">البيان</th>
                     <th class="px-3 py-2">الكمية</th>
                     <th class="px-3 py-2">الوحدة</th>
@@ -236,13 +264,16 @@
                 @foreach ($oldManualLines as $index => $manualLine)
                     <tr data-invoice-manual-line-row>
                         <td class="px-3 py-2 text-center text-slate-500" data-invoice-manual-line-num>{{ $index + 1 }}</td>
+                        <td class="px-3 py-2 text-sm text-slate-700">
+                            <span data-invoice-manual-line-project-display>{{ $manualProjectName !== '' ? $manualProjectName : '—' }}</span>
+                        </td>
                         <td class="px-3 py-2">
-                            <input type="text" name="manual_lines[{{ $index }}][project_zone]"
-                                   value="{{ $manualLine['project_zone'] }}"
+                            <input type="text" name="manual_lines[{{ $index }}][zone]"
+                                   value="{{ $manualLine['zone'] }}"
                                    placeholder="مثال: قاسيون"
                                    data-invoice-manual-field
-                                   data-invoice-manual-line-project-zone
-                                   class="admin-filter-control w-full min-w-[8rem]">
+                                   data-invoice-manual-line-zone
+                                   class="admin-filter-control w-full min-w-[6rem]">
                         </td>
                         <td class="px-3 py-2">
                             <input type="text" name="manual_lines[{{ $index }}][description]"
@@ -428,3 +459,4 @@
 <script type="application/json" id="invoice-initial-source">@json($source)</script>
 <script type="application/json" id="invoice-suggested-manual-po">@json($suggestedManualPoNumber ?? '')</script>
 <script type="application/json" id="invoice-old-manual-lines">@json($oldManualLines)</script>
+<script type="application/json" id="invoice-old-item-zones">@json(old('purchase_order_item_zones', $invoiceDefaults['purchase_order_item_zones'] ?? []))</script>

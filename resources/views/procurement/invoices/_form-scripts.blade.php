@@ -17,6 +17,7 @@
         const customFeesBody = document.getElementById('invoice-custom-fees-body');
         const addCustomFeeBtn = document.getElementById('invoice-add-custom-fee-btn');
         const manualPoInput = document.getElementById('manual_po_number');
+        const manualProjectInput = document.getElementById('manual_project_name');
         const linesBody = document.getElementById('invoice-lines-body');
         const selectAll = document.getElementById('invoice-select-all-lines');
         const mergeToolbar = document.getElementById('invoice-merge-toolbar');
@@ -44,6 +45,7 @@
 
         let poItems = [];
         let oldItemIds = [];
+        let oldItemZones = {};
         let mergeGroups = [];
         let nextGroupId = 1;
         let currencyTouched = @json(filled(old('currency_code')) || filled(($invoiceDefaults ?? [])['currency_code'] ?? null));
@@ -63,6 +65,12 @@
             oldItemIds = JSON.parse(document.getElementById('invoice-old-item-ids')?.textContent || '[]');
         } catch (e) {
             oldItemIds = [];
+        }
+
+        try {
+            oldItemZones = JSON.parse(document.getElementById('invoice-old-item-zones')?.textContent || '{}');
+        } catch (e) {
+            oldItemZones = {};
         }
 
         try {
@@ -153,6 +161,19 @@
         manualPoInput?.addEventListener('input', function () {
             manualPoTouched = true;
         });
+
+        function manualProjectDisplayValue() {
+            const value = manualProjectInput?.value?.trim() || '';
+            return value !== '' ? value : '—';
+        }
+
+        function syncManualLineProjectDisplays() {
+            document.querySelectorAll('[data-invoice-manual-line-project-display]').forEach(function (el) {
+                el.textContent = manualProjectDisplayValue();
+            });
+        }
+
+        manualProjectInput?.addEventListener('input', syncManualLineProjectDisplays);
 
         sourceRadios.forEach(function (radio) {
             radio.addEventListener('change', function () {
@@ -500,7 +521,7 @@
                 }
 
                 const fields = [
-                    ['project_zone', '[data-invoice-manual-line-project-zone]'],
+                    ['zone', '[data-invoice-manual-line-zone]'],
                     ['description', '[data-invoice-manual-line-description]'],
                     ['quantity', '[data-invoice-manual-line-quantity]'],
                     ['unit', '[data-invoice-manual-line-unit]'],
@@ -554,8 +575,27 @@
             numTd.textContent = '0';
             row.appendChild(numTd);
 
+            const projectTd = document.createElement('td');
+            projectTd.className = 'px-3 py-2 text-sm text-slate-700';
+            const projectSpan = document.createElement('span');
+            projectSpan.setAttribute('data-invoice-manual-line-project-display', '');
+            projectSpan.textContent = manualProjectDisplayValue();
+            projectTd.appendChild(projectSpan);
+            row.appendChild(projectTd);
+
+            const zoneTd = document.createElement('td');
+            zoneTd.className = 'px-3 py-2';
+            const zoneInput = document.createElement('input');
+            zoneInput.type = 'text';
+            zoneInput.value = line.zone ?? '';
+            zoneInput.placeholder = 'مثال: قاسيون';
+            zoneInput.setAttribute('data-invoice-manual-line-zone', '');
+            zoneInput.setAttribute('data-invoice-manual-field', '');
+            zoneInput.className = 'admin-filter-control w-full min-w-[6rem]';
+            zoneTd.appendChild(zoneInput);
+            row.appendChild(zoneTd);
+
             const fields = [
-                ['project_zone', 'text', 'مثال: قاسيون', '[data-invoice-manual-line-project-zone]', 'admin-filter-control w-full min-w-[8rem]'],
                 ['description', 'text', 'وصف البند', '[data-invoice-manual-line-description]', 'admin-filter-control w-full min-w-[10rem]'],
                 ['quantity', 'number', '', '[data-invoice-manual-line-quantity]', 'admin-filter-control w-24 text-right'],
                 ['unit', 'text', 'مثال: قطعة', '[data-invoice-manual-line-unit]', 'admin-filter-control w-24'],
@@ -563,7 +603,6 @@
             ];
 
             const dataAttrs = {
-                project_zone: 'data-invoice-manual-line-project-zone',
                 description: 'data-invoice-manual-line-description',
                 quantity: 'data-invoice-manual-line-quantity',
                 unit: 'data-invoice-manual-line-unit',
@@ -951,8 +990,21 @@
 
                 const projectTd = document.createElement('td');
                 projectTd.className = 'px-3 py-3 text-sm text-slate-700';
-                projectTd.textContent = item.project_zone || '—';
+                projectTd.textContent = item.project || '—';
                 tr.appendChild(projectTd);
+
+                const zoneTd = document.createElement('td');
+                zoneTd.className = 'px-3 py-3';
+                const zoneInput = document.createElement('input');
+                zoneInput.type = 'text';
+                zoneInput.name = 'purchase_order_item_zones[' + item.id + ']';
+                zoneInput.value = oldItemZones[item.id] ?? item.zone ?? '';
+                zoneInput.placeholder = 'مثال: قاسيون';
+                zoneInput.setAttribute('data-invoice-po-field', '');
+                zoneInput.setAttribute('data-invoice-po-item-zone', String(item.id));
+                zoneInput.className = 'admin-filter-control w-full min-w-[6rem]';
+                zoneTd.appendChild(zoneInput);
+                tr.appendChild(zoneTd);
 
                 const descTd = document.createElement('td');
                 descTd.className = 'px-3 py-3 text-slate-800';
