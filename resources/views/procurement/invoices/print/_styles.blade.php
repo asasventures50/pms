@@ -105,6 +105,24 @@
         white-space: nowrap;
     }
 
+    .inv-project-block {
+        margin-bottom: 8px;
+        padding: 8px 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        background: #fafafa;
+        font-size: 13px;
+    }
+
+    .inv-project-label {
+        font-weight: bold;
+        margin-inline-end: 8px;
+    }
+
+    .inv-project-name {
+        font-weight: 600;
+    }
+
     .inv-recipient-block {
         margin-bottom: 12px;
         padding: 8px 12px;
@@ -456,6 +474,7 @@
         }
 
         .inv-header,
+        .inv-project-block,
         .inv-recipient-block,
         .inv-notes-block,
         .inv-bank-block,

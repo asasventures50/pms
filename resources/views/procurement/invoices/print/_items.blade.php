@@ -17,7 +17,7 @@
     <thead>
     <tr>
         <th class="col-num">م</th>
-        <th class="col-project">المشروع / المنطقة</th>
+        <th class="col-project">المنطقة</th>
         <th class="col-desc">البيان</th>
         <th class="col-qty">الكمية</th>
         <th class="col-unit">الوحدة</th>
@@ -28,10 +28,10 @@
     <tbody>
     @foreach ($invoice->items as $line)
         @php
-            $projectZone = $projectZoneResolver instanceof InvoiceProjectZoneResolver
-                ? $projectZoneResolver->forInvoiceItem($line, $poItemsById)
+            $zone = $projectZoneResolver instanceof InvoiceProjectZoneResolver
+                ? $projectZoneResolver->zoneForInvoiceItem($line, $poItemsById)
                 : trim((string) ($line->project_zone ?? ''));
-            $projectZone = $projectZone !== '' ? $projectZone : '—';
+            $zone = $zone !== null && $zone !== '' ? $zone : '—';
             $unit = trim((string) ($line->unit ?? ''));
             if ($unit === '') {
                 $sourcePoItem = collect($line->source_purchase_order_item_ids ?? [])
@@ -48,7 +48,7 @@
         @endphp
         <tr>
             <td class="inv-cell-num">{{ $line->line_number }}</td>
-            <td class="inv-cell-project">{{ $projectZone }}</td>
+            <td class="inv-cell-project">{{ $zone }}</td>
             <td class="inv-cell-text">{{ $line->description }}</td>
             <td class="inv-cell-num">{{ number_format($line->quantity, 3) }}</td>
             <td class="inv-cell-num">{{ $unit !== '' ? $unit : '—' }}</td>
@@ -57,9 +57,13 @@
         </tr>
     @endforeach
     @foreach ($feeRows as $fee)
+        @php
+            $feeZone = InvoiceProjectZoneResolver::splitStoredLabel($fee['project_zone'] ?? '')['zone'];
+            $feeZone = $feeZone !== '' ? $feeZone : '—';
+        @endphp
         <tr class="inv-fee-row">
             <td class="inv-cell-num">{{ $nextLineNumber++ }}</td>
-            <td class="inv-cell-project">{{ ($fee['project_zone'] ?? '') !== '' ? $fee['project_zone'] : '—' }}</td>
+            <td class="inv-cell-project">{{ $feeZone }}</td>
             <td class="inv-cell-text">{{ $fee['description'] }}</td>
             <td class="inv-cell-num">{{ number_format($fee['quantity'], 3) }}</td>
             <td class="inv-cell-num">{{ ($fee['unit'] ?? '') !== '' ? $fee['unit'] : '—' }}</td>
