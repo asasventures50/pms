@@ -11,6 +11,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Invoice extends Model
 {
+    public const SOURCE_PURCHASE_ORDER = 'purchase_order';
+
+    public const SOURCE_MANUAL = 'manual';
+
     protected $table = 'invoices';
 
     /**
@@ -18,6 +22,7 @@ class Invoice extends Model
      */
     protected $fillable = [
         'invoice_number',
+        'source',
         'created_by',
         'recipient_name',
         'project_manager_name',
@@ -64,6 +69,16 @@ class Invoice extends Model
     public function items(): HasMany
     {
         return $this->hasMany(InvoiceItem::class)->orderBy('sort_order')->orderBy('line_number');
+    }
+
+    public function isManual(): bool
+    {
+        return $this->source === self::SOURCE_MANUAL;
+    }
+
+    public function isFromPurchaseOrder(): bool
+    {
+        return $this->source === self::SOURCE_PURCHASE_ORDER;
     }
 
     public function displayCurrency(): ?string

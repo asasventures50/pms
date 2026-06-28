@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests\Procurement\Invoices;
 
+use App\Models\Procurement\Invoices\Invoice;
 use App\Models\Procurement\PurchaseOrders\PurchaseOrderItem;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 class StoreInvoiceRequest extends FormRequest
@@ -13,20 +15,34 @@ class StoreInvoiceRequest extends FormRequest
         return $this->user()?->hasPermission('invoices.create') ?? false;
     }
 
+    public function isManualSource(): bool
+    {
+        return $this->input('source') === Invoice::SOURCE_MANUAL;
+    }
+
     /**
      * @return array<string, mixed>
      */
     public function rules(): array
     {
         return [
-            'purchase_order_ids' => ['required', 'array', 'min:1'],
+            'source' => ['required', 'string', Rule::in([Invoice::SOURCE_PURCHASE_ORDER, Invoice::SOURCE_MANUAL])],
+            'purchase_order_ids' => ['required_if:source,'.Invoice::SOURCE_PURCHASE_ORDER, 'array', 'min:1'],
             'purchase_order_ids.*' => ['integer', 'distinct', 'exists:purchase_orders,id'],
+            'manual_po_number' => ['nullable', 'string', 'max:500'],
+            'manual_vendor_name' => ['nullable', 'string', 'max:255'],
             'recipient_name' => ['required', 'string', 'max:255'],
             'project_manager_name' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'array'],
             'notes.*' => ['nullable', 'string', 'max:2000'],
-            'purchase_order_item_ids' => ['required', 'array', 'min:1'],
+            'purchase_order_item_ids' => ['required_if:source,'.Invoice::SOURCE_PURCHASE_ORDER, 'array', 'min:1'],
             'purchase_order_item_ids.*' => ['integer', 'distinct'],
+            'manual_lines' => ['required_if:source,'.Invoice::SOURCE_MANUAL, 'array', 'min:1'],
+            'manual_lines.*.project_zone' => ['nullable', 'string', 'max:255'],
+            'manual_lines.*.description' => ['required', 'string', 'max:2000'],
+            'manual_lines.*.quantity' => ['required', 'numeric', 'min:0.001', 'max:999999999.999'],
+            'manual_lines.*.unit' => ['nullable', 'string', 'max:50'],
+            'manual_lines.*.unit_price' => ['required', 'numeric', 'min:0', 'max:999999999.99'],
             'currency_code' => ['nullable', 'string', 'size:3', 'alpha'],
             'custom_fees' => ['nullable', 'array'],
             'custom_fees.*.project_zone' => ['nullable', 'string', 'max:255'],
@@ -45,6 +61,10 @@ class StoreInvoiceRequest extends FormRequest
     {
         $validator->after(function (Validator $validator) {
             if ($validator->errors()->isNotEmpty()) {
+                return;
+            }
+
+            if ($this->isManualSource()) {
                 return;
             }
 

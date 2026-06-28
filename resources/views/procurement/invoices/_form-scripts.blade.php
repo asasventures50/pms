@@ -2,6 +2,12 @@
 (function () {
     document.addEventListener('DOMContentLoaded', function () {
         const poList = document.getElementById('invoice-po-list');
+        const poSection = document.getElementById('invoice-po-section');
+        const manualHeaderSection = document.getElementById('invoice-manual-header-section');
+        const manualLinesSection = document.getElementById('invoice-manual-lines-section');
+        const manualLinesBody = document.getElementById('invoice-manual-lines-body');
+        const addManualLineBtn = document.getElementById('invoice-add-manual-line-btn');
+        const sourceRadios = document.querySelectorAll('[data-invoice-source-radio]');
         const poCheckboxes = poList?.querySelectorAll('[data-invoice-po-checkbox]') || [];
         const linesSection = document.getElementById('invoice-lines-section');
         const feesSection = document.getElementById('invoice-fees-section');
@@ -10,6 +16,7 @@
         const addNoteBtn = document.getElementById('invoice-add-note-btn');
         const customFeesBody = document.getElementById('invoice-custom-fees-body');
         const addCustomFeeBtn = document.getElementById('invoice-add-custom-fee-btn');
+        const manualPoInput = document.getElementById('manual_po_number');
         const linesBody = document.getElementById('invoice-lines-body');
         const selectAll = document.getElementById('invoice-select-all-lines');
         const mergeToolbar = document.getElementById('invoice-merge-toolbar');
@@ -19,16 +26,38 @@
         const selectedItemIdsEl = document.getElementById('invoice-selected-item-ids');
         const invoiceForm = document.getElementById('invoice-form');
         const poSummary = document.getElementById('invoice-po-summary');
-        const currencyInput = document.getElementById('currency_code');
+        const currencyInputs = document.querySelectorAll('[data-invoice-currency-input]');
         const currencyHint = document.getElementById('invoice-currency-hint');
         const grandTotalPreview = document.getElementById('invoice-grand-total-preview');
+        const grandTotalPreviewPo = document.getElementById('invoice-grand-total-preview-po');
         const urlTemplate = poList?.getAttribute('data-items-url-template');
+
+        const SOURCE_PO = 'purchase_order';
+        const SOURCE_MANUAL = 'manual';
+
+        let currentSource = SOURCE_PO;
+        try {
+            currentSource = JSON.parse(document.getElementById('invoice-initial-source')?.textContent || '"purchase_order"');
+        } catch (e) {
+            currentSource = SOURCE_PO;
+        }
 
         let poItems = [];
         let oldItemIds = [];
         let mergeGroups = [];
         let nextGroupId = 1;
         let currencyTouched = @json(filled(old('currency_code')) || filled(($invoiceDefaults ?? [])['currency_code'] ?? null));
+        let manualPoTouched = @json(filled(old('manual_po_number')));
+        if (manualPoInput?.value?.trim()) {
+            manualPoTouched = true;
+        }
+
+        let suggestedManualPo = '';
+        try {
+            suggestedManualPo = JSON.parse(document.getElementById('invoice-suggested-manual-po')?.textContent || '""') || '';
+        } catch (e) {
+            suggestedManualPo = '';
+        }
 
         try {
             oldItemIds = JSON.parse(document.getElementById('invoice-old-item-ids')?.textContent || '[]');
@@ -52,6 +81,89 @@
             mergeGroups = [];
         }
 
+        function isManualMode() {
+            return currentSource === SOURCE_MANUAL;
+        }
+
+        function activeCurrencyInput() {
+            return isManualMode()
+                ? document.getElementById('currency_code_manual')
+                : document.getElementById('currency_code');
+        }
+
+        function syncCurrencyInputs(fromInput) {
+            if (!fromInput) {
+                return;
+            }
+
+            currencyInputs.forEach(function (input) {
+                if (input !== fromInput) {
+                    input.value = fromInput.value;
+                }
+            });
+        }
+
+        function setContainerFieldsDisabled(container, disabled) {
+            container?.querySelectorAll('input, textarea, select, button').forEach(function (el) {
+                if (el.hasAttribute('data-invoice-source-radio')) {
+                    return;
+                }
+                el.disabled = disabled;
+            });
+        }
+
+        function applyAutoManualPoNumber() {
+            if (!manualPoInput || manualPoTouched || !isManualMode()) {
+                return;
+            }
+
+            if (suggestedManualPo) {
+                manualPoInput.value = suggestedManualPo;
+            }
+        }
+
+        function applySourceMode() {
+            const manual = isManualMode();
+            const hasPoSelection = selectedPoIds().length > 0;
+
+            poSection?.classList.toggle('hidden', manual);
+            manualHeaderSection?.classList.toggle('hidden', !manual);
+            manualLinesSection?.classList.toggle('hidden', !manual);
+            linesSection?.classList.toggle('hidden', manual || !hasPoSelection);
+
+            const showExtras = manual || hasPoSelection;
+            notesSection?.classList.toggle('hidden', !showExtras);
+            feesSection?.classList.toggle('hidden', manual || !hasPoSelection);
+
+            setContainerFieldsDisabled(poSection, manual);
+            setContainerFieldsDisabled(linesSection, manual);
+            setContainerFieldsDisabled(feesSection, manual);
+            setContainerFieldsDisabled(manualHeaderSection, !manual);
+            setContainerFieldsDisabled(manualLinesSection, !manual);
+
+            if (manual && manualLinesBody && manualLinesBody.querySelectorAll('[data-invoice-manual-line-row]').length === 0) {
+                addManualLineRow({});
+            }
+
+            applyAutoManualPoNumber();
+            updateCurrencyLabels();
+            updateGrandTotalPreview();
+        }
+
+        manualPoInput?.addEventListener('input', function () {
+            manualPoTouched = true;
+        });
+
+        sourceRadios.forEach(function (radio) {
+            radio.addEventListener('change', function () {
+                if (!radio.checked) {
+                    return;
+                }
+                currentSource = radio.value;
+                applySourceMode();
+            });
+        });
+
         function formatMoney(value) {
             return (Math.round(parseFloat(value || 0) * 100) / 100).toFixed(2);
         }
@@ -69,16 +181,17 @@
         }
 
         function updateCurrencyLabels() {
-            const code = (currencyInput?.value || '').trim().toUpperCase();
+            const code = (activeCurrencyInput()?.value || '').trim().toUpperCase();
             const suffix = code ? ' (' + code + ')' : '';
 
-            document.querySelectorAll('[data-invoice-price-label], [data-invoice-fee-price-label], [data-invoice-fee-total-label]').forEach(function (el) {
+            document.querySelectorAll('[data-invoice-price-label], [data-invoice-fee-price-label], [data-invoice-fee-total-label], [data-invoice-manual-price-label], [data-invoice-manual-total-label]').forEach(function (el) {
                 const base = el.getAttribute('data-invoice-price-label-base') || '';
                 el.textContent = base + suffix;
             });
         }
 
         function applyCurrencyFromPo(data, force) {
+            const currencyInput = activeCurrencyInput();
             if (!currencyInput) {
                 return;
             }
@@ -89,7 +202,10 @@
             }
 
             const code = (data?.currency_code || 'USD').trim().toUpperCase();
-            currencyInput.value = code;
+            syncCurrencyInputs(currencyInput);
+            currencyInputs.forEach(function (input) {
+                input.value = code;
+            });
             currencyTouched = false;
             updateCurrencyLabels();
 
@@ -105,14 +221,17 @@
             }
         }
 
-        currencyInput?.addEventListener('input', function () {
-            currencyTouched = true;
-            currencyInput.value = currencyInput.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3);
-            updateCurrencyLabels();
-            if (currencyHint) {
-                currencyHint.classList.add('hidden');
-            }
-            updateGrandTotalPreview();
+        currencyInputs.forEach(function (currencyInput) {
+            currencyInput.addEventListener('input', function () {
+                currencyTouched = true;
+                currencyInput.value = currencyInput.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3);
+                syncCurrencyInputs(currencyInput);
+                updateCurrencyLabels();
+                if (currencyHint) {
+                    currencyHint.classList.add('hidden');
+                }
+                updateGrandTotalPreview();
+            });
         });
 
         updateCurrencyLabels();
@@ -274,6 +393,7 @@
             projectInput.value = fee.project_zone || '';
             projectInput.placeholder = 'مثال: قاسيون';
             projectInput.setAttribute('data-invoice-custom-fee-project-zone', '');
+            projectInput.setAttribute('data-invoice-po-field', '');
             projectInput.className = 'admin-filter-control w-full min-w-[8rem]';
             projectTd.appendChild(projectInput);
             row.appendChild(projectTd);
@@ -285,6 +405,7 @@
             descInput.value = fee.description || '';
             descInput.placeholder = 'مثال: أجور متابعة و اشراف';
             descInput.setAttribute('data-invoice-custom-fee-description', '');
+            descInput.setAttribute('data-invoice-po-field', '');
             descInput.className = 'admin-filter-control w-full min-w-[10rem]';
             descTd.appendChild(descInput);
             row.appendChild(descTd);
@@ -297,6 +418,7 @@
             qtyInput.min = '0';
             qtyInput.step = '0.001';
             qtyInput.setAttribute('data-invoice-custom-fee-quantity', '');
+            qtyInput.setAttribute('data-invoice-po-field', '');
             qtyInput.className = 'admin-filter-control w-24 text-right';
             qtyTd.appendChild(qtyInput);
             row.appendChild(qtyTd);
@@ -308,6 +430,7 @@
             unitInput.value = fee.unit || '';
             unitInput.placeholder = 'مثال: يوم';
             unitInput.setAttribute('data-invoice-custom-fee-unit', '');
+            unitInput.setAttribute('data-invoice-po-field', '');
             unitInput.className = 'admin-filter-control w-24';
             unitTd.appendChild(unitInput);
             row.appendChild(unitTd);
@@ -320,6 +443,7 @@
             priceInput.min = '0';
             priceInput.step = '0.01';
             priceInput.setAttribute('data-invoice-custom-fee-unit-price', '');
+            priceInput.setAttribute('data-invoice-po-field', '');
             priceInput.className = 'admin-filter-control w-28 text-right';
             priceTd.appendChild(priceInput);
             row.appendChild(priceTd);
@@ -353,6 +477,151 @@
         });
 
         reindexCustomFeeInputs();
+
+        function manualLineTotal(row) {
+            const quantity = parseFloat(row.querySelector('[data-invoice-manual-line-quantity]')?.value || 0);
+            const unitPrice = parseFloat(row.querySelector('[data-invoice-manual-line-unit-price]')?.value || 0);
+            return quantity > 0 && unitPrice >= 0 ? quantity * unitPrice : 0;
+        }
+
+        function updateManualLineRowTotal(row) {
+            const totalCell = row.querySelector('[data-invoice-manual-line-total]');
+            if (totalCell) {
+                totalCell.textContent = formatMoney(manualLineTotal(row));
+            }
+        }
+
+        function reindexManualLineInputs() {
+            const rows = manualLinesBody?.querySelectorAll('[data-invoice-manual-line-row]') || [];
+            rows.forEach(function (row, index) {
+                const numCell = row.querySelector('[data-invoice-manual-line-num]');
+                if (numCell) {
+                    numCell.textContent = String(index + 1);
+                }
+
+                const fields = [
+                    ['project_zone', '[data-invoice-manual-line-project-zone]'],
+                    ['description', '[data-invoice-manual-line-description]'],
+                    ['quantity', '[data-invoice-manual-line-quantity]'],
+                    ['unit', '[data-invoice-manual-line-unit]'],
+                    ['unit_price', '[data-invoice-manual-line-unit-price]'],
+                ];
+
+                fields.forEach(function (pair) {
+                    const input = row.querySelector(pair[1]);
+                    if (input) {
+                        input.name = 'manual_lines[' + index + '][' + pair[0] + ']';
+                    }
+                });
+            });
+        }
+
+        function setupManualLineRow(row) {
+            row.querySelectorAll('[data-invoice-manual-line-quantity], [data-invoice-manual-line-unit-price]').forEach(function (input) {
+                input.addEventListener('input', function () {
+                    updateManualLineRowTotal(row);
+                    updateGrandTotalPreview();
+                });
+            });
+
+            const removeBtn = row.querySelector('[data-invoice-remove-manual-line]');
+            removeBtn?.addEventListener('click', function () {
+                row.remove();
+                if (manualLinesBody.querySelectorAll('[data-invoice-manual-line-row]').length === 0) {
+                    addManualLineRow({});
+                } else {
+                    reindexManualLineInputs();
+                }
+                updateGrandTotalPreview();
+            });
+
+            updateManualLineRowTotal(row);
+        }
+
+        function addManualLineRow(line) {
+            if (!manualLinesBody) {
+                return;
+            }
+
+            line = line || {};
+
+            const row = document.createElement('tr');
+            row.setAttribute('data-invoice-manual-line-row', '');
+
+            const numTd = document.createElement('td');
+            numTd.className = 'px-3 py-2 text-center text-slate-500';
+            numTd.setAttribute('data-invoice-manual-line-num', '');
+            numTd.textContent = '0';
+            row.appendChild(numTd);
+
+            const fields = [
+                ['project_zone', 'text', 'مثال: قاسيون', '[data-invoice-manual-line-project-zone]', 'admin-filter-control w-full min-w-[8rem]'],
+                ['description', 'text', 'وصف البند', '[data-invoice-manual-line-description]', 'admin-filter-control w-full min-w-[10rem]'],
+                ['quantity', 'number', '', '[data-invoice-manual-line-quantity]', 'admin-filter-control w-24 text-right'],
+                ['unit', 'text', 'مثال: قطعة', '[data-invoice-manual-line-unit]', 'admin-filter-control w-24'],
+                ['unit_price', 'number', '', '[data-invoice-manual-line-unit-price]', 'admin-filter-control w-28 text-right'],
+            ];
+
+            const dataAttrs = {
+                project_zone: 'data-invoice-manual-line-project-zone',
+                description: 'data-invoice-manual-line-description',
+                quantity: 'data-invoice-manual-line-quantity',
+                unit: 'data-invoice-manual-line-unit',
+                unit_price: 'data-invoice-manual-line-unit-price',
+            };
+
+            fields.forEach(function (field) {
+                const td = document.createElement('td');
+                td.className = 'px-3 py-2';
+                const input = document.createElement('input');
+                input.type = field[1];
+                input.value = line[field[0]] ?? '';
+                if (field[2]) {
+                    input.placeholder = field[2];
+                }
+                input.setAttribute(dataAttrs[field[0]], '');
+                input.setAttribute('data-invoice-manual-field', '');
+                input.className = field[4];
+                if (field[0] === 'quantity') {
+                    input.min = '0.001';
+                    input.step = '0.001';
+                }
+                if (field[0] === 'unit_price') {
+                    input.min = '0';
+                    input.step = '0.01';
+                }
+                td.appendChild(input);
+                row.appendChild(td);
+            });
+
+            const totalTd = document.createElement('td');
+            totalTd.className = 'px-3 py-2 text-right font-medium text-slate-900 tabular-nums';
+            totalTd.setAttribute('data-invoice-manual-line-total', '');
+            totalTd.textContent = '0.00';
+            row.appendChild(totalTd);
+
+            const actionTd = document.createElement('td');
+            actionTd.className = 'px-3 py-2 text-center';
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.setAttribute('data-invoice-remove-manual-line', '');
+            removeBtn.className = 'rounded-lg border border-slate-300 px-2 py-1 text-sm text-slate-600 hover:bg-slate-50';
+            removeBtn.title = 'حذف البند';
+            removeBtn.textContent = '×';
+            actionTd.appendChild(removeBtn);
+            row.appendChild(actionTd);
+
+            manualLinesBody.appendChild(row);
+            setupManualLineRow(row);
+            reindexManualLineInputs();
+        }
+
+        manualLinesBody?.querySelectorAll('[data-invoice-manual-line-row]').forEach(setupManualLineRow);
+        reindexManualLineInputs();
+
+        addManualLineBtn?.addEventListener('click', function () {
+            addManualLineRow({});
+        });
 
         function selectedCheckboxes() {
             return linesBody?.querySelectorAll('input[type="checkbox"][data-po-item-id]:checked') || [];
@@ -464,7 +733,19 @@
             return ids;
         }
 
+        function manualLinesSubtotal() {
+            let total = 0;
+            (manualLinesBody?.querySelectorAll('[data-invoice-manual-line-row]') || []).forEach(function (row) {
+                total += manualLineTotal(row);
+            });
+            return total;
+        }
+
         function linesSubtotalFromSelection() {
+            if (isManualMode()) {
+                return manualLinesSubtotal();
+            }
+
             let total = 0;
             countedItemIdsForTotal().forEach(function (itemId) {
                 total += effectiveLineTotalForItem(itemId);
@@ -473,6 +754,10 @@
         }
 
         function feesSubtotal() {
+            if (isManualMode()) {
+                return 0;
+            }
+
             let total = 0;
             (customFeesBody?.querySelectorAll('[data-invoice-custom-fee-row]') || []).forEach(function (row) {
                 total += customFeeLineTotal(row);
@@ -481,12 +766,16 @@
         }
 
         function updateGrandTotalPreview() {
-            if (!grandTotalPreview) {
-                return;
-            }
             const total = linesSubtotalFromSelection() + feesSubtotal();
-            const code = (currencyInput?.value || '').trim().toUpperCase();
-            grandTotalPreview.textContent = formatMoney(total) + (code ? ' ' + code : '');
+            const code = (activeCurrencyInput()?.value || '').trim().toUpperCase();
+            const formatted = formatMoney(total) + (code ? ' ' + code : '');
+
+            if (grandTotalPreview) {
+                grandTotalPreview.textContent = formatted;
+            }
+            if (grandTotalPreviewPo) {
+                grandTotalPreviewPo.textContent = formatted;
+            }
         }
 
         function applyRowGroupStyles() {
@@ -732,9 +1021,6 @@
         async function loadSelectedPurchaseOrders() {
             const poIds = selectedPoIds();
             if (!urlTemplate || poIds.length === 0) {
-                linesSection?.classList.add('hidden');
-                feesSection?.classList.add('hidden');
-                notesSection?.classList.add('hidden');
                 poSummary?.classList.add('hidden');
                 mergeToolbar?.classList.add('hidden');
                 poItems = [];
@@ -743,6 +1029,7 @@
                 if (linesBody) {
                     linesBody.innerHTML = '';
                 }
+                applySourceMode();
                 return;
             }
 
@@ -782,9 +1069,7 @@
                 poSummary.classList.remove('hidden');
             }
 
-            linesSection?.classList.remove('hidden');
-            feesSection?.classList.remove('hidden');
-            notesSection?.classList.remove('hidden');
+            applySourceMode();
         }
 
         poCheckboxes.forEach(function (checkbox) {
@@ -818,10 +1103,11 @@
             syncMergeGroupInputs();
         });
 
-        if (selectedPoIds().length > 0) {
+        if (selectedPoIds().length > 0 && !isManualMode()) {
             loadSelectedPurchaseOrders();
         } else {
             renderMergeGroupsPanel();
+            applySourceMode();
         }
 
         updateGrandTotalPreview();

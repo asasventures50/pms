@@ -160,6 +160,7 @@ class InvoicePersistenceService
             ->all();
 
         return [
+            'source' => Invoice::SOURCE_PURCHASE_ORDER,
             'created_by' => $createdBy,
             'recipient_name' => $recipientName,
             'project_manager_name' => filled($projectManagerName) ? trim($projectManagerName) : null,
@@ -175,5 +176,36 @@ class InvoicePersistenceService
             'notes' => $cleanNotes !== [] ? $cleanNotes : null,
             'custom_fees' => $cleanCustomFees !== [] ? $cleanCustomFees : null,
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public static function headerFromManual(
+        string $recipientName,
+        ?string $projectManagerName,
+        int $createdBy,
+        string $currencyCode,
+        string $poNumber,
+        ?string $vendorName,
+        array $notes,
+        array $customFees = [],
+    ): array {
+        $header = self::headerFromPurchaseOrders(
+            collect(),
+            $recipientName,
+            $projectManagerName,
+            $createdBy,
+            false,
+            $currencyCode,
+            $notes,
+            $customFees,
+        );
+
+        $header['source'] = Invoice::SOURCE_MANUAL;
+        $header['po_number'] = trim($poNumber);
+        $header['vendor_company_name'] = filled($vendorName) ? trim($vendorName) : null;
+
+        return $header;
     }
 }

@@ -10,6 +10,7 @@ use App\Models\Procurement\PurchaseOrders\PurchaseOrder;
 use App\Models\Procurement\PurchaseOrders\PurchaseOrderItem;
 use App\Services\Procurement\Invoices\InvoiceCurrencyResolver;
 use App\Services\Procurement\Invoices\InvoiceLineBuilder;
+use App\Services\Procurement\Invoices\InvoiceManualPoNumberGenerator;
 use App\Services\Procurement\Invoices\InvoicePersistenceService;
 use App\Services\Procurement\Invoices\InvoiceProjectZoneResolver;
 use App\Services\Procurement\PurchaseOrders\ProcurementRequestLineUnitLookup;
@@ -23,6 +24,7 @@ class InvoiceController extends Controller
     public function __construct(
         private readonly InvoicePersistenceService $persistence,
         private readonly InvoiceLineBuilder $lineBuilder,
+        private readonly InvoiceManualPoNumberGenerator $manualPoNumberGenerator,
     ) {}
 
     public function index(Request $request): View
@@ -58,6 +60,7 @@ class InvoiceController extends Controller
 
         return view('procurement.invoices.create', [
             'purchaseOrders' => $purchaseOrders,
+            'suggestedManualPoNumber' => $this->manualPoNumberGenerator->next(),
         ]);
     }
 
@@ -195,6 +198,82 @@ class InvoiceController extends Controller
     {
         $validated = $request->validated();
 
+        if ($request->isManualSource()) {
+            return $this->resolveManualInvoicePayload($request, $validated, $invoice);
+        }
+
+        return $this->resolvePurchaseOrderInvoicePayload($request, $validated, $invoice);
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return array{
+     *     header: array<string, mixed>,
+     *     purchase_order_ids: list<int>,
+     *     lines: list<array<string, mixed>>
+     * }|RedirectResponse
+     */
+    private function resolveManualInvoicePayload(
+        StoreInvoiceRequest $request,
+        array $validated,
+        ?Invoice $invoice = null,
+    ): array|RedirectResponse {
+        $lines = $this->buildManualLines($validated['manual_lines'] ?? []);
+
+        if ($lines === []) {
+            return back()->withInput()->withErrors(['manual_lines' => 'Add at least one line item.']);
+        }
+
+        $currencyCode = InvoiceCurrencyResolver::normalizeCode($validated['currency_code'] ?? null)
+            ?? InvoiceCurrencyResolver::DEFAULT;
+
+        $manualPoNumber = trim((string) ($validated['manual_po_number'] ?? ''));
+        if ($manualPoNumber === '') {
+            $manualPoNumber = $invoice !== null && filled($invoice->po_number)
+                ? trim($invoice->po_number)
+                : $this->manualPoNumberGenerator->next();
+        }
+
+        $header = InvoicePersistenceService::headerFromManual(
+            trim($validated['recipient_name']),
+            filled($validated['project_manager_name'] ?? null)
+                ? trim((string) $validated['project_manager_name'])
+                : null,
+            (int) $request->user()->id,
+            $currencyCode,
+            $manualPoNumber,
+            filled($validated['manual_vendor_name'] ?? null)
+                ? trim((string) $validated['manual_vendor_name'])
+                : null,
+            $validated['notes'] ?? [],
+            [],
+        );
+
+        if ($invoice !== null) {
+            $header['created_by'] = $invoice->created_by;
+            $header['invoiced_at'] = $invoice->invoiced_at?->toDateString() ?? now()->toDateString();
+        }
+
+        return [
+            'header' => $header,
+            'purchase_order_ids' => [],
+            'lines' => $lines,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return array{
+     *     header: array<string, mixed>,
+     *     purchase_order_ids: list<int>,
+     *     lines: list<array<string, mixed>>
+     * }|RedirectResponse
+     */
+    private function resolvePurchaseOrderInvoicePayload(
+        StoreInvoiceRequest $request,
+        array $validated,
+        ?Invoice $invoice = null,
+    ): array|RedirectResponse {
         $purchaseOrderIds = collect($validated['purchase_order_ids'])
             ->map(fn ($id) => (int) $id)
             ->unique()
@@ -289,10 +368,64 @@ class InvoiceController extends Controller
     }
 
     /**
+     * @param  list<array<string, mixed>>  $manualLines
+     * @return list<array<string, mixed>>
+     */
+    private function buildManualLines(array $manualLines): array
+    {
+        $lines = [];
+        $lineNumber = 1;
+
+        foreach ($manualLines as $row) {
+            $description = trim((string) ($row['description'] ?? ''));
+            $quantity = round((float) ($row['quantity'] ?? 0), 3);
+            $unitPrice = round((float) ($row['unit_price'] ?? 0), 2);
+            $unit = trim((string) ($row['unit'] ?? ''));
+            $projectZone = trim((string) ($row['project_zone'] ?? ''));
+
+            if ($description === '' || $quantity <= 0) {
+                continue;
+            }
+
+            $lines[] = [
+                'line_number' => $lineNumber++,
+                'description' => $description,
+                'project_zone' => $projectZone !== '' ? $projectZone : null,
+                'quantity' => $quantity,
+                'unit' => $unit !== '' ? $unit : null,
+                'unit_price' => $unitPrice,
+                'line_total' => round($quantity * $unitPrice, 2),
+                'source_purchase_order_item_ids' => null,
+            ];
+        }
+
+        return $lines;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function formDefaultsFromInvoice(Invoice $invoice): array
     {
+        if ($invoice->isManual()) {
+            return [
+                'source' => Invoice::SOURCE_MANUAL,
+                'manual_po_number' => $invoice->po_number,
+                'manual_vendor_name' => $invoice->vendor_company_name,
+                'manual_lines' => $invoice->items->map(fn ($item) => [
+                    'project_zone' => $item->project_zone ?? '',
+                    'description' => $item->description,
+                    'quantity' => $item->quantity,
+                    'unit' => $item->unit ?? '',
+                    'unit_price' => $item->unit_price,
+                ])->values()->all(),
+                'recipient_name' => $invoice->recipient_name,
+                'project_manager_name' => $invoice->project_manager_name,
+                'notes' => ($notes = $invoice->displayNotes()) !== [] ? $notes : [''],
+                'currency_code' => $invoice->currency_code ?? 'USD',
+            ];
+        }
+
         $mergeGroups = $invoice->items
             ->map(fn ($item) => [
                 'description' => $item->description,
@@ -308,6 +441,7 @@ class InvoiceController extends Controller
         $notes = $invoice->displayNotes();
 
         return [
+            'source' => Invoice::SOURCE_PURCHASE_ORDER,
             'purchase_order_ids' => $invoice->purchaseOrders->pluck('id')->all(),
             'purchase_order_item_ids' => $invoice->items
                 ->flatMap(fn ($item) => $item->source_purchase_order_item_ids ?? [])

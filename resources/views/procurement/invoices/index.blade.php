@@ -55,22 +55,17 @@
                     <td class="px-4 py-3 text-slate-600">{{ $invoice->invoiced_at?->format('Y-m-d') }}</td>
                     <td class="px-4 py-3 text-right text-slate-900">{{ $invoice->formatMoneyAmount($invoice->total_price) }}</td>
                     <td class="px-4 py-3 text-right">
-                        {{--
-                            Invoice delete: backend ready (InvoiceController@destroy, DELETE invoices/{invoice}).
-                            To show the button again, paste this after the Print link:
-
+                        <div class="flex flex-wrap items-center justify-end gap-3">
+                            <a href="{{ route('invoices.edit', $invoice) }}"
+                               class="font-medium text-slate-700 hover:text-slate-900">Edit</a>
+                            <a href="{{ route('invoices.print', $invoice) }}"
+                               class="font-medium text-slate-700 hover:text-slate-900">Print</a>
                             <form action="{{ route('invoices.destroy', $invoice) }}" method="post" class="inline"
                                   onsubmit="return confirm('Delete invoice {{ $invoice->invoice_number }}? This cannot be undone.');">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="font-medium text-red-700 hover:text-red-900">Delete</button>
                             </form>
-                        --}}
-                        <div class="flex flex-wrap items-center justify-end gap-3">
-                            <a href="{{ route('invoices.edit', $invoice) }}"
-                               class="font-medium text-slate-700 hover:text-slate-900">Edit</a>
-                            <a href="{{ route('invoices.print', $invoice) }}"
-                               class="font-medium text-slate-700 hover:text-slate-900">Print</a>
                         </div>
                     </td>
                 </tr>
