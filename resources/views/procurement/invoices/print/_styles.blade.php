@@ -445,22 +445,29 @@
         }
 
         .inv-print-document {
+            display: block;
             min-height: 0;
             padding-bottom: 0;
         }
 
         .inv-print-main {
-            padding-bottom: 62mm;
+            display: block;
+            padding-bottom: 0;
         }
 
         .inv-header,
         .inv-recipient-block,
-        .inv-table-frame,
         .inv-notes-block,
         .inv-bank-block,
         .inv-pre-footer {
             break-inside: avoid-page;
             page-break-inside: avoid;
+        }
+
+        .inv-table-frame {
+            overflow: visible;
+            break-inside: auto;
+            page-break-inside: auto;
         }
 
         .inv-items-table thead {
@@ -472,17 +479,18 @@
             page-break-inside: avoid;
         }
 
+        .inv-totals-grand {
+            break-inside: avoid-page;
+            page-break-inside: avoid;
+        }
+
         .inv-print-bottom {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
+            position: static;
             width: 100%;
             background: #fff;
-            z-index: 1000;
-            padding: 0 10mm;
+            padding: 0;
             box-sizing: border-box;
-            margin-top: 0;
+            margin-top: 12px;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
