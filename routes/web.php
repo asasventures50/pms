@@ -120,7 +120,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('categories.quick-store');
 
     Route::post('/subcategories/quick-store', [SubcategoryQuickStoreController::class, 'quickStore'])
-        ->middleware('permission:categories.create')
+        ->middleware('permission:categories.create|procurement-requests.create')
         ->name('subcategories.quick-store');
 
     Route::post('/projects/quick-store', [ProjectQuickStoreController::class, 'quickStore'])

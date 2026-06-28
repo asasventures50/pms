@@ -2,6 +2,9 @@
     $prQuickStoreUrls = [
         'project' => auth()->user()->hasPermission('projects.create') ? route('projects.quick-store') : null,
         'zone' => auth()->user()->hasPermission('projects.update') ? route('zones.quick-store') : null,
+        'subcategory' => (auth()->user()->hasPermission('categories.create') || auth()->user()->hasPermission('procurement-requests.create'))
+            ? route('subcategories.quick-store')
+            : null,
     ];
     $categorySubcategories = ($categories ?? collect())->mapWithKeys(fn ($cat) => [
         $cat->id => $cat->subcategories->map(fn ($sub) => [
@@ -68,7 +71,11 @@ document.addEventListener('DOMContentLoaded', function () {
             option.disabled = !matches;
         });
         if (!hasCategory || !allowedIds.includes(subcategorySelect.value)) subcategorySelect.value = '';
+        document.querySelector('[data-pr-add-subcategory]')?.toggleAttribute('disabled', !hasCategory);
     }
+
+    window.prCategorySubcategoryMap = categoryMap;
+    window.prSyncSubcategories = syncSubcategories;
 
     function recalcBoqRow(row) {
         const qty = parseFloat(row.querySelector('[data-pr-boq-qty]')?.value || '0') || 0;
@@ -175,6 +182,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     document.querySelector('[data-pr-add-zone]')?.addEventListener('click', function () {
         if (quickStoreUrls.zone) window.prQuickAddZone?.(prSection);
+    });
+    document.querySelector('[data-pr-add-subcategory]')?.addEventListener('click', function () {
+        if (quickStoreUrls.subcategory) window.prQuickAddSubcategory?.(prSection);
     });
 
     const companySelect = document.getElementById('company_key');

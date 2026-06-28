@@ -10,6 +10,8 @@
     $selectedProcurementTypes = old('procurement_types', $formDefaults['procurement_types'] ?? []);
     $selectedGeographicScopes = old('geographic_scopes', $formDefaults['geographic_scopes'] ?? []);
     $selectedVendorTypes = old('vendor_types', $formDefaults['vendor_types'] ?? []);
+    $canQuickAddSubcategory = auth()->user()->hasPermission('categories.create')
+        || auth()->user()->hasPermission('procurement-requests.create');
 @endphp
 
 <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -88,21 +90,29 @@
         </div>
         <div>
             <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Subcategory</label>
-            <select name="subcategory_id" id="pr_subcategory_id" data-pr-subcategory-select
-                    class="admin-filter-control mt-1 w-full @error('subcategory_id') border-red-500 @enderror"
-                    @disabled($selectedCategoryId === '' || $selectedCategoryId === null)>
-                <option value="">—</option>
-                @foreach ($categories as $category)
-                    @foreach ($category->subcategories as $subcategory)
-                        <option value="{{ $subcategory->id }}"
-                                data-category-id="{{ $category->id }}"
-                                @selected((string) $selectedSubcategoryId === (string) $subcategory->id)
-                                @disabled((string) $selectedCategoryId !== '' && (string) $selectedCategoryId !== (string) $category->id)>
-                            {{ $subcategory->name_ar }} — {{ $subcategory->name_en }}
-                        </option>
+            <div class="mt-1 flex gap-1">
+                <select name="subcategory_id" id="pr_subcategory_id" data-pr-subcategory-select
+                        class="admin-filter-control min-w-0 flex-1 @error('subcategory_id') border-red-500 @enderror"
+                        @disabled($selectedCategoryId === '' || $selectedCategoryId === null)>
+                    <option value="">—</option>
+                    @foreach ($categories as $category)
+                        @foreach ($category->subcategories as $subcategory)
+                            <option value="{{ $subcategory->id }}"
+                                    data-category-id="{{ $category->id }}"
+                                    @selected((string) $selectedSubcategoryId === (string) $subcategory->id)
+                                    @disabled((string) $selectedCategoryId !== '' && (string) $selectedCategoryId !== (string) $category->id)>
+                                {{ $subcategory->name_ar }} — {{ $subcategory->name_en }}
+                            </option>
+                        @endforeach
                     @endforeach
-                @endforeach
-            </select>
+                </select>
+                @if ($canQuickAddSubcategory)
+                    <button type="button" data-pr-add-subcategory
+                            class="inline-flex shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-white px-2.5 text-base font-medium leading-none text-slate-800 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                            title="Add subcategory"
+                            @disabled($selectedCategoryId === '' || $selectedCategoryId === null)>+</button>
+                @endif
+            </div>
             @error('subcategory_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
     </div>
@@ -136,4 +146,7 @@
 @endif
 @if (auth()->user()->hasPermission('projects.update'))
     @include('procurement.procurement-requests.partials._quick-add-zone-modal')
+@endif
+@if ($canQuickAddSubcategory)
+    @include('procurement.procurement-requests.partials._quick-add-subcategory-modal')
 @endif
