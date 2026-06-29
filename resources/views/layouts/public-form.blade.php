@@ -17,6 +17,7 @@
     <meta name="theme-color" content="#E65100">
 
     <title>@yield('title', 'PMS') — ASAS Ventures</title>
+    @include('partials.favicon')
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700{{ $isRtl ? '|noto-sans-arabic:400,500,600,700' : '' }}" rel="stylesheet" />
