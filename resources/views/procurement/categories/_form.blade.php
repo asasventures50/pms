@@ -123,7 +123,6 @@
                 @php
                     $selectedParentId = (int) old("subcategories.$index.target_category_id", $row['target_category_id'] ?? $currentCategoryId);
                     $vendorsCount = (int) ($row['vendors_count'] ?? 0);
-                    $canRemoveSubcategory = $vendorsCount === 0;
                 @endphp
                 <tr class="subcategory-row" data-row-index="{{ $index }}" @if ($mode === 'edit') data-subcategory-id="{{ $row['id'] ?? '' }}" data-current-category-id="{{ $currentCategoryId }}" data-vendors-count="{{ $vendorsCount }}" @endif>
                     @if ($mode === 'edit' && ! empty($row['id']))
@@ -167,15 +166,14 @@
                         @error('subcategories.'.$index.'.status')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                     </td>
                     <td class="px-2 py-2 align-top">
-                        @if ($mode === 'edit' && ! empty($row['id']) && ! $canRemoveSubcategory)
-                            <button type="button" disabled
-                                    class="text-sm font-medium text-slate-400 cursor-not-allowed"
-                                    title="Cannot remove while this subcategory is linked to {{ $vendorsCount }} vendor(s).">
-                                Remove
-                            </button>
-                        @else
-                            <button type="button" class="remove-subcategory-row text-sm font-medium text-red-700 hover:text-red-900">Remove</button>
-                        @endif
+                        <button type="button"
+                                class="remove-subcategory-row text-sm font-medium text-red-700 hover:text-red-900"
+                                @if ($vendorsCount > 0)
+                                    data-vendor-unlink-warning="1"
+                                    title="Linked vendors ({{ $vendorsCount }}) will be unlinked from this subcategory."
+                                @endif>
+                            Remove
+                        </button>
                     </td>
                 </tr>
             @endforeach
@@ -704,12 +702,21 @@
             tbody.addEventListener('click', function (e) {
                 if (e.target.classList.contains('remove-subcategory-row')) {
                     const row = e.target.closest('tr');
-                    if (row && parseInt(row.dataset.vendorsCount || '0', 10) > 0) {
+                    if (! row) {
                         return;
                     }
-                    if (row) {
-                        row.remove();
+
+                    const vendorsCount = parseInt(row.dataset.vendorsCount || '0', 10);
+                    if (vendorsCount > 0) {
+                        const confirmed = window.confirm(
+                            'This subcategory is linked to ' + vendorsCount + ' vendor(s). Removing it will unlink those vendors from this subcategory. Continue?'
+                        );
+                        if (! confirmed) {
+                            return;
+                        }
                     }
+
+                    row.remove();
                 }
             });
 

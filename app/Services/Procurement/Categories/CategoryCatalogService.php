@@ -2,12 +2,13 @@
 
 namespace App\Services\Procurement\Categories;
 
+use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
 use App\Models\Procurement\Vendors\Category;
 use App\Models\Procurement\Vendors\Subcategory;
+use App\Models\Procurement\Vendors\VendorBrochure;
 use App\Models\Procurement\Vendors\VendorCategory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use RuntimeException;
 
 class CategoryCatalogService
 {
@@ -54,10 +55,7 @@ class CategoryCatalogService
             ->where('category_id', $category->id)
             ->whereNotIn('id', $keptIds)
             ->get()
-            ->each(function (Subcategory $subcategory) {
-                $this->assertSubcategoryCanBeDeleted($subcategory);
-                $subcategory->delete();
-            });
+            ->each(fn (Subcategory $subcategory) => $this->softDeleteSubcategory($subcategory));
     }
 
     public function linkedVendorCountForCategory(Category $category): int
@@ -74,32 +72,6 @@ class CategoryCatalogService
             ->where('subcategory_id', $subcategory->id)
             ->distinct()
             ->count('vendor_id');
-    }
-
-    public function categoryCanBeDeleted(Category $category): bool
-    {
-        return $this->linkedVendorCountForCategory($category) === 0;
-    }
-
-    public function subcategoryCanBeDeleted(Subcategory $subcategory): bool
-    {
-        return $this->linkedVendorCountForSubcategory($subcategory) === 0;
-    }
-
-    public function assertCategoryCanBeDeleted(Category $category): void
-    {
-        if (! $this->categoryCanBeDeleted($category)) {
-            throw new RuntimeException('This category cannot be deleted because it is linked to one or more vendors.');
-        }
-    }
-
-    public function assertSubcategoryCanBeDeleted(Subcategory $subcategory): void
-    {
-        if (! $this->subcategoryCanBeDeleted($subcategory)) {
-            throw new RuntimeException(
-                'Subcategory "'.$subcategory->name_en.'" cannot be removed because it is linked to one or more vendors.'
-            );
-        }
     }
 
     /**
@@ -138,17 +110,77 @@ class CategoryCatalogService
         return $out;
     }
 
-    public function softDeleteCategoryCascade(Category $category): void
+    public function softDeleteCategoryCascade(Category $category): int
     {
-        $this->assertCategoryCanBeDeleted($category);
+        $detachedVendorLinks = 0;
 
-        DB::transaction(function () use ($category) {
+        DB::transaction(function () use ($category, &$detachedVendorLinks) {
+            $detachedVendorLinks = $this->detachVendorLinksForCategory($category);
+            $this->nullifyCategoryReferences($category);
+
             Subcategory::query()
                 ->where('category_id', $category->id)
                 ->get()
-                ->each(fn (Subcategory $s) => $s->delete());
+                ->each(fn (Subcategory $subcategory) => $subcategory->delete());
 
             $category->delete();
         });
+
+        return $detachedVendorLinks;
+    }
+
+    public function softDeleteSubcategory(Subcategory $subcategory): int
+    {
+        $detachedVendorLinks = 0;
+
+        DB::transaction(function () use ($subcategory, &$detachedVendorLinks) {
+            $detachedVendorLinks = $this->detachVendorLinksForSubcategory($subcategory);
+            $this->nullifySubcategoryReferences($subcategory);
+            $subcategory->delete();
+        });
+
+        return $detachedVendorLinks;
+    }
+
+    public function detachVendorLinksForCategory(Category $category): int
+    {
+        return VendorCategory::query()
+            ->where('category_id', $category->id)
+            ->delete();
+    }
+
+    public function detachVendorLinksForSubcategory(Subcategory $subcategory): int
+    {
+        return VendorCategory::query()
+            ->where('subcategory_id', $subcategory->id)
+            ->delete();
+    }
+
+    private function nullifyCategoryReferences(Category $category): void
+    {
+        VendorBrochure::query()
+            ->where('category_id', $category->id)
+            ->update([
+                'category_id' => null,
+                'subcategory_id' => null,
+            ]);
+
+        ProcurementRequest::query()
+            ->where('category_id', $category->id)
+            ->update([
+                'category_id' => null,
+                'subcategory_id' => null,
+            ]);
+    }
+
+    private function nullifySubcategoryReferences(Subcategory $subcategory): void
+    {
+        VendorBrochure::query()
+            ->where('subcategory_id', $subcategory->id)
+            ->update(['subcategory_id' => null]);
+
+        ProcurementRequest::query()
+            ->where('subcategory_id', $subcategory->id)
+            ->update(['subcategory_id' => null]);
     }
 }

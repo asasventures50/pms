@@ -370,17 +370,16 @@ class CategoryController extends Controller
 
     public function destroy(Category $category): RedirectResponse
     {
-        if (! $this->catalogService->categoryCanBeDeleted($category)) {
-            return redirect()
-                ->route('categories.index')
-                ->with('error', 'Cannot delete this category because it is linked to one or more vendors.');
-        }
+        $detachedVendorLinks = $this->catalogService->softDeleteCategoryCascade($category);
 
-        $this->catalogService->softDeleteCategoryCascade($category);
+        $message = 'Category deleted successfully.';
+        if ($detachedVendorLinks > 0) {
+            $message .= ' '.$detachedVendorLinks.' vendor classification link(s) were removed; vendors were not deleted.';
+        }
 
         return redirect()
             ->route('categories.index')
-            ->with('success', 'Category deleted successfully.');
+            ->with('success', $message);
     }
 
     public function export(): BinaryFileResponse
