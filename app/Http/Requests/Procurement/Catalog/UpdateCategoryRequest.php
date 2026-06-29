@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Procurement\Catalog;
 
 use App\Models\Procurement\Vendors\Category;
+use App\Support\CatalogIdentifiers;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -29,7 +30,7 @@ class UpdateCategoryRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('categories', 'slug')->ignore($category),
+                CatalogIdentifiers::uniqueCategorySlug($category?->getKey()),
             ],
             'description' => ['nullable', 'string'],
             'status' => ['nullable', 'string', 'max:50'],

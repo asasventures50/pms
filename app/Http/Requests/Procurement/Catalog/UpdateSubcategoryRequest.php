@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Procurement\Catalog;
 
 use App\Models\Procurement\Vendors\Subcategory;
+use App\Support\CatalogIdentifiers;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -29,9 +30,7 @@ class UpdateSubcategoryRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('subcategories', 'name_en')
-                    ->where('category_id', $categoryId)
-                    ->ignore($subcategory?->getKey()),
+                CatalogIdentifiers::uniqueSubcategoryNameEn($categoryId, $subcategory?->getKey()),
             ],
             'name_ar' => ['sometimes', 'required', 'string', 'max:255'],
             'slug' => [
@@ -39,9 +38,7 @@ class UpdateSubcategoryRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('subcategories', 'slug')
-                    ->where('category_id', $categoryId)
-                    ->ignore($subcategory?->getKey()),
+                CatalogIdentifiers::uniqueSubcategorySlug($categoryId, $subcategory?->getKey()),
             ],
             'description' => ['nullable', 'string'],
             'status' => ['nullable', 'string', 'max:50'],

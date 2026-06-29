@@ -4,6 +4,7 @@ namespace App\Http\Requests\Procurement\Categories;
 
 use App\Models\Procurement\Vendors\Category;
 use App\Models\Procurement\Vendors\Subcategory;
+use App\Support\CatalogIdentifiers;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -66,7 +67,7 @@ class UpdateCategoryRequest extends FormRequest
                 'string',
                 'max:255',
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
-                Rule::unique('categories', 'slug')->ignore($category->getKey()),
+                CatalogIdentifiers::uniqueCategorySlug($category->getKey()),
             ],
             'status' => ['required', 'string', Rule::in(['active', 'inactive'])],
 

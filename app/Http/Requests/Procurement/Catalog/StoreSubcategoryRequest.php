@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Procurement\Catalog;
 
+use App\Support\CatalogIdentifiers;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -25,14 +26,14 @@ class StoreSubcategoryRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('subcategories', 'name_en')->where('category_id', $categoryId),
+                CatalogIdentifiers::uniqueSubcategoryNameEn((int) $categoryId),
             ],
             'name_ar' => ['required', 'string', 'max:255'],
             'slug' => [
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('subcategories', 'slug')->where('category_id', $categoryId),
+                CatalogIdentifiers::uniqueSubcategorySlug((int) $categoryId),
             ],
             'description' => ['nullable', 'string'],
             'status' => ['nullable', 'string', 'max:50'],

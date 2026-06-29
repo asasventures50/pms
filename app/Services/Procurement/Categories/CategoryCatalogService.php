@@ -7,6 +7,7 @@ use App\Models\Procurement\Vendors\Category;
 use App\Models\Procurement\Vendors\Subcategory;
 use App\Models\Procurement\Vendors\VendorBrochure;
 use App\Models\Procurement\Vendors\VendorCategory;
+use App\Support\CatalogIdentifiers;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -121,8 +122,12 @@ class CategoryCatalogService
             Subcategory::query()
                 ->where('category_id', $category->id)
                 ->get()
-                ->each(fn (Subcategory $subcategory) => $subcategory->delete());
+                ->each(function (Subcategory $subcategory): void {
+                    $this->releaseSubcategoryIdentifiers($subcategory);
+                    $subcategory->delete();
+                });
 
+            $this->releaseCategoryIdentifiers($category);
             $category->delete();
         });
 
@@ -136,6 +141,7 @@ class CategoryCatalogService
         DB::transaction(function () use ($subcategory, &$detachedVendorLinks) {
             $detachedVendorLinks = $this->detachVendorLinksForSubcategory($subcategory);
             $this->nullifySubcategoryReferences($subcategory);
+            $this->releaseSubcategoryIdentifiers($subcategory);
             $subcategory->delete();
         });
 
@@ -154,6 +160,22 @@ class CategoryCatalogService
         return VendorCategory::query()
             ->where('subcategory_id', $subcategory->id)
             ->delete();
+    }
+
+    private function releaseCategoryIdentifiers(Category $category): void
+    {
+        $category->update([
+            'slug' => CatalogIdentifiers::releaseSlug($category->slug, $category->id),
+            'name_en' => CatalogIdentifiers::releaseNameEn($category->name_en, $category->id),
+        ]);
+    }
+
+    private function releaseSubcategoryIdentifiers(Subcategory $subcategory): void
+    {
+        $subcategory->update([
+            'slug' => CatalogIdentifiers::releaseSlug($subcategory->slug, $subcategory->id),
+            'name_en' => CatalogIdentifiers::releaseNameEn($subcategory->name_en, $subcategory->id),
+        ]);
     }
 
     private function nullifyCategoryReferences(Category $category): void

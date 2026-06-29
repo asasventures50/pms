@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
         $this->call(RolePermissionSeeder::class);
         $this->call(AdminUserSeeder::class);
         $this->call(CountryCitySeeder::class);
-        $this->call(VendorCatalogSeeder::class);
-        $this->call(RfqGeneralTermSeeder::class);
+       //* $this->call(VendorCatalogSeeder::class);
+       // $this->call(RfqGeneralTermSeeder::class);
     }
 }

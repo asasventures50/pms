@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Procurement\Categories;
 
+use App\Support\CatalogIdentifiers;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -56,7 +57,7 @@ class StoreCategoryRequest extends FormRequest
         return [
             'name_en' => ['required', 'string', 'max:255'],
             'name_ar' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', Rule::unique('categories', 'slug')],
+            'slug' => ['required', 'string', 'max:255', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', CatalogIdentifiers::uniqueCategorySlug()],
             'status' => ['required', 'string', Rule::in(['active', 'inactive'])],
 
             'subcategories' => ['nullable', 'array'],
