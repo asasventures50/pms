@@ -46,6 +46,13 @@ class CatalogIdentifiers
         return $ignoreId !== null ? $rule->ignore($ignoreId) : $rule;
     }
 
+    public static function uniqueCategoryNameEn(?int $ignoreId = null): Unique
+    {
+        $rule = Rule::unique('categories', 'name_en')->whereNull('deleted_at');
+
+        return $ignoreId !== null ? $rule->ignore($ignoreId) : $rule;
+    }
+
     public static function uniqueSubcategorySlug(int $categoryId, ?int $ignoreId = null): Unique
     {
         $rule = Rule::unique('subcategories', 'slug')

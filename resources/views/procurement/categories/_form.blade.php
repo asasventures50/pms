@@ -70,11 +70,12 @@
             @error('name_en')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
         <div>
-            <label for="slug" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Slug <span class="text-red-600">*</span></label>
-            <input type="text" name="slug" id="category_slug" required value="{{ old('slug', $c->slug ?? '') }}"
-                   data-slug-target data-slug-manual="0"
-                   class="admin-filter-control font-mono @error('slug') border-red-500 @enderror">
-            <p class="mt-1 text-xs text-slate-500">Generated from English name; you can edit manually.</p>
+            <label for="slug" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Slug</label>
+            <input type="text" name="slug" id="category_slug" required readonly tabindex="-1"
+                   value="{{ old('slug', $c->slug ?? '') }}"
+                   data-slug-target
+                   class="admin-filter-control font-mono bg-slate-50 text-slate-600 cursor-not-allowed @error('slug') border-red-500 @enderror">
+            <p class="mt-1 text-xs text-slate-500">Auto-generated from the English name.</p>
             @error('slug')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
         <div>
@@ -101,7 +102,7 @@
     @if ($mode === 'edit')
         <p class="mt-2 text-xs text-slate-500">Change the parent category to move a subcategory. Vendor links, brochures, and procurement requests will be updated on save.</p>
     @else
-        <p class="mt-2 text-xs text-slate-500">Arabic name is shown first. Slugs are generated from English name unless you edit them.</p>
+        <p class="mt-2 text-xs text-slate-500">Arabic name is shown first. Subcategory slugs are auto-generated from the English name.</p>
     @endif
 
     <div class="mt-4 overflow-x-auto">
@@ -139,8 +140,8 @@
                         @error('subcategories.'.$index.'.name_en')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                     </td>
                     <td class="px-2 py-2 align-top">
-                        <input type="text" name="subcategories[{{ $index }}][slug]" value="{{ $row['slug'] ?? '' }}" data-sub-slug-target data-slug-manual="0"
-                               class="admin-filter-control !mt-0 min-w-[8rem] font-mono text-xs @error('subcategories.'.$index.'.slug') border-red-500 @enderror">
+                        <input type="text" name="subcategories[{{ $index }}][slug]" value="{{ $row['slug'] ?? '' }}" data-sub-slug-target readonly tabindex="-1"
+                               class="admin-filter-control !mt-0 min-w-[8rem] font-mono text-xs bg-slate-50 text-slate-600 cursor-not-allowed @error('subcategories.'.$index.'.slug') border-red-500 @enderror">
                         @error('subcategories.'.$index.'.slug')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                     </td>
                     @if ($mode === 'edit')
@@ -194,8 +195,8 @@
                    class="admin-filter-control !mt-0 min-w-[8rem]">
         </td>
         <td class="px-2 py-2 align-top">
-            <input type="text" name="subcategories[__IDX__][slug]" value="" data-sub-slug-target data-slug-manual="0"
-                   class="admin-filter-control !mt-0 min-w-[8rem] font-mono text-xs">
+            <input type="text" name="subcategories[__IDX__][slug]" value="" data-sub-slug-target readonly tabindex="-1"
+                   class="admin-filter-control !mt-0 min-w-[8rem] font-mono text-xs bg-slate-50 text-slate-600 cursor-not-allowed">
         </td>
         @if ($mode === 'edit')
             <td class="px-2 py-2 align-top">
@@ -500,15 +501,27 @@
                 if (!src || !tgt) {
                     return;
                 }
-                src.addEventListener('input', function () {
-                    if (tgt.dataset.slugManual === '1') {
-                        return;
-                    }
+
+                const sync = function () {
                     tgt.value = slugify(src.value);
-                });
-                tgt.addEventListener('input', function () {
-                    tgt.dataset.slugManual = tgt.value === '' ? '0' : '1';
-                });
+                };
+
+                src.addEventListener('input', sync);
+                sync();
+            }
+
+            function syncSubcategorySlug(row) {
+                const src = row.querySelector('[data-sub-slug-source]');
+                const tgt = row.querySelector('[data-sub-slug-target]');
+                if (!src || !tgt) {
+                    return;
+                }
+
+                tgt.value = slugify(src.value);
+            }
+
+            function syncAllSubcategorySlugs() {
+                document.querySelectorAll('#subcategory-rows tr.subcategory-row').forEach(syncSubcategorySlug);
             }
 
             function getTargetCategoryValue(row) {
@@ -551,19 +564,14 @@
 
             function wireSubRow(row) {
                 const src = row.querySelector('[data-sub-slug-source]');
-                const tgt = row.querySelector('[data-sub-slug-target]');
-                if (!src || !tgt) {
+                if (!src) {
                     return;
                 }
+
                 src.addEventListener('input', function () {
-                    if (tgt.dataset.slugManual === '1') {
-                        return;
-                    }
-                    tgt.value = slugify(src.value);
+                    syncSubcategorySlug(row);
                 });
-                tgt.addEventListener('input', function () {
-                    tgt.dataset.slugManual = tgt.value === '' ? '0' : '1';
-                });
+                syncSubcategorySlug(row);
                 wireTargetCategorySelect(row);
             }
 
@@ -722,6 +730,13 @@
 
             if (form && isEditMode) {
                 form.addEventListener('submit', async function (event) {
+                    const src = document.querySelector('[data-slug-source]');
+                    const tgt = document.querySelector('[data-slug-target]');
+                    if (src && tgt) {
+                        tgt.value = slugify(src.value);
+                    }
+                    syncAllSubcategorySlugs();
+
                     const rows = rowsMarkedForMove();
                     if (rows.length === 0) {
                         return;
@@ -732,6 +747,15 @@
                     if (window.confirm(message)) {
                         form.submit();
                     }
+                });
+            } else if (form) {
+                form.addEventListener('submit', function () {
+                    const src = document.querySelector('[data-slug-source]');
+                    const tgt = document.querySelector('[data-slug-target]');
+                    if (src && tgt) {
+                        tgt.value = slugify(src.value);
+                    }
+                    syncAllSubcategorySlugs();
                 });
             }
 

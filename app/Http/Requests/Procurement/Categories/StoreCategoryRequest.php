@@ -27,26 +27,21 @@ class StoreCategoryRequest extends FormRequest
 
             $nameEn = isset($row['name_en']) ? trim((string) $row['name_en']) : '';
             $nameAr = isset($row['name_ar']) ? trim((string) $row['name_ar']) : '';
-            $slug = isset($row['slug']) ? trim((string) $row['slug']) : '';
             $status = isset($row['status']) ? trim((string) $row['status']) : '';
 
-            if ($nameEn === '' && $nameAr === '' && $slug === '') {
+            if ($nameEn === '' && $nameAr === '' && $status === '') {
                 continue;
             }
 
-            if (isset($row['slug']) && is_string($row['slug'])) {
-                $row['slug'] = Str::slug($row['slug']);
-            }
+            $row['slug'] = $nameEn !== '' ? Str::slug($nameEn) : '';
 
             $filtered[] = $row;
         }
 
         $this->merge(['subcategories' => array_values($filtered)]);
 
-        $slug = $this->input('slug');
-        if (is_string($slug)) {
-            $this->merge(['slug' => Str::slug($slug)]);
-        }
+        $nameEn = trim((string) $this->input('name_en', ''));
+        $this->merge(['slug' => Str::slug($nameEn)]);
     }
 
     /**
@@ -55,7 +50,7 @@ class StoreCategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name_en' => ['required', 'string', 'max:255'],
+            'name_en' => ['required', 'string', 'max:255', CatalogIdentifiers::uniqueCategoryNameEn()],
             'name_ar' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', CatalogIdentifiers::uniqueCategorySlug()],
             'status' => ['required', 'string', Rule::in(['active', 'inactive'])],
