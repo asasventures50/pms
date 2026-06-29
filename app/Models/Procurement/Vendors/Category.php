@@ -2,6 +2,7 @@
 
 namespace App\Models\Procurement\Vendors;
 
+use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,7 +10,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Category extends Model
 {
-    use SoftDeletes;
+    use LogsActivity, SoftDeletes;
+
+    protected static string $activityLogKey = 'category';
 
     protected $table = 'categories';
 
@@ -34,5 +37,10 @@ class Category extends Model
         return $this->belongsToMany(Vendor::class, 'vendor_categories', 'category_id', 'vendor_id')
             ->withPivot(['subcategory_id', 'is_primary'])
             ->withTimestamps();
+    }
+
+    public function activityLogLabel(): string
+    {
+        return $this->name_en ?: $this->name_ar ?: 'Category #'.$this->getKey();
     }
 }
