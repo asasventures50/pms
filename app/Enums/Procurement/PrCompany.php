@@ -151,6 +151,30 @@ enum PrCompany: string
     }
 
     /**
+     * Accent color for procurement document headers (comparison sheet, etc.).
+     */
+    public function documentAccentColor(): string
+    {
+        return match ($this) {
+            self::AsasVentures => '#1e4976',
+            self::QassiounJourney => '#5b2c6f',
+            self::Activation => '#9a3412',
+        };
+    }
+
+    /**
+     * Darker shade for selected column highlight in comparison tables.
+     */
+    public function documentAccentColorDark(): string
+    {
+        return match ($this) {
+            self::AsasVentures => '#163a5f',
+            self::QassiounJourney => '#4a235a',
+            self::Activation => '#7c2d12',
+        };
+    }
+
+    /**
      * @return array{
      *     company_key: string,
      *     company_name: string|null,

@@ -41,7 +41,7 @@
                        class="admin-filter-control mt-1 w-full">
             </div>
             <div class="md:col-span-2">
-                <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Deviation / alternative offered</label>
+                <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Deviation / alternative offered (if not compliant)</label>
                 <textarea name="items[{{ $index }}][alternative_if_no]" rows="2"
                           class="admin-form-textarea mt-1 w-full">{{ $row['alternative_if_no'] ?? '' }}</textarea>
             </div>

@@ -237,6 +237,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('rfqs/{rfq}/comparison/select', [RfqQuotationComparisonController::class, 'select'])
         ->name('rfqs.comparison.select');
 
+    Route::post('rfqs/{rfq}/comparison/clear-selection', [RfqQuotationComparisonController::class, 'clearSelection'])
+        ->name('rfqs.comparison.clear-selection');
+
     Route::get('rfqs/{rfq}/quotations/{quotation}/print', [VendorQuotationController::class, 'print'])
         ->middleware('permission:vendor-quotations.view|rfqs.view')
         ->name('rfqs.quotations.print');

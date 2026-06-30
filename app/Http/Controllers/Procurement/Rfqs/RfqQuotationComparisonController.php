@@ -47,4 +47,19 @@ class RfqQuotationComparisonController extends Controller
             ->route('rfqs.comparison.show', $rfq)
             ->with('success', 'Selected '.$quotation->quotation_number.' as the preferred quotation.');
     }
+
+    public function clearSelection(Request $request, Rfq $rfq): RedirectResponse
+    {
+        abort_unless($request->user()?->canSelectQuotationForRfq($rfq), 403);
+
+        $rfq->update([
+            'selected_vendor_quotation_id' => null,
+            'selected_by' => null,
+            'selected_at' => null,
+        ]);
+
+        return redirect()
+            ->route('rfqs.comparison.show', $rfq)
+            ->with('success', 'Cleared the selected quotation for this RFQ.');
+    }
 }

@@ -46,7 +46,7 @@
                     <span @if(($rfq->terms_locale ?? 'en') === 'ar') dir="rtl" @endif>{{ $term }}</span>
                 </li>
             @empty
-                <li class="text-slate-500">No payment terms specified.</li>
+                <li class="text-slate-500"></li>
             @endforelse
         </ul>
     @endif

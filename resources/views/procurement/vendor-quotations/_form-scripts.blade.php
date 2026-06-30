@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function () {
         return value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
-    function recalcRow(row) {
+    function recalcRow(row, source) {
         const qty = parseNumber(row.querySelector('.vq-qty-quoted')?.value || row.dataset.quantity || '0');
         const unitInput = row.querySelector('.vq-unit-price');
         const totalInput = row.querySelector('.vq-total-price');
@@ -29,15 +29,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const unit = parseNumber(unitInput?.value);
         const discount = parseNumber(discountInput?.value);
-        let lineSubtotal = parseNumber(totalInput?.value);
+        let lineSubtotal;
 
-        if ((totalInput?.value === '' || Number.isNaN(lineSubtotal)) && unit > 0 && qty > 0) {
+        if (source !== 'total' && unit > 0 && qty > 0) {
             lineSubtotal = Math.round((qty * unit - discount) * 100) / 100;
             if (totalInput) {
                 totalInput.value = lineSubtotal.toFixed(2);
             }
-        } else if (!Number.isNaN(lineSubtotal) && discount > 0 && unit > 0 && qty > 0 && totalInput?.value === '') {
-            lineSubtotal = Math.max(0, lineSubtotal - discount);
+        } else {
+            lineSubtotal = parseNumber(totalInput?.value);
         }
 
         const taxRate = parseNumber(taxRateInput?.value);
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function () {
         let linesGrand = 0;
 
         linesBody.querySelectorAll('.vq-line-row').forEach(function (row) {
-            const result = recalcRow(row);
+            const result = recalcRow(row, null);
             subtotal += result.lineSubtotal;
             taxTotal += result.tax;
             linesGrand += result.lineGrand;
@@ -95,7 +95,41 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (linesBody) {
         linesBody.addEventListener('input', function (event) {
-            if (event.target.matches('.vq-unit-price, .vq-qty-quoted, .vq-total-price, .vq-discount, .vq-tax-rate, .vq-tax, .vq-line-delivery, .vq-line-installation')) {
+            if (! event.target.matches('.vq-unit-price, .vq-qty-quoted, .vq-total-price, .vq-discount, .vq-tax-rate, .vq-tax, .vq-line-delivery, .vq-line-installation')) {
+                return;
+            }
+
+            const row = event.target.closest('.vq-line-row');
+            const source = event.target.matches('.vq-total-price') ? 'total' : 'auto';
+
+            if (row) {
+                const result = recalcRow(row, source);
+                let subtotal = 0;
+                let taxTotal = 0;
+                let linesGrand = 0;
+
+                linesBody.querySelectorAll('.vq-line-row').forEach(function (lineRow) {
+                    const lineResult = lineRow === row ? result : recalcRow(lineRow, null);
+                    subtotal += lineResult.lineSubtotal;
+                    taxTotal += lineResult.tax;
+                    linesGrand += lineResult.lineGrand;
+                });
+
+                const headerDelivery = parseNumber(document.getElementById('delivery_charges')?.value);
+                const headerInstallation = parseNumber(document.getElementById('installation_charges')?.value);
+                const headerDiscount = parseNumber(document.getElementById('total_discount')?.value);
+                const grandTotal = linesGrand + headerDelivery + headerInstallation - headerDiscount;
+
+                if (subtotalEl) {
+                    subtotalEl.textContent = formatMoney(subtotal);
+                }
+                if (taxTotalEl) {
+                    taxTotalEl.textContent = formatMoney(taxTotal);
+                }
+                if (grandTotalEl) {
+                    grandTotalEl.textContent = formatMoney(grandTotal);
+                }
+            } else {
                 recalcSummary();
             }
         });

@@ -109,10 +109,13 @@ class VendorQuotationPersistenceService
             $discount = max(0, round((float) ($row['discount'] ?? 0), 2));
             $lineSubtotal = round(max(0, ($quantityQuoted * $unitPrice) - $discount), 2);
 
-            if (isset($row['total_price']) && $row['total_price'] !== '' && $row['total_price'] !== null) {
+            // Prefer qty × unit price when both are set — stale total_price must not override.
+            if ($unitPrice > 0 && $quantityQuoted > 0) {
+                $totalPrice = $lineSubtotal;
+            } elseif (isset($row['total_price']) && $row['total_price'] !== '' && $row['total_price'] !== null) {
                 $totalPrice = max(0, round((float) $row['total_price'], 2));
             } else {
-                $totalPrice = $lineSubtotal;
+                $totalPrice = 0;
             }
 
             $taxRate = max(0, round((float) ($row['tax_rate'] ?? 0), 2));
