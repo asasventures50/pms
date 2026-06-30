@@ -8,17 +8,31 @@
         max-width: none;
     }
 
+    .comparison-table {
+        table-layout: fixed;
+        width: 100%;
+    }
+
     .comparison-table th,
     .comparison-table td {
         vertical-align: middle;
-    }
-
-    .comparison-table .comparison-data-cell {
-        text-align: center;
+        word-break: break-word;
+        overflow-wrap: anywhere;
     }
 
     .comparison-table .comparison-criteria-cell {
+        width: 13%;
+        min-width: 0;
         text-align: left;
+    }
+
+    .comparison-table .comparison-data-cell {
+        min-width: 0;
+        text-align: center;
+    }
+
+    .comparison-table-wrapper {
+        max-width: 100%;
     }
 
     .comparison-table .comparison-header-accent,
@@ -62,7 +76,23 @@
 
         .comparison-table {
             width: 100% !important;
-            font-size: 10px !important;
+            table-layout: fixed !important;
+            font-size: 9px !important;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            word-break: break-word !important;
+            overflow-wrap: anywhere !important;
+        }
+
+        .comparison-table .comparison-criteria-cell {
+            width: 12% !important;
+            min-width: 0 !important;
+        }
+
+        .comparison-table .comparison-data-cell {
+            min-width: 0 !important;
         }
 
         .comparison-table thead {
@@ -76,7 +106,7 @@
 
         .comparison-table .comparison-criteria-cell {
             text-align: left !important;
-            min-width: 8rem;
+            min-width: 0 !important;
         }
 
         .comparison-table .comparison-data-cell {

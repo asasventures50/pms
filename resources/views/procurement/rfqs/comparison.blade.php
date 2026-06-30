@@ -64,7 +64,7 @@
             No vendor quotations recorded for this RFQ yet.
         </div>
     @else
-        <article class="comparison-document mx-auto border-2 border-slate-900 bg-white p-4 text-slate-900 shadow-sm sm:p-6 print:shadow-none">
+        <article class="comparison-document mx-auto max-w-full border-2 border-slate-900 bg-white p-4 text-slate-900 shadow-sm sm:p-6 print:shadow-none">
             @include('procurement.rfqs.comparison._comparison-document-header', ['rfq' => $rfq])
 
             <div class="mt-4 grid gap-2 border-b border-slate-900 pb-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
@@ -90,12 +90,12 @@
                 <table class="comparison-table min-w-full border-collapse text-sm">
                     <thead>
                     <tr class="comparison-header-accent text-xs font-semibold uppercase tracking-wide text-slate-800">
-                        <th class="comparison-criteria-cell sticky left-0 z-10 min-w-[12rem] border px-3 py-3">Criteria</th>
+                        <th class="comparison-criteria-cell sticky left-0 z-10 border px-3 py-3">Criteria</th>
                         @foreach ($columns as $column)
                             @php
                                 $quotation = $column['quotation'];
                             @endphp
-                            <th class="comparison-data-cell min-w-[11rem] border px-3 py-3 align-middle {{ $column['is_selected'] ? 'comparison-col-selected' : '' }}">
+                            <th class="comparison-data-cell border px-3 py-3 align-middle {{ $column['is_selected'] ? 'comparison-col-selected' : '' }}">
                                 <div class="font-mono text-[11px] font-normal normal-case tracking-normal text-slate-600">{{ $quotation->quotation_number }}</div>
                                 <div class="mt-1 text-sm font-semibold normal-case">{{ $quotation->vendor_company_name ?? $quotation->vendor?->name ?? '—' }}</div>
                                 <div class="mt-2 flex flex-wrap justify-center gap-1">
@@ -197,7 +197,7 @@
                             <td class="comparison-criteria-cell sticky left-0 z-10 border border-slate-200 bg-white px-3 py-2 font-medium text-slate-600">Remarks</td>
                             @foreach ($columns as $column)
                                 @php $quoteLine = $column['lines_by_rfq_item_id']->get($line->id); @endphp
-                                <td class="comparison-data-cell border border-slate-200 px-3 py-2 text-xs whitespace-pre-wrap">{{ $quoteLine?->remarks ?: '—' }}</td>
+                                <td class="comparison-data-cell border border-slate-200 px-3 py-2 text-xs break-words">{{ $quoteLine?->remarks ?: '—' }}</td>
                             @endforeach
                         </tr>
                         <tr>
@@ -234,7 +234,7 @@
                     <tr>
                         <td class="comparison-criteria-cell sticky left-0 z-10 border border-slate-200 bg-white px-3 py-2 font-medium text-slate-600">Notes</td>
                         @foreach ($columns as $column)
-                            <td class="comparison-data-cell border border-slate-200 px-3 py-2 text-xs whitespace-pre-wrap">{{ $column['quotation']->notes ?: '—' }}</td>
+                            <td class="comparison-data-cell border border-slate-200 px-3 py-2 text-xs break-words">{{ $column['quotation']->notes ?: '—' }}</td>
                         @endforeach
                     </tr>
                     @if ($canSelect && $quotationCount > 0)

@@ -1,3 +1,5 @@
+@include('procurement.vendor-quotations._document-table-styles')
+
 <style>
     body.po-print-body {
         margin: 0;
@@ -278,10 +280,6 @@
     }
 
     @media print {
-        @page {
-            margin: 12mm;
-        }
-
         body.po-print-body {
             background: #fff;
         }

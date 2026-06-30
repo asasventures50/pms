@@ -3,6 +3,8 @@
 @section('title', $quotation->quotation_number)
 
 @section('content')
+    @include('procurement.vendor-quotations._document-table-styles')
+
     @php
         $canAddQuotation = auth()->user()->hasPermission('vendor-quotations.create')
             || auth()->user()->hasPermission('rfqs.update');
@@ -48,11 +50,22 @@
     </article>
 
     @if (auth()->user()->hasPermission('vendor-quotations.update'))
-        <form action="{{ route('rfqs.quotations.destroy', [$rfq, $quotation]) }}" method="post" class="mt-6 print:hidden"
-              onsubmit="return confirm('Delete this vendor quotation?');">
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="text-sm font-medium text-red-700 hover:text-red-900">Delete quotation</button>
-        </form>
+        <section class="mx-auto mt-8 max-w-6xl rounded-xl border border-red-200 bg-red-50 p-4 print:hidden sm:p-5"
+                 aria-labelledby="vq-delete-heading">
+            <h2 id="vq-delete-heading" class="text-sm font-semibold text-red-950">Delete this quotation</h2>
+            <p class="mt-1 text-sm text-red-900">
+                This permanently removes <span class="font-mono font-medium">{{ $quotation->quotation_number }}</span>
+                from the RFQ. It cannot be undone.
+            </p>
+            <form action="{{ route('rfqs.quotations.destroy', [$rfq, $quotation]) }}" method="post" class="mt-4"
+                  onsubmit="return confirm('Delete {{ $quotation->quotation_number }} permanently? This cannot be undone.');">
+                @csrf
+                @method('DELETE')
+                <button type="submit"
+                        class="rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-800 hover:bg-red-100">
+                    Delete quotation
+                </button>
+            </form>
+        </section>
     @endif
 @endsection
