@@ -10,16 +10,18 @@
 
 <table class="po-items-table pr-items-table">
     <colgroup>
+        <col style="width:12%">
         <col style="width:14%">
-        <col style="width:40%">
+        <col style="width:34%">
         <col style="width:10%">
         <col style="width:10%">
-        <col style="width:13%">
-        <col style="width:13%">
+        <col style="width:10%">
+        <col style="width:10%">
     </colgroup>
     <thead>
     <tr>
         <th>{{ $printLabels->t('item') }}</th>
+        <th>{{ $printLabels->t('zone') }}</th>
         <th>{{ $printLabels->t('description') }}</th>
         <th>{{ $printLabels->t('qty') }}</th>
         <th>{{ $printLabels->t('unit') }}</th>
@@ -34,6 +36,15 @@
         @endphp
         <tr>
             <td class="po-cell-item">{{ $lineNo }}</td>
+            <td class="po-cell-text pr-cell-wrap">
+                @if ($line->zone)
+                    {{ $line->zone->code }} — {{ $line->zone->name }}
+                @elseif ($procurementRequest->zone)
+                    {{ $procurementRequest->zone->code }} — {{ $procurementRequest->zone->name }}
+                @else
+                    {{ $emDash }}
+                @endif
+            </td>
             <td class="po-cell-text pr-cell-wrap">{{ $line->description }}</td>
             <td class="po-cell-num po-cell-qty">{{ number_format($line->quantity, 3) }}</td>
             <td class="po-cell-num">{{ $line->unit ?: $emDash }}</td>
@@ -41,7 +52,7 @@
             <td class="po-cell-num">{{ number_format((float) ($line->total_price ?? 0), 4) }}</td>
         </tr>
     @empty
-        <tr><td colspan="6" class="pr-empty-table">{{ $printLabels->t('no_line_items') }}</td></tr>
+        <tr><td colspan="7" class="pr-empty-table">{{ $printLabels->t('no_line_items') }}</td></tr>
     @endforelse
     </tbody>
 </table>

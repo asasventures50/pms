@@ -32,7 +32,6 @@ class ProcurementRequestLegacyItemSync
 
         $item->fill([
             'project_id' => $request->project_id,
-            'zone_id' => $request->zone_id,
             'category' => $categoryName,
             'subcategory' => $subcategoryName,
             'scope_type' => $scopeLabels === [] ? $item->scope_type : implode(', ', $scopeLabels),

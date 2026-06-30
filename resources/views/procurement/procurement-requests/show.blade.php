@@ -49,7 +49,6 @@
             <dl class="mt-4 grid gap-4 sm:grid-cols-2">
                 <div><dt class="text-xs uppercase text-slate-500">Company</dt><dd class="mt-0.5">{{ PrCompany::resolve($procurementRequest->company_key)->label() }}</dd></div>
                 <div><dt class="text-xs uppercase text-slate-500">Project</dt><dd class="mt-0.5">@if ($procurementRequest->project){{ $procurementRequest->project->code }} — {{ $procurementRequest->project->name }}@else — @endif</dd></div>
-                <div><dt class="text-xs uppercase text-slate-500">Zone</dt><dd class="mt-0.5">@if ($procurementRequest->zone){{ $procurementRequest->zone->code }} — {{ $procurementRequest->zone->name }}@else — @endif</dd></div>
                 <div><dt class="text-xs uppercase text-slate-500">Category</dt><dd class="mt-0.5">{{ $procurementRequest->category?->name_en ?? $formData['legacy_category'] ?? '—' }}</dd></div>
                 <div><dt class="text-xs uppercase text-slate-500">Subcategory</dt><dd class="mt-0.5">{{ $procurementRequest->subcategory?->name_en ?? $formData['legacy_subcategory'] ?? '—' }}</dd></div>
                 <div><dt class="text-xs uppercase text-slate-500">Procurement type</dt><dd class="mt-0.5">{{ ProcurementCheckboxGroup::display($procurementRequest->procurement_types, ProcurementType::values(), fn ($v) => ProcurementType::from($v)->label()) ?: '—' }}</dd></div>
@@ -62,19 +61,20 @@
             <h3 class="font-semibold text-slate-900">BOQ @if ($procurementRequest->currency_code)<span class="font-normal text-slate-500">· {{ $procurementRequest->currency_code }}</span>@endif</h3>
             <div class="mt-4 overflow-x-auto">
                 <table class="min-w-full text-left text-sm">
-                    <thead class="text-xs uppercase text-slate-500"><tr><th class="py-2 pr-3">Item</th><th class="py-2 pr-3">Description</th><th class="py-2 pr-3">Qty</th><th class="py-2 pr-3">Unit</th><th class="py-2 pr-3">Unit price</th><th class="py-2">Total</th></tr></thead>
+                    <thead class="text-xs uppercase text-slate-500"><tr><th class="py-2 pr-3">Item</th><th class="py-2 pr-3">Zone</th><th class="py-2 pr-3">Description</th><th class="py-2 pr-3">Qty</th><th class="py-2 pr-3">Unit</th><th class="py-2 pr-3">Unit price</th><th class="py-2">Total</th></tr></thead>
                     <tbody class="divide-y divide-slate-100">
                     @forelse ($procurementRequest->items as $line)
                         <tr>
                             <td class="py-2 pr-3">{{ filled($line->item_name) ? $line->item_name : ($line->line_number ?: '—') }}</td>
-                            <td class="py-2 pr-3">{{ $line->description }}</td>
+                            <td class="py-2 pr-3">@if ($line->zone){{ $line->zone->code }} — {{ $line->zone->name }}@elseif ($procurementRequest->zone){{ $procurementRequest->zone->code }} — {{ $procurementRequest->zone->name }}@else — @endif</td>
+                            <td class="py-2 pr-3 whitespace-pre-wrap text-start" dir="auto">{{ $line->description }}</td>
                             <td class="py-2 pr-3">{{ number_format($line->quantity, 3) }}</td>
                             <td class="py-2 pr-3">{{ $line->unit ?: '—' }}</td>
                             <td class="py-2 pr-3">{{ number_format((float) $line->unit_price, 4) }}</td>
                             <td class="py-2">{{ number_format((float) ($line->total_price ?? 0), 4) }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="py-4 text-slate-500">No BOQ lines.</td></tr>
+                        <tr><td colspan="7" class="py-4 text-slate-500">No BOQ lines.</td></tr>
                     @endforelse
                     </tbody>
                 </table>

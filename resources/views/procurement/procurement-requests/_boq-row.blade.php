@@ -1,7 +1,24 @@
 @php
     $index = $index ?? 0;
     $row = $row ?? [];
+    $projects = $projects ?? collect();
+    $selectedProjectId = $selectedProjectId ?? '';
+    $selectedZoneId = old("items.$index.zone_id", $row['zone_id'] ?? '');
     $itemId = old("items.$index.id", $row['id'] ?? '');
+    $hasProject = $selectedProjectId !== '' && $selectedProjectId !== null;
+    $selectedZoneLabel = '';
+    if ($selectedZoneId !== '' && $selectedZoneId !== null) {
+        foreach ($projects as $project) {
+            $match = $project->zones->firstWhere('id', (int) $selectedZoneId);
+            if ($match) {
+                $selectedZoneLabel = $match->name;
+                if (filled($match->code) && $match->code !== $match->name) {
+                    $selectedZoneLabel .= ' ('.$match->code.')';
+                }
+                break;
+            }
+        }
+    }
 @endphp
 
 <tr class="pr-boq-row">
@@ -11,7 +28,51 @@
         @endif
         <input type="text" name="items[{{ $index }}][item_name]" value="{{ old("items.$index.item_name", $row['item_name'] ?? '') }}"
                data-name="item_name"
-               class="admin-filter-control w-full min-w-[7rem]">
+               class="admin-filter-control w-full min-w-[6rem]">
+    </td>
+    <td class="px-2 py-2 align-top pr-boq-zone-cell">
+        <div class="flex w-full min-w-[13rem] gap-1 sm:min-w-[15rem]">
+            <select name="items[{{ $index }}][zone_id]" data-name="zone_id" data-pr-zone-select
+                    title="{{ $selectedZoneLabel }}"
+                    class="admin-filter-control w-full min-w-[11rem] max-w-[18rem] text-sm @error("items.$index.zone_id") border-red-500 @enderror"
+                    @disabled(! $hasProject)>
+                <option value="">{{ $hasProject ? '— اختر المنطقة —' : '— اختر المشروع أولاً —' }}</option>
+                @foreach ($projects as $project)
+                    @foreach ($project->zones as $zone)
+                        @php
+                            $zoneLabel = $zone->name;
+                            if (filled($zone->code) && $zone->code !== $zone->name) {
+                                $zoneLabel .= ' ('.$zone->code.')';
+                            }
+                        @endphp
+                        <option value="{{ $zone->id }}"
+                                data-project-id="{{ $project->id }}"
+                                data-zone-label="{{ $zoneLabel }}"
+                                @selected((string) $selectedZoneId === (string) $zone->id)
+                                @disabled((string) $selectedProjectId !== '' && (string) $selectedProjectId !== (string) $project->id)>
+                            {{ $zoneLabel }}
+                        </option>
+                    @endforeach
+                @endforeach
+            </select>
+            @if (auth()->user()->hasPermission('projects.update'))
+                <button type="button" data-pr-add-zone
+                        class="inline-flex h-[38px] shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-white px-2.5 text-base font-medium leading-none text-slate-800 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        title="Add zone"
+                        @disabled(! $hasProject)>+</button>
+            @endif
+        </div>
+        <p data-pr-zone-hint
+           class="mt-1.5 text-xs leading-snug {{ $selectedZoneLabel !== '' ? 'font-medium text-slate-800' : 'text-slate-500' }}">
+            @if ($selectedZoneLabel !== '')
+                {{ $selectedZoneLabel }}
+            @elseif (! $hasProject)
+                اختر المشروع من قسم PR information أولاً.
+            @else
+                اختياري — حدّد منطقة التسليم لهذا البند.
+            @endif
+        </p>
+        @error("items.$index.zone_id")<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
     </td>
     <td class="px-2 py-2 align-top">
         <textarea name="items[{{ $index }}][description]" rows="3" data-name="description" required

@@ -46,6 +46,7 @@
 
     @include('procurement.procurement-requests._boq', [
         'formDefaults' => $formDefaults,
+        'projects' => $projects ?? collect(),
     ])
 
     @include('procurement.procurement-requests._justification-delivery', [

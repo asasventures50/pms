@@ -21,7 +21,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const categoryMap = JSON.parse(document.getElementById('pr-category-subcategories')?.textContent || '{}');
 
     const projectSelect = document.getElementById('pr_project_id');
-    const zoneSelect = document.getElementById('pr_zone_id');
     const categorySelect = document.getElementById('pr_category_id');
     const subcategorySelect = document.getElementById('pr_subcategory_id');
     const currencyInput = document.getElementById('currency_code');
@@ -40,10 +39,37 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    function syncZones() {
-        if (!projectSelect || !zoneSelect) return;
-        const projectId = projectSelect.value;
+    function updateBoqZoneHint(row) {
+        const zoneSelect = row?.querySelector?.('[data-pr-zone-select]');
+        const hint = row?.querySelector?.('[data-pr-zone-hint]');
+        if (!zoneSelect || !hint) return;
+        const hasProject = Boolean(projectSelect?.value);
+        const selected = zoneSelect.selectedOptions[0];
+        const label = selected?.dataset?.zoneLabel || (selected?.value ? selected.textContent.trim() : '');
+        if (label && zoneSelect.value) {
+            hint.textContent = label;
+            hint.className = 'mt-1.5 text-xs font-medium leading-snug text-slate-800';
+            zoneSelect.title = label;
+        } else if (!hasProject) {
+            hint.textContent = 'اختر المشروع من قسم PR information أولاً.';
+            hint.className = 'mt-1.5 text-xs leading-snug text-slate-500';
+            zoneSelect.title = '';
+        } else {
+            hint.textContent = 'اختياري — حدّد منطقة التسليم لهذا البند.';
+            hint.className = 'mt-1.5 text-xs leading-snug text-slate-500';
+            zoneSelect.title = '';
+        }
+        const placeholder = zoneSelect.querySelector('option[value=""]');
+        if (placeholder) {
+            placeholder.textContent = hasProject ? '— اختر المنطقة —' : '— اختر المشروع أولاً —';
+        }
+    }
+
+    function syncBoqRowZones(row) {
+        const projectId = projectSelect?.value || '';
         const hasProject = Boolean(projectId);
+        const zoneSelect = row?.querySelector?.('[data-pr-zone-select]');
+        if (!zoneSelect) return;
         zoneSelect.disabled = !hasProject;
         if (!hasProject) zoneSelect.value = '';
         zoneSelect.querySelectorAll('option').forEach(function (option) {
@@ -54,7 +80,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         const selected = zoneSelect.selectedOptions[0];
         if (selected && (selected.disabled || selected.hidden)) zoneSelect.value = '';
-        document.querySelector('[data-pr-add-zone]')?.toggleAttribute('disabled', !hasProject);
+        row.querySelector('[data-pr-add-zone]')?.toggleAttribute('disabled', !hasProject);
+        updateBoqZoneHint(row);
+    }
+
+    function syncAllBoqZones() {
+        boqBody?.querySelectorAll('.pr-boq-row').forEach(syncBoqRowZones);
     }
 
     function syncSubcategories() {
@@ -76,6 +107,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     window.prCategorySubcategoryMap = categoryMap;
     window.prSyncSubcategories = syncSubcategories;
+    window.prSyncBoqRowZones = syncBoqRowZones;
 
     function recalcBoqRow(row) {
         const qty = parseFloat(row.querySelector('[data-pr-boq-qty]')?.value || '0') || 0;
@@ -96,6 +128,13 @@ document.addEventListener('DOMContentLoaded', function () {
             row.remove();
             reindexTableRows(boqBody, '.pr-boq-row', 'items', []);
         });
+        row.querySelector('[data-pr-add-zone]')?.addEventListener('click', function () {
+            if (quickStoreUrls.zone) window.prQuickAddZone?.(row);
+        });
+        row.querySelector('[data-pr-zone-select]')?.addEventListener('change', function () {
+            updateBoqZoneHint(row);
+        });
+        syncBoqRowZones(row);
         recalcBoqRow(row);
     }
 
@@ -167,9 +206,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     reindexDocumentRows();
 
-    projectSelect?.addEventListener('change', syncZones);
+    projectSelect?.addEventListener('change', syncAllBoqZones);
     categorySelect?.addEventListener('change', syncSubcategories);
-    syncZones();
+    syncAllBoqZones();
     syncSubcategories();
 
     currencyInput?.addEventListener('input', function () {
@@ -179,9 +218,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const prSection = document.querySelector('.pr-document');
     document.querySelector('[data-pr-add-project]')?.addEventListener('click', function () {
         if (quickStoreUrls.project) window.prQuickAddProject?.(prSection);
-    });
-    document.querySelector('[data-pr-add-zone]')?.addEventListener('click', function () {
-        if (quickStoreUrls.zone) window.prQuickAddZone?.(prSection);
     });
     document.querySelector('[data-pr-add-subcategory]')?.addEventListener('click', function () {
         if (quickStoreUrls.subcategory) window.prQuickAddSubcategory?.(prSection);

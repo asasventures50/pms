@@ -291,7 +291,6 @@ class ProcurementRequestController extends Controller
         return [
             'company_key' => PrCompany::AsasVentures->value,
             'project_id' => '',
-            'zone_id' => '',
             'category_id' => '',
             'subcategory_id' => '',
             'procurement_types' => [],
@@ -346,6 +345,7 @@ class ProcurementRequestController extends Controller
     {
         return array_fill(0, $count, [
             'item_name' => '',
+            'zone_id' => '',
             'description' => '',
             'unit' => '',
             'quantity' => 1,

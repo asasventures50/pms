@@ -54,7 +54,6 @@
     <div class="po-grid-col">
         <div class="po-form-group"><span class="po-form-label">{{ $printLabels->t('company') }}</span><span class="po-form-line">{{ PrCompany::resolve($procurementRequest->company_key)->label() }}</span></div>
         <div class="po-form-group"><span class="po-form-label">{{ $printLabels->t('project') }}</span><span class="po-form-line">@if ($procurementRequest->project){{ $procurementRequest->project->code }} — {{ $procurementRequest->project->name }}@else {{ $emDash }} @endif</span></div>
-        <div class="po-form-group"><span class="po-form-label">{{ $printLabels->t('zone') }}</span><span class="po-form-line">@if ($procurementRequest->zone){{ $procurementRequest->zone->code }} — {{ $procurementRequest->zone->name }}@else {{ $emDash }} @endif</span></div>
         <div class="po-form-group"><span class="po-form-label">{{ $printLabels->t('category') }}</span><span class="po-form-line">{{ $printLabels->categoryName($procurementRequest->category, $formData['legacy_category'] ?? null) }}</span></div>
         <div class="po-form-group"><span class="po-form-label">{{ $printLabels->t('subcategory') }}</span><span class="po-form-line">{{ $printLabels->subcategoryName($procurementRequest->subcategory, $formData['legacy_subcategory'] ?? null) }}</span></div>
     </div>

@@ -45,10 +45,15 @@
 
     function appendZoneOption(select, payload) {
         if (!select || select.querySelector('option[value="' + payload.id + '"]')) return;
+        let label = payload.name || '';
+        if (payload.code && payload.code !== payload.name) {
+            label += ' (' + payload.code + ')';
+        }
         const opt = document.createElement('option');
         opt.value = payload.id;
         opt.dataset.projectId = String(payload.project_id);
-        opt.textContent = payload.code + ' — ' + payload.name;
+        opt.dataset.zoneLabel = label;
+        opt.textContent = label;
         select.appendChild(opt);
     }
 
@@ -188,6 +193,10 @@
             const targetSelect = contextZoneSelect(context);
             if (targetSelect) {
                 targetSelect.value = String(payload.id);
+                const row = context?.classList?.contains('pr-boq-row') ? context : context?.closest?.('.pr-boq-row');
+                if (row && typeof window.prSyncBoqRowZones === 'function') {
+                    window.prSyncBoqRowZones(row);
+                }
             }
             modal?.classList.add('hidden');
         } finally {

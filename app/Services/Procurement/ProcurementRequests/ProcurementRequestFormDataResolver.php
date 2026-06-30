@@ -42,7 +42,6 @@ class ProcurementRequestFormDataResolver
         return [
             'company_key' => $procurementRequest->company_key ?? PrCompany::AsasVentures->value,
             'project_id' => $procurementRequest->project_id ?? $firstItem?->project_id,
-            'zone_id' => $procurementRequest->zone_id ?? $firstItem?->zone_id,
             'category_id' => $procurementRequest->category_id,
             'subcategory_id' => $procurementRequest->subcategory_id,
             'legacy_category' => $firstItem?->category,
@@ -129,6 +128,7 @@ class ProcurementRequestFormDataResolver
             'id' => $row->id,
             'line_number' => $row->line_number,
             'item_name' => $row->item_name ?? $row->line_number,
+            'zone_id' => $row->zone_id ?? $procurementRequest->zone_id,
             'description' => $row->description,
             'quantity' => $row->quantity,
             'unit' => $row->unit,

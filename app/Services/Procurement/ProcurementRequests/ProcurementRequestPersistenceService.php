@@ -95,10 +95,14 @@ class ProcurementRequestPersistenceService
                 ? max(0, (float) $row['total_price'])
                 : round($quantity * $unitPrice, 4);
 
+            $zoneId = $row['zone_id'] ?? null;
+            $zoneId = ($zoneId !== null && $zoneId !== '') ? (int) $zoneId : null;
+
             $attributes = [
                 'sort_order' => $index,
                 'line_number' => ProcurementRequestLineNumberFormatter::format($request->request_number, $index),
                 'item_name' => isset($row['item_name']) ? trim((string) $row['item_name']) : null,
+                'zone_id' => $zoneId,
                 'description' => $row['description'] ?? null,
                 'unit' => isset($row['unit']) ? trim((string) $row['unit']) : null,
                 'quantity' => $quantity,
@@ -348,6 +352,11 @@ class ProcurementRequestPersistenceService
                 'total_price' => $totalPrice,
             ];
 
+            $zoneId = $row['zone_id'] ?? null;
+            if ($zoneId !== null && $zoneId !== '') {
+                $entry['zone_id'] = (int) $zoneId;
+            }
+
             $itemId = $row['id'] ?? null;
             if ($itemId !== null && $itemId !== '') {
                 $entry['id'] = (int) $itemId;
@@ -368,7 +377,7 @@ class ProcurementRequestPersistenceService
         $header = [];
 
         foreach ([
-            'request_number', 'classification', 'status', 'company_key', 'project_id', 'zone_id',
+            'request_number', 'classification', 'status', 'company_key', 'project_id',
             'category_id', 'subcategory_id', 'justification', 'delivery_lead_time_days',
             'delivery_location', 'currency_code', 'scope_of_work', 'warranty_coverage',
             'compliance_prequalification_level',
