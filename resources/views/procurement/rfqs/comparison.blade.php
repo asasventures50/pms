@@ -8,6 +8,8 @@
     @php
         $columns = $comparison['columns'];
         $rfqItems = $comparison['rfq_items'];
+        $quotationRows = $comparison['quotation_rows'];
+        $lineRows = $comparison['line_rows'];
         $quotationCount = $columns->count();
     @endphp
 
@@ -87,7 +89,8 @@
             </div>
 
             <div class="comparison-table-wrapper mt-6 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm print:mt-4">
-                <table class="comparison-table min-w-full border-collapse text-sm">
+                <table class="comparison-table min-w-full border-collapse text-sm"
+                       style="--comparison-quotation-count: {{ max($quotationCount, 1) }};">
                     <thead>
                     <tr class="comparison-header-accent text-xs font-semibold uppercase tracking-wide text-slate-800">
                         <th class="comparison-criteria-cell sticky left-0 z-10 border px-3 py-3">Criteria</th>
@@ -112,6 +115,9 @@
                     </thead>
                     <tbody>
                     @foreach ($rfqItems as $lineIndex => $line)
+                        @php
+                            $lineRowVisibility = $lineRows->get($line->id, []);
+                        @endphp
                         <tr class="comparison-line-header bg-slate-50">
                             <td colspan="{{ $quotationCount + 1 }}" class="comparison-data-cell border border-slate-200 px-3 py-2 text-xs font-bold uppercase tracking-wide text-slate-700">
                                 Line {{ $lineIndex + 1 }} — {{ $line->item ?: 'Item' }}
@@ -161,6 +167,7 @@
                                 </td>
                             @endforeach
                         </tr>
+                        @if ($lineRowVisibility['compliance'] ?? false)
                         <tr>
                             <td class="comparison-criteria-cell sticky left-0 z-10 border border-slate-200 bg-white px-3 py-2 font-medium text-slate-600">Compliance</td>
                             @foreach ($columns as $column)
@@ -168,6 +175,8 @@
                                 <td class="comparison-data-cell border border-slate-200 px-3 py-2">{{ $quoteLine?->compliance?->label() ?? ($quoteLine?->compliance ?: '—') }}</td>
                             @endforeach
                         </tr>
+                        @endif
+                        @if ($lineRowVisibility['brand_origin'] ?? false)
                         <tr>
                             <td class="comparison-criteria-cell sticky left-0 z-10 border border-slate-200 bg-white px-3 py-2 font-medium text-slate-600">Brand / origin</td>
                             @foreach ($columns as $column)
@@ -175,6 +184,8 @@
                                 <td class="comparison-data-cell border border-slate-200 px-3 py-2">{{ $quoteLine?->brand_origin ?: '—' }}</td>
                             @endforeach
                         </tr>
+                        @endif
+                        @if ($lineRowVisibility['tax_rate'] ?? false)
                         <tr>
                             <td class="comparison-criteria-cell sticky left-0 z-10 border border-slate-200 bg-white px-3 py-2 font-medium text-slate-600">Tax / VAT rate</td>
                             @foreach ($columns as $column)
@@ -184,6 +195,8 @@
                                 </td>
                             @endforeach
                         </tr>
+                        @endif
+                        @if ($lineRowVisibility['tax_amount'] ?? false)
                         <tr>
                             <td class="comparison-criteria-cell sticky left-0 z-10 border border-slate-200 bg-white px-3 py-2 font-medium text-slate-600">Tax amount</td>
                             @foreach ($columns as $column)
@@ -193,6 +206,8 @@
                                 </td>
                             @endforeach
                         </tr>
+                        @endif
+                        @if ($lineRowVisibility['remarks'] ?? false)
                         <tr>
                             <td class="comparison-criteria-cell sticky left-0 z-10 border border-slate-200 bg-white px-3 py-2 font-medium text-slate-600">Remarks</td>
                             @foreach ($columns as $column)
@@ -200,6 +215,8 @@
                                 <td class="comparison-data-cell border border-slate-200 px-3 py-2 text-xs break-words">{{ $quoteLine?->remarks ?: '—' }}</td>
                             @endforeach
                         </tr>
+                        @endif
+                        @if ($lineRowVisibility['lead_time'] ?? false)
                         <tr>
                             <td class="comparison-criteria-cell sticky left-0 z-10 border border-slate-200 bg-white px-3 py-2 font-medium text-slate-600">Lead time</td>
                             @foreach ($columns as $column)
@@ -207,6 +224,8 @@
                                 <td class="comparison-data-cell border border-slate-200 px-3 py-2">{{ $quoteLine?->lead_time ?: '—' }}</td>
                             @endforeach
                         </tr>
+                        @endif
+                        @if ($lineRowVisibility['warranty'] ?? false)
                         <tr>
                             <td class="comparison-criteria-cell sticky left-0 z-10 border border-slate-200 bg-white px-3 py-2 font-medium text-slate-600">Warranty</td>
                             @foreach ($columns as $column)
@@ -214,6 +233,7 @@
                                 <td class="comparison-data-cell border border-slate-200 px-3 py-2">{{ $quoteLine?->warranty ?: '—' }}</td>
                             @endforeach
                         </tr>
+                        @endif
                     @endforeach
 
                     <tr class="comparison-grand-total-row bg-slate-100">
@@ -225,20 +245,24 @@
                             </td>
                         @endforeach
                     </tr>
+                    @if ($quotationRows['payment_method'])
                     <tr>
                         <td class="comparison-criteria-cell sticky left-0 z-10 border border-slate-200 bg-white px-3 py-2 font-medium text-slate-600">Payment method</td>
                         @foreach ($columns as $column)
                             <td class="comparison-data-cell border border-slate-200 px-3 py-2">{{ $column['quotation']->payment_method ?: '—' }}</td>
                         @endforeach
                     </tr>
+                    @endif
+                    @if ($quotationRows['notes'])
                     <tr>
                         <td class="comparison-criteria-cell sticky left-0 z-10 border border-slate-200 bg-white px-3 py-2 font-medium text-slate-600">Notes</td>
                         @foreach ($columns as $column)
                             <td class="comparison-data-cell border border-slate-200 px-3 py-2 text-xs break-words">{{ $column['quotation']->notes ?: '—' }}</td>
                         @endforeach
                     </tr>
+                    @endif
                     @if ($canSelect && $quotationCount > 0)
-                        <tr class="print:hidden">
+                        <tr class="comparison-screen-select-row">
                             <td class="comparison-criteria-cell sticky left-0 z-10 border border-slate-200 bg-white px-3 py-3 font-medium text-slate-600">Choose quotation</td>
                             @foreach ($columns as $column)
                                 @php $quotation = $column['quotation']; @endphp
@@ -266,8 +290,21 @@
                             @endforeach
                         </tr>
                     @endif
+                    <tr class="comparison-signoff-select-row">
+                        <td class="comparison-criteria-cell sticky left-0 z-10 border border-slate-200 bg-slate-50 px-3 py-4 font-medium text-slate-700">Selected quotation</td>
+                        @foreach ($columns as $column)
+                            <td class="comparison-data-cell border border-slate-200 bg-slate-50 px-3 py-4">
+                                <span class="comparison-print-checkbox" aria-hidden="true"></span>
+                            </td>
+                        @endforeach
+                    </tr>
                     </tbody>
                 </table>
+
+                <div class="comparison-signoff-notes border border-t-0 border-slate-200 bg-slate-50/50 px-4 py-4">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-600">Manager notes</p>
+                    <div class="comparison-handwritten-notes-box mt-3" aria-hidden="true"></div>
+                </div>
             </div>
 
             @include('procurement.rfqs.comparison._supporting-documents', ['columns' => $columns])
