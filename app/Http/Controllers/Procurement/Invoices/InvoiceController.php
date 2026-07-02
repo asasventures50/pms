@@ -532,27 +532,39 @@ class InvoiceController extends Controller
      */
     private function purchaseOrderItemZonesFromInvoice(Invoice $invoice): array
     {
+        $allSourceIds = $invoice->items
+            ->flatMap(fn ($item) => $item->source_purchase_order_item_ids ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        if ($allSourceIds->isEmpty()) {
+            return [];
+        }
+
+        $poItemsById = PurchaseOrderItem::query()
+            ->whereIn('id', $allSourceIds)
+            ->with([
+                'purchaseOrder.procurementRequest.items.project',
+                'purchaseOrder.procurementRequest.items.zone',
+                'purchaseOrder.procurementRequest.project',
+                'purchaseOrder.procurementRequest.zone',
+            ])
+            ->get()
+            ->keyBy('id');
+
+        $resolver = InvoiceProjectZoneResolver::fromPurchaseOrderItems($poItemsById->values());
         $zones = [];
 
         foreach ($invoice->items as $item) {
-            $stored = trim((string) ($item->project_zone ?? ''));
-            $sourceIds = collect($item->source_purchase_order_item_ids ?? [])
-                ->map(fn ($id) => (int) $id)
-                ->filter()
-                ->values();
+            $zone = $resolver->zoneForInvoiceItem($item, $poItemsById);
 
-            if ($sourceIds->isEmpty()) {
+            if ($zone === null || $zone === '') {
                 continue;
             }
 
-            $zone = str_contains($stored, '/')
-                ? InvoiceProjectZoneResolver::splitStoredLabel($stored)['zone']
-                : '';
-
-            foreach ($sourceIds as $sourceId) {
-                if ($zone !== '') {
-                    $zones[$sourceId] = $zone;
-                }
+            foreach ($item->source_purchase_order_item_ids ?? [] as $sourceId) {
+                $zones[(int) $sourceId] = $zone;
             }
         }
 

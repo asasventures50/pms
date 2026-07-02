@@ -164,7 +164,7 @@ class InvoiceProjectZoneResolver
                 return implode('; ', $fromPo);
             }
 
-            return $stored;
+            return $this->plainStoredPartsForPoLine($item, $poItemsById, $stored)['project'];
         }
 
         $fromPo = $this->uniqueValuesFromPoItems(
@@ -191,7 +191,11 @@ class InvoiceProjectZoneResolver
                 fn (PurchaseOrderItem $poItem) => $this->zoneForPoItem($poItem),
             );
 
-            return $fromPo === [] ? null : implode('; ', $fromPo);
+            if ($fromPo !== []) {
+                return implode('; ', $fromPo);
+            }
+
+            return $this->plainStoredPartsForPoLine($item, $poItemsById, $stored)['zone'];
         }
 
         $fromPo = $this->uniqueValuesFromPoItems(
@@ -264,6 +268,36 @@ class InvoiceProjectZoneResolver
             'project' => trim((string) ($project?->name ?? '')),
             'zone' => trim((string) ($zone?->name ?? '')),
         ];
+    }
+
+    /**
+     * Plain project_zone (no slash) on PO-sourced lines stores either project-only or zone-only.
+     *
+     * @return array{project: ?string, zone: ?string}
+     */
+    private function plainStoredPartsForPoLine(InvoiceItem $item, Collection $poItemsById, string $stored): array
+    {
+        $sourceItems = $this->sourcePoItemsForInvoiceItem($item, $poItemsById);
+
+        if ($sourceItems->isEmpty()) {
+            $project = self::splitStoredLabel($stored)['project'];
+
+            return [
+                'project' => $project !== '' ? $project : null,
+                'zone' => null,
+            ];
+        }
+
+        $poProjects = $this->uniqueValuesFromPoItems(
+            $sourceItems,
+            fn (PurchaseOrderItem $poItem) => $this->projectForPoItem($poItem),
+        );
+
+        if ($poProjects !== []) {
+            return ['project' => $stored, 'zone' => null];
+        }
+
+        return ['project' => null, 'zone' => $stored];
     }
 
     /**
