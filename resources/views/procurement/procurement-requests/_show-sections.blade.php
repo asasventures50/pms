@@ -26,7 +26,7 @@
                 <li>
                     <a href="{{ $document->url }}" target="_blank" rel="noopener" class="font-medium text-slate-900 underline">{{ $document->file_name }}</a>
                     @if ($document->document_type)<span class="ml-2 text-xs text-slate-500">{{ $document->document_type }}</span>@endif
-                    @if ($document->file_description)<p class="text-xs text-slate-600">{{ $document->file_description }}</p>@endif
+                    @if ($document->file_description)<p class="text-xs text-slate-600 text-start" dir="auto">{{ $document->file_description }}</p>@endif
                 </li>
             @endforeach
         </ul>

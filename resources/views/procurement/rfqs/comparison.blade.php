@@ -130,7 +130,7 @@
                         <tr>
                             <td class="comparison-criteria-cell sticky left-0 z-10 border border-slate-200 bg-white px-3 py-2 font-medium text-slate-600">Description</td>
                             @foreach ($columns as $column)
-                                <td class="comparison-data-cell border border-slate-200 px-3 py-2 text-slate-800">{{ $line->description ?: '—' }}</td>
+                                <td class="comparison-data-cell border border-slate-200 px-3 py-2 text-slate-800 whitespace-pre-wrap text-start" dir="auto">{{ $line->description ?: '—' }}</td>
                             @endforeach
                         </tr>
                         <tr>
@@ -216,7 +216,7 @@
                             <td class="comparison-criteria-cell sticky left-0 z-10 border border-slate-200 bg-white px-3 py-2 font-medium text-slate-600">Remarks</td>
                             @foreach ($columns as $column)
                                 @php $quoteLine = $column['lines_by_rfq_item_id']->get($line->id); @endphp
-                                <td class="comparison-data-cell border border-slate-200 px-3 py-2 text-xs break-words">{{ $quoteLine?->remarks ?: '—' }}</td>
+                                <td class="comparison-data-cell border border-slate-200 px-3 py-2 text-xs break-words text-start" dir="auto">{{ $quoteLine?->remarks ?: '—' }}</td>
                             @endforeach
                         </tr>
                         @endif
@@ -261,7 +261,7 @@
                     <tr>
                         <td class="comparison-criteria-cell sticky left-0 z-10 border border-slate-200 bg-white px-3 py-2 font-medium text-slate-600">Notes</td>
                         @foreach ($columns as $column)
-                            <td class="comparison-data-cell border border-slate-200 px-3 py-2 text-xs break-words">{{ $column['quotation']->notes ?: '—' }}</td>
+                            <td class="comparison-data-cell border border-slate-200 px-3 py-2 text-xs break-words whitespace-pre-wrap text-start" dir="auto">{{ $column['quotation']->notes ?: '—' }}</td>
                         @endforeach
                     </tr>
                     @endif

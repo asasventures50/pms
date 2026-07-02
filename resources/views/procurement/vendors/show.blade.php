@@ -34,8 +34,8 @@
                 <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Created by</dt><dd class="mt-1 text-sm text-slate-900">{{ $vendor->creator?->name ?? '—' }}</dd></div>
                 <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Language</dt><dd class="mt-1 text-sm text-slate-900">{{ strtoupper($e($vendor->language)) }}</dd></div>
                 <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Status</dt><dd class="mt-1 text-sm text-slate-900">{{ $label($vendor->status) }}</dd></div>
-                <div class="sm:col-span-2"><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Description</dt><dd class="mt-1 whitespace-pre-wrap text-sm text-slate-900">{{ $vendor->description ?: '—' }}</dd></div>
-                <div class="sm:col-span-2"><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Notes</dt><dd class="mt-1 whitespace-pre-wrap text-sm text-slate-900">{{ $vendor->notes ?: '—' }}</dd></div>
+                <div class="sm:col-span-2"><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Description</dt><dd class="mt-1 whitespace-pre-wrap text-sm text-slate-900 text-start" dir="auto">{{ $vendor->description ?: '—' }}</dd></div>
+                <div class="sm:col-span-2"><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Notes</dt><dd class="mt-1 whitespace-pre-wrap text-sm text-slate-900 text-start" dir="auto">{{ $vendor->notes ?: '—' }}</dd></div>
             </dl>
         </section>
 
@@ -69,13 +69,13 @@
                                 </div>
                                 <div class="sm:col-span-2">
                                     <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Address</dt>
-                                    <dd class="mt-1 whitespace-pre-wrap text-slate-900">{{ $loc->address ?: '—' }}</dd>
+                                    <dd class="mt-1 whitespace-pre-wrap text-slate-900 text-start" dir="auto">{{ $loc->address ?: '—' }}</dd>
                                 </div>
                                 <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Phone</dt><dd class="mt-1 text-slate-900">{{ $loc->phone ?: '—' }}</dd></div>
                                 <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">WhatsApp</dt><dd class="mt-1 text-slate-900">{{ $loc->whatsapp ?: '—' }}</dd></div>
                                 <div class="sm:col-span-2">
                                     <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Notes</dt>
-                                    <dd class="mt-1 whitespace-pre-wrap text-slate-900">{{ $loc->notes ?: '—' }}</dd>
+                                    <dd class="mt-1 whitespace-pre-wrap text-slate-900 text-start" dir="auto">{{ $loc->notes ?: '—' }}</dd>
                                 </div>
                             </dl>
                         </li>
@@ -156,9 +156,9 @@
             <dl class="mt-4 grid gap-4 sm:grid-cols-2">
                 <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Payment method</dt><dd class="mt-1 text-sm text-slate-900">{{ $vendor->payment_method ? $label($vendor->payment_method) : '—' }}</dd></div>
                 <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Rating</dt><dd class="mt-1 text-sm text-slate-900">{{ $vendor->rating !== null ? $vendor->rating : '—' }}</dd></div>
-                <div class="sm:col-span-2"><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Payment terms</dt><dd class="mt-1 whitespace-pre-wrap text-sm text-slate-900">{{ $vendor->payment_terms ?: '—' }}</dd></div>
-                <div class="sm:col-span-2"><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Commercial terms</dt><dd class="mt-1 whitespace-pre-wrap text-sm text-slate-900">{{ $vendor->commercial_terms ?: '—' }}</dd></div>
-                <div class="sm:col-span-2"><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Technical capabilities</dt><dd class="mt-1 whitespace-pre-wrap text-sm text-slate-900">{{ $vendor->technical_capabilities ?: '—' }}</dd></div>
+                <div class="sm:col-span-2"><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Payment terms</dt><dd class="mt-1 whitespace-pre-wrap text-sm text-slate-900 text-start" dir="auto">{{ $vendor->payment_terms ?: '—' }}</dd></div>
+                <div class="sm:col-span-2"><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Commercial terms</dt><dd class="mt-1 whitespace-pre-wrap text-sm text-slate-900 text-start" dir="auto">{{ $vendor->commercial_terms ?: '—' }}</dd></div>
+                <div class="sm:col-span-2"><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Technical capabilities</dt><dd class="mt-1 whitespace-pre-wrap text-sm text-slate-900 text-start" dir="auto">{{ $vendor->technical_capabilities ?: '—' }}</dd></div>
             </dl>
         </section>
 

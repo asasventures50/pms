@@ -52,7 +52,7 @@
     </dl>
     <div class="mt-3">
         <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Item description</dt>
-        <dd class="mt-0.5 text-slate-900">{{ $line->description }}</dd>
+        <dd class="mt-0.5 whitespace-pre-wrap text-start text-slate-900" dir="auto">{{ $line->description }}</dd>
     </div>
     <dl class="mt-3 grid gap-3 text-sm sm:grid-cols-3">
         <div>
@@ -65,12 +65,12 @@
         </div>
         <div>
             <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Justification</dt>
-            <dd class="mt-0.5 text-slate-900">{{ $line->justification ?: '—' }}</dd>
+            <dd class="mt-0.5 text-start text-slate-900" dir="auto">{{ $line->justification ?: '—' }}</dd>
         </div>
     </dl>
     <div class="mt-3">
         <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Scope of work</dt>
-        <dd class="mt-0.5 whitespace-pre-wrap text-slate-900">{{ $line->scope_of_work ?: '—' }}</dd>
+        <dd class="mt-0.5 whitespace-pre-wrap text-start text-slate-900" dir="auto">{{ $line->scope_of_work ?: '—' }}</dd>
     </div>
 
     <div class="mt-4 border-t border-slate-200 pt-4">
@@ -82,7 +82,7 @@
             </div>
             <div>
                 <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Delivery location</dt>
-                <dd class="mt-0.5 text-slate-900">{{ $line->delivery_location ?: '—' }}</dd>
+                <dd class="mt-0.5 text-start text-slate-900" dir="auto">{{ $line->delivery_location ?: '—' }}</dd>
             </div>
             <div class="sm:col-span-2">
                 <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Flexible delivery date</dt>

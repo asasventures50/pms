@@ -84,13 +84,13 @@
 
         <section class="rounded-xl border border-slate-200 bg-white p-6 text-sm shadow-sm">
             <h3 class="font-semibold text-slate-900">Justification & delivery</h3>
-            <p class="mt-3 whitespace-pre-wrap">{{ $formData['justification'] ?: '—' }}</p>
+            <p class="mt-3 whitespace-pre-wrap text-start" dir="auto">{{ $formData['justification'] ?: '—' }}</p>
             <dl class="mt-4 grid gap-3 sm:grid-cols-2">
                 <div><dt class="text-xs uppercase text-slate-500">Lead time (days)</dt><dd>{{ $procurementRequest->delivery_lead_time_days ?? '—' }}</dd></div>
-                <div><dt class="text-xs uppercase text-slate-500">Delivery location</dt><dd>{{ $formData['delivery_location'] ?: '—' }}</dd></div>
+                <div><dt class="text-xs uppercase text-slate-500">Delivery location</dt><dd class="text-start" dir="auto">{{ $formData['delivery_location'] ?: '—' }}</dd></div>
                 <div><dt class="text-xs uppercase text-slate-500">Flexible delivery</dt><dd>{{ ($formData['flexible_delivery_date'] ?? true) ? 'Yes' : 'No' }}</dd></div>
             </dl>
-            <div class="mt-4"><dt class="text-xs uppercase text-slate-500">Scope of work</dt><dd class="mt-1 whitespace-pre-wrap">{{ $formData['scope_of_work'] ?: '—' }}</dd></div>
+            <div class="mt-4"><dt class="text-xs uppercase text-slate-500">Scope of work</dt><dd class="mt-1 whitespace-pre-wrap text-start" dir="auto">{{ $formData['scope_of_work'] ?: '—' }}</dd></div>
         </section>
 
         @include('procurement.procurement-requests._show-sections', ['procurementRequest' => $procurementRequest, 'formData' => $formData])

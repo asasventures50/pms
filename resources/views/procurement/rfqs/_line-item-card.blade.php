@@ -56,7 +56,7 @@
             </div>
             <div class="sm:col-span-2 lg:col-span-3">
                 <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Item description</dt>
-                <dd class="rfq-display-field mt-1 text-sm text-slate-900" data-display="description">{{ $selectedOpt['description'] ?? '—' }}</dd>
+                <dd class="rfq-display-field mt-1 text-sm text-slate-900 text-start" dir="auto" data-display="description">{{ $selectedOpt['description'] ?? '—' }}</dd>
             </div>
             <div>
                 <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Unit</dt>
@@ -70,13 +70,13 @@
 
         <div class="border-t border-slate-100 pt-4">
             <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Justification</dt>
-            <dd class="rfq-display-field mt-1 max-w-full break-words whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-sm text-slate-900"
+            <dd class="rfq-display-field mt-1 max-w-full break-words whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-sm text-slate-900 text-start" dir="auto"
                 data-display="justification">{{ $selectedOpt['justification'] ?? '—' }}</dd>
         </div>
 
         <div class="border-t border-slate-100 pt-4">
             <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Scope of work</dt>
-            <dd class="rfq-display-field mt-1 max-w-full break-words whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-sm text-slate-900"
+            <dd class="rfq-display-field mt-1 max-w-full break-words whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-sm text-slate-900 text-start" dir="auto"
                 data-display="scope_of_work">{{ $selectedOpt['scope_of_work'] ?? '—' }}</dd>
         </div>
 
@@ -97,7 +97,7 @@
             </div>
             <div class="sm:col-span-2 lg:col-span-1">
                 <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Delivery location</dt>
-                <dd class="rfq-display-field mt-1 break-words text-sm text-slate-900" data-display="delivery_location">{{ $selectedOpt['delivery_location'] ?? '—' }}</dd>
+                <dd class="rfq-display-field mt-1 break-words text-sm text-slate-900 text-start" dir="auto" data-display="delivery_location">{{ $selectedOpt['delivery_location'] ?? '—' }}</dd>
             </div>
         </div>
 

@@ -27,7 +27,7 @@
                             <span class="ml-2 text-xs text-slate-500">{{ $document->document_type }}</span>
                         @endif
                         @if ($document->file_description)
-                            <p class="mt-0.5 text-xs text-slate-600">{{ $document->file_description }}</p>
+                            <p class="mt-0.5 text-xs text-slate-600 text-start" dir="auto">{{ $document->file_description }}</p>
                         @endif
                     </div>
                     <label class="flex shrink-0 cursor-pointer items-center gap-2 text-xs text-slate-600 print:hidden">

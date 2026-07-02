@@ -115,7 +115,7 @@
         <div class="border-b border-slate-900 pb-1 {{ $vqFieldClass($quotation->vendor_email) }}"><dt class="text-xs font-medium">Email</dt><dd>{{ $quotation->vendor_email ?? '—' }}</dd></div>
         <div class="border-b border-slate-900 pb-1 {{ $vqFieldClass($quotation->vendor_phone) }}"><dt class="text-xs font-medium">Phone</dt><dd>{{ $quotation->vendor_phone ?? '—' }}</dd></div>
         @if ($quotation->vendor_address)
-            <div class="border-b border-slate-900 pb-1 sm:col-span-2"><dt class="text-xs font-medium">Address</dt><dd class="whitespace-pre-wrap">{{ $quotation->vendor_address }}</dd></div>
+            <div class="border-b border-slate-900 pb-1 sm:col-span-2"><dt class="text-xs font-medium">Address</dt><dd class="whitespace-pre-wrap text-start" dir="auto">{{ $quotation->vendor_address }}</dd></div>
         @endif
     </dl>
 </section>
@@ -123,7 +123,7 @@
 <section class="mt-6 text-sm">
     <h3 class="text-sm font-bold uppercase tracking-wide text-slate-900">Request details</h3>
     <dl class="mt-3 grid gap-2 sm:grid-cols-3">
-        <div class="border-b border-slate-900 pb-1 {{ $vqFieldClass($rfqContext['delivery_location'] ?? null) }}"><dt class="text-xs font-medium">Delivery location</dt><dd>{{ $rfqContext['delivery_location'] ?? '—' }}</dd></div>
+        <div class="border-b border-slate-900 pb-1 {{ $vqFieldClass($rfqContext['delivery_location'] ?? null) }}"><dt class="text-xs font-medium">Delivery location</dt><dd class="text-start" dir="auto">{{ $rfqContext['delivery_location'] ?? '—' }}</dd></div>
         <div class="border-b border-slate-900 pb-1 {{ $vqFieldClass($rfqContext['required_delivery_date'] ?? null) }}"><dt class="text-xs font-medium">Required delivery date</dt><dd>{{ $rfqContext['required_delivery_date'] ?? '—' }}</dd></div>
         <div class="border-b border-slate-900 pb-1 {{ $vqFieldClass($rfqContext['required_lead_time'] ?? null) }}"><dt class="text-xs font-medium">Required lead time (days)</dt><dd>{{ $rfqContext['required_lead_time'] ?? '—' }}</dd></div>
         <div class="border-b border-slate-900 pb-1 {{ $vqFieldClass($rfqContext['samples_required'] ?? null) }}"><dt class="text-xs font-medium">Samples required</dt><dd>{{ $rfqContext['samples_required'] ?? '—' }}</dd></div>
@@ -147,13 +147,13 @@
             @forelse ($requestLines as $row)
                 <tr>
                     <td class="border border-slate-900 px-2 py-2 font-mono align-top">{{ $row['line_number'] ?? '—' }}</td>
-                    <td class="border border-slate-900 px-2 py-2 align-top">{{ $row['description'] ?? '—' }}</td>
+                    <td class="border border-slate-900 px-2 py-2 align-top whitespace-pre-wrap text-start" dir="auto">{{ $row['description'] ?? '—' }}</td>
                     <td class="vq-cell-num border border-slate-900 px-2 py-2 align-top">{{ isset($row['quantity']) ? number_format((float) $row['quantity'], 3) : '—' }}</td>
                     <td class="border border-slate-900 px-2 py-2 align-top {{ $vqColClass($reqColumnHasData['unit']) }}">{{ $row['unit'] ?? '—' }}</td>
-                    <td class="border border-slate-900 px-2 py-2 align-top {{ $vqColClass($reqColumnHasData['delivery_location']) }}">{{ $row['delivery_location'] ?? '—' }}</td>
+                    <td class="border border-slate-900 px-2 py-2 align-top text-start {{ $vqColClass($reqColumnHasData['delivery_location']) }}" dir="auto">{{ $row['delivery_location'] ?? '—' }}</td>
                     <td class="border border-slate-900 px-2 py-2 align-top {{ $vqColClass($reqColumnHasData['required_delivery']) }}">{{ $row['required_delivery_date'] ?? '—' }}</td>
                     <td class="border border-slate-900 px-2 py-2 align-top {{ $vqColClass($reqColumnHasData['required_lead_time']) }}">{{ $row['required_lead_time'] ?? '—' }}</td>
-                    <td class="border border-slate-900 px-2 py-2 align-top whitespace-pre-wrap {{ $vqColClass($reqColumnHasData['scope']) }}">{{ $row['scope_reference'] ?? '—' }}</td>
+                    <td class="border border-slate-900 px-2 py-2 align-top whitespace-pre-wrap text-start {{ $vqColClass($reqColumnHasData['scope']) }}" dir="auto">{{ $row['scope_reference'] ?? '—' }}</td>
                 </tr>
             @empty
                 <tr>
@@ -190,7 +190,7 @@
                                 {{ $doc['file_name'] ?? '—' }}
                             @endif
                         </td>
-                        <td class="border border-slate-900 px-2 py-2 align-top">{{ $doc['file_description'] ?? '—' }}</td>
+                        <td class="border border-slate-900 px-2 py-2 align-top text-start" dir="auto">{{ $doc['file_description'] ?? '—' }}</td>
                     </tr>
                 @endforeach
                 </tbody>
@@ -252,7 +252,7 @@
                 <td class="vq-cell-num border border-slate-900 px-1 py-2 font-mono align-top">{{ number_format($lineGrand, 2) }}</td>
                 <td class="border border-slate-900 px-1 py-2 align-top {{ $vqColClass($vqColumnHasData['lead_time']) }}">{{ $line->lead_time ?? '—' }}</td>
                 <td class="border border-slate-900 px-1 py-2 align-top {{ $vqColClass($vqColumnHasData['warranty']) }}">{{ $line->warranty ?? '—' }}</td>
-                <td class="border border-slate-900 px-1 py-2 align-top {{ $vqColClass($vqColumnHasData['remarks']) }}">{{ $line->remarks ?? '—' }}</td>
+                <td class="border border-slate-900 px-1 py-2 align-top whitespace-pre-wrap text-start {{ $vqColClass($vqColumnHasData['remarks']) }}" dir="auto">{{ $line->remarks ?? '—' }}</td>
             </tr>
         @endforeach
         </tbody>
@@ -279,7 +279,7 @@
         <p class="mt-3"><span class="text-xs font-medium uppercase">After-sales service:</span> {{ $quotation->after_sales_service }}</p>
     @endif
     @if ($quotation->notes)
-        <p class="mt-3 whitespace-pre-wrap text-slate-700"><span class="text-xs font-medium uppercase">Note:</span> {{ $quotation->notes }}</p>
+        <p class="mt-3 whitespace-pre-wrap text-slate-700 text-start" dir="auto"><span class="text-xs font-medium uppercase">Note:</span> {{ $quotation->notes }}</p>
     @endif
 </section>
 

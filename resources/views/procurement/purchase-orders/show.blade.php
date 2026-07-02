@@ -101,7 +101,7 @@
                     <div><dt class="text-xs text-slate-500">Contact person</dt><dd class="text-slate-900">{{ $purchaseOrder->delivery_contact_name ?? '—' }}</dd></div>
                     <div><dt class="text-xs text-slate-500">Phone</dt><dd class="text-slate-900">{{ $purchaseOrder->delivery_contact_phone ?? '—' }}</dd></div>
                     <div><dt class="text-xs text-slate-500">Email</dt><dd class="text-slate-900">{{ $purchaseOrder->delivery_contact_email ?? '—' }}</dd></div>
-                    <div class="sm:col-span-2"><dt class="text-xs text-slate-500">Delivery location</dt><dd class="whitespace-pre-wrap text-slate-900">{{ $purchaseOrder->delivery_location ?? '—' }}</dd></div>
+                    <div class="sm:col-span-2"><dt class="text-xs text-slate-500">Delivery location</dt><dd class="whitespace-pre-wrap text-slate-900 text-start" dir="auto">{{ $purchaseOrder->delivery_location ?? '—' }}</dd></div>
                 </dl>
             </section>
         @endif
@@ -130,7 +130,7 @@
                 @forelse ($purchaseOrder->items as $line)
                     <tr>
                         <td class="border border-slate-200 px-3 py-2 font-mono text-xs">{{ $line->item ?: '—' }}</td>
-                        <td class="border border-slate-200 px-3 py-2">{{ $line->description }}</td>
+                        <td class="border border-slate-200 px-3 py-2 whitespace-pre-wrap text-start" dir="auto">{{ $line->description }}</td>
                         <td class="border border-slate-200 px-3 py-2 text-right">{{ number_format($line->quantity, 3) }}</td>
                         <td class="border border-slate-200 px-3 py-2 text-right">{{ $line->unit ?: '—' }}</td>
                         <td class="border border-slate-200 px-3 py-2 text-right">{{ number_format($line->unit_price, 2) }}</td>
@@ -197,13 +197,13 @@
                 @if ($showPaymentTermsOnPo)
                     <div>
                         <dt class="text-xs text-slate-500">Payment terms</dt>
-                        <dd class="whitespace-pre-wrap text-slate-900" @if(\App\Support\TextDirection::isRtl($paymentTermsDisplay)) dir="rtl" lang="ar" @endif>{{ $paymentTermsDisplay }}</dd>
+                        <dd class="whitespace-pre-wrap text-slate-900 text-start" dir="auto">{{ $paymentTermsDisplay }}</dd>
                     </div>
                 @endif
                 @include('procurement.purchase-orders._commercial-terms-display', ['purchaseOrder' => $purchaseOrder])
                 <div>
                     <dt class="text-xs text-slate-500">Notes</dt>
-                    <dd class="whitespace-pre-wrap text-slate-900" @if($notesDisplay !== '' && \App\Support\TextDirection::isRtl($notesDisplay)) dir="rtl" lang="ar" @endif>{{ $notesDisplay !== '' ? $notesDisplay : '—' }}</dd>
+                    <dd class="whitespace-pre-wrap text-slate-900 text-start" dir="auto">{{ $notesDisplay !== '' ? $notesDisplay : '—' }}</dd>
                 </div>
             </dl>
         </section>

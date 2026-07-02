@@ -132,7 +132,7 @@
                     @endphp
                     <tr>
                         <td class="border border-slate-900 px-2 py-3 font-mono align-top">{{ $line->item ?: '—' }}</td>
-                        <td class="border border-slate-900 px-2 py-3 align-top">{{ $line->description }}</td>
+                        <td class="border border-slate-900 px-2 py-3 align-top whitespace-pre-wrap text-start" dir="auto">{{ $line->description }}</td>
                         <td class="border border-slate-900 px-2 py-3 text-right align-top">{{ number_format($line->quantity, 3) }}</td>
                         <td class="border border-slate-900 px-2 py-3 align-top">{{ $line->unit ?: '—' }}</td>
                         <td class="border border-slate-900 px-2 py-3 align-top">{{ $line->request_lead_time ?: '—' }}</td>
@@ -182,7 +182,7 @@
                     <div><dt class="text-xs text-slate-500">Email</dt><dd>{{ $rfq->vendor_email ?? '—' }}</dd></div>
                     <div><dt class="text-xs text-slate-500">Phone</dt><dd>{{ $rfq->vendor_phone ?? '—' }}</dd></div>
                     @if ($rfq->vendor_address)
-                        <div class="sm:col-span-2"><dt class="text-xs text-slate-500">Address</dt><dd class="whitespace-pre-wrap">{{ $rfq->vendor_address }}</dd></div>
+                        <div class="sm:col-span-2"><dt class="text-xs text-slate-500">Address</dt><dd class="whitespace-pre-wrap text-start" dir="auto">{{ $rfq->vendor_address }}</dd></div>
                     @endif
                 </dl>
             </section>
