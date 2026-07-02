@@ -18,7 +18,8 @@
                     );
                 @endphp
 
-                <div class="rounded-lg border border-slate-200 bg-slate-50/80 p-4 print:rounded-none print:border-slate-300 print:bg-white">
+                <div class="rounded-lg border border-slate-200 bg-slate-50/80 p-4 print:rounded-none print:border-slate-300 print:bg-white"
+                     data-comparison-quotation="{{ $quotation->id }}">
                     <h4 class="text-xs font-bold uppercase tracking-wide text-slate-800">
                         <span class="font-mono">{{ $quotation->quotation_number }}</span>
                         — {{ $quotation->vendor_company_name ?? $quotation->vendor?->name ?? '—' }}

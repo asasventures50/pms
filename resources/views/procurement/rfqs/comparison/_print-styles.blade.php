@@ -50,6 +50,10 @@
         background: #fff;
     }
 
+    .comparison-col-hidden {
+        display: none !important;
+    }
+
     .comparison-signoff-select-row,
     .comparison-signoff-notes {
         display: none;

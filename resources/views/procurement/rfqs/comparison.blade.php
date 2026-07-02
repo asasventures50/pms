@@ -45,7 +45,8 @@
                     </button>
                 </form>
             @endif
-            <button type="button" onclick="window.print()"
+            <button type="button"
+                    @if ($quotationCount >= 2) data-comparison-print-trigger @else onclick="window.print()" @endif
                     class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">
                 Print
             </button>
@@ -66,6 +67,8 @@
             No vendor quotations recorded for this RFQ yet.
         </div>
     @else
+        @include('procurement.rfqs.comparison._column-picker', ['columns' => $columns])
+
         <article class="comparison-document mx-auto max-w-full border-2 border-slate-900 bg-white p-4 text-slate-900 shadow-sm sm:p-6 print:shadow-none">
             @include('procurement.rfqs.comparison._comparison-document-header', ['rfq' => $rfq])
 
@@ -80,7 +83,7 @@
                 </div>
                 <div>
                     <span class="text-xs font-medium uppercase text-slate-500">Quotations compared</span>
-                    <p>{{ $quotationCount }}</p>
+                    <p id="comparison-visible-count">{{ $quotationCount }}</p>
                 </div>
                 <div>
                     <span class="text-xs font-medium uppercase text-slate-500">Printed on</span>
@@ -98,7 +101,8 @@
                             @php
                                 $quotation = $column['quotation'];
                             @endphp
-                            <th class="comparison-data-cell border px-3 py-3 align-middle {{ $column['is_selected'] ? 'comparison-col-selected' : '' }}">
+                            <th class="comparison-data-cell border px-3 py-3 align-middle {{ $column['is_selected'] ? 'comparison-col-selected' : '' }}"
+                                data-comparison-quotation="{{ $quotation->id }}">
                                 <div class="font-mono text-[11px] font-normal normal-case tracking-normal text-slate-600">{{ $quotation->quotation_number }}</div>
                                 <div class="mt-1 text-sm font-semibold normal-case">{{ $quotation->vendor_company_name ?? $quotation->vendor?->name ?? '—' }}</div>
                                 <div class="mt-2 flex flex-wrap justify-center gap-1">
@@ -309,5 +313,7 @@
 
             @include('procurement.rfqs.comparison._supporting-documents', ['columns' => $columns])
         </article>
+
+        @include('procurement.rfqs.comparison._comparison-filter', ['columns' => $columns])
     @endif
 @endsection
