@@ -13,6 +13,27 @@
         </p>
     </div>
 
+    @if (auth()->user()->canAccessProcurementRequestFlow())
+        <section class="mb-8 rounded-xl border border-indigo-200 bg-indigo-50/60 p-6 shadow-sm">
+            <h2 class="text-base font-semibold text-slate-900">
+                {{ auth()->user()->canViewAllProcurementRequestFlows() ? 'Request tracking' : 'My request tracking' }}
+            </h2>
+            <p class="mt-1 text-sm text-slate-600">
+                @if (auth()->user()->canViewAllProcurementRequestFlows())
+                    See where every procurement request stands — RFQ, quotations, PO, and invoice.
+                @else
+                    See where each of your procurement requests stands — RFQ, quotations, PO, and invoice.
+                @endif
+            </p>
+            <div class="mt-4">
+                <a href="{{ route('procurement-requests.my-flow') }}"
+                   class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50">
+                    Visual Tracking Flow
+                </a>
+            </div>
+        </section>
+    @endif
+
     @if (auth()->user()->hasPermission('procurement-requests.view') || auth()->user()->hasPermission('purchase-orders.view') || auth()->user()->hasPermission('invoices.create') || auth()->user()->hasPermission('schedule-of-works.create'))
         <section class="mb-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 class="text-base font-semibold text-slate-900">Procurement</h2>

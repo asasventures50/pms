@@ -14,16 +14,17 @@ use App\Http\Controllers\LandingController;
 use App\Http\Controllers\Procurement\Catalog\CategoryQuickStoreController;
 use App\Http\Controllers\Procurement\Catalog\SubcategoryQuickStoreController;
 use App\Http\Controllers\Procurement\Categories\CategoryController;
+use App\Http\Controllers\Procurement\Invoices\InvoiceController;
 use App\Http\Controllers\Procurement\ProcurementRequests\ProcurementRequestController;
+use App\Http\Controllers\Procurement\ProcurementRequests\ProcurementRequestFlowController;
 use App\Http\Controllers\Procurement\Projects\ProjectController;
 use App\Http\Controllers\Procurement\Projects\ProjectQuickStoreController;
 use App\Http\Controllers\Procurement\Projects\ZoneQuickStoreController;
-use App\Http\Controllers\Procurement\Invoices\InvoiceController;
-use App\Http\Controllers\Procurement\ScheduleOfWorks\ScheduleOfWorkController;
 use App\Http\Controllers\Procurement\PurchaseOrders\PurchaseOrderController;
 use App\Http\Controllers\Procurement\Rfqs\RfqController;
 use App\Http\Controllers\Procurement\Rfqs\RfqGeneralTermController;
 use App\Http\Controllers\Procurement\Rfqs\RfqQuotationComparisonController;
+use App\Http\Controllers\Procurement\ScheduleOfWorks\ScheduleOfWorkController;
 use App\Http\Controllers\Procurement\VendorQuotations\VendorQuotationController;
 use App\Http\Controllers\Procurement\Vendors\VendorRegistrationController;
 use App\Http\Controllers\Procurement\Vendors\VendorWebController;
@@ -254,6 +255,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('procurement-requests/{procurement_request}/print', [ProcurementRequestController::class, 'print'])
         ->middleware('permission:procurement-requests.view|procurement-requests.view-own')
         ->name('procurement-requests.print');
+
+    Route::get('my-procurement-requests/flow', [ProcurementRequestFlowController::class, 'index'])
+        ->middleware('permission:procurement-requests.view|procurement-requests.view-own|procurement-requests.create|rfqs.view')
+        ->name('procurement-requests.my-flow');
 
     Route::resource('procurement-requests', ProcurementRequestController::class)
         ->middlewareFor(['index', 'show'], 'permission:procurement-requests.view|procurement-requests.view-own')

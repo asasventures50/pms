@@ -21,6 +21,7 @@ use App\Services\Procurement\ProcurementRequests\ProcurementRequestPrintLabels;
 use App\Services\Procurement\ProcurementRequests\ProcurementRequestRequestorResolver;
 use App\Services\Procurement\ProcurementRequests\ProcurementRequestSupportingDocumentStorage;
 use App\Services\Procurement\Rfqs\RelatedRfqsForProcurementRequestQuery;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -355,7 +356,7 @@ class ProcurementRequestController extends Controller
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Collection<int, Project>
+     * @return Collection<int, Project>
      */
     private function activeProjects()
     {
@@ -367,7 +368,7 @@ class ProcurementRequestController extends Controller
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Collection<int, Category>
+     * @return Collection<int, Category>
      */
     private function activeCategories()
     {

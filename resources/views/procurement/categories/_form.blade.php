@@ -44,12 +44,7 @@
             'vendors_count' => (int) ($s->vendors_count ?? 0),
         ])->values()->all();
     } else {
-        $subRows = [['name_ar' => '', 'name_en' => '', 'slug' => '', 'status' => 'active']];
-    }
-    if (count($subRows) === 0) {
-        $subRows = $mode === 'edit'
-            ? []
-            : [['name_ar' => '', 'name_en' => '', 'slug' => '', 'status' => 'active']];
+        $subRows = [];
     }
 @endphp
 

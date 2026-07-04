@@ -68,6 +68,33 @@ trait HasRoles
             || $granted->contains('procurement-requests.create');
     }
 
+    public function canViewAllProcurementRequestFlows(): bool
+    {
+        if ($this->isSuperAdmin() || $this->canViewAllProcurementRequests()) {
+            return true;
+        }
+
+        return $this->resolvePermissionNames()->contains('rfqs.view');
+    }
+
+    public function scopesProcurementRequestFlowToOwn(): bool
+    {
+        if ($this->canViewAllProcurementRequestFlows()) {
+            return false;
+        }
+
+        $granted = $this->resolvePermissionNames();
+
+        return $granted->contains('procurement-requests.view-own')
+            || $granted->contains('procurement-requests.create');
+    }
+
+    public function canAccessProcurementRequestFlow(): bool
+    {
+        return $this->canViewAllProcurementRequestFlows()
+            || $this->scopesProcurementRequestFlowToOwn();
+    }
+
     public function canViewProcurementRequest(ProcurementRequest $procurementRequest): bool
     {
         if ($this->isSuperAdmin() || $this->canViewAllProcurementRequests()) {

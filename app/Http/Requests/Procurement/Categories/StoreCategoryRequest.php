@@ -27,9 +27,8 @@ class StoreCategoryRequest extends FormRequest
 
             $nameEn = isset($row['name_en']) ? trim((string) $row['name_en']) : '';
             $nameAr = isset($row['name_ar']) ? trim((string) $row['name_ar']) : '';
-            $status = isset($row['status']) ? trim((string) $row['status']) : '';
 
-            if ($nameEn === '' && $nameAr === '' && $status === '') {
+            if ($nameEn === '' && $nameAr === '') {
                 continue;
             }
 
