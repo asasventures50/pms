@@ -25,12 +25,13 @@
                 'quantity' => $line['quantity'] ?? '',
                 'unit' => trim((string) ($line['unit'] ?? '')),
                 'unit_price' => $line['unit_price'] ?? '',
+                'margin_percentage' => $line['margin_percentage'] ?? '',
             ];
         })
         ->values()
         ->all();
     if ($oldManualLines === [] && $isManual) {
-        $oldManualLines = [['zone' => '', 'description' => '', 'quantity' => '', 'unit' => '', 'unit_price' => '']];
+        $oldManualLines = [['zone' => '', 'description' => '', 'quantity' => '', 'unit' => '', 'unit_price' => '', 'margin_percentage' => '']];
     }
     $manualProjectName = old('manual_project_name', $defaults['manual_project_name'] ?? '');
     $showContentSections = $isManual || count($oldPoIds) > 0;
@@ -45,6 +46,7 @@
             'quantity' => $fee['quantity'] ?? '',
             'unit' => trim((string) ($fee['unit'] ?? '')),
             'unit_price' => $fee['unit_price'] ?? ($fee['amount'] ?? ''),
+            'margin_percentage' => $fee['margin_percentage'] ?? '',
         ])
         ->values()
         ->all();
@@ -200,6 +202,7 @@
                     <th class="px-3 py-2 text-right">
                         <span data-invoice-price-label data-invoice-price-label-base="Unit price">Unit price{{ $currencyCode ? ' ('.$currencyCode.')' : '' }}</span>
                     </th>
+                    <th class="px-3 py-2 text-right">percentage(%)</th>
                     <th class="px-3 py-2 text-right">
                         <span data-invoice-price-label data-invoice-price-label-base="Total">Total{{ $currencyCode ? ' ('.$currencyCode.')' : '' }}</span>
                     </th>
@@ -254,6 +257,7 @@
                     <th class="px-3 py-2 text-right">
                         <span data-invoice-manual-price-label data-invoice-price-label-base="سعر الوحدة">سعر الوحدة{{ $currencyCode ? ' ('.$currencyCode.')' : '' }}</span>
                     </th>
+                    <th class="px-3 py-2 text-right">percentage(%)</th>
                     <th class="px-3 py-2 text-right">
                         <span data-invoice-manual-total-label data-invoice-price-label-base="المجموع">المجموع{{ $currencyCode ? ' ('.$currencyCode.')' : '' }}</span>
                     </th>
@@ -309,6 +313,16 @@
                                    data-invoice-manual-line-unit-price
                                    class="admin-filter-control w-28 text-right @error('manual_lines.'.$index.'.unit_price') border-red-500 @enderror">
                             @error('manual_lines.'.$index.'.unit_price')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                        </td>
+                        <td class="px-3 py-2">
+                            <input type="number" name="manual_lines[{{ $index }}][margin_percentage]"
+                                   value="{{ $manualLine['margin_percentage'] ?? '' }}"
+                                   step="0.01"
+                                   placeholder="0"
+                                   data-invoice-manual-field
+                                   data-invoice-manual-line-margin
+                                   class="admin-filter-control w-24 text-right @error('manual_lines.'.$index.'.margin_percentage') border-red-500 @enderror">
+                            @error('manual_lines.'.$index.'.margin_percentage')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                         </td>
                         <td class="px-3 py-2 text-right font-medium text-slate-900 tabular-nums" data-invoice-manual-line-total>0.00</td>
                         <td class="px-3 py-2 text-center">
@@ -372,6 +386,7 @@
                     <th class="px-3 py-2 text-right">
                         <span data-invoice-fee-price-label data-invoice-price-label-base="سعر الوحدة">سعر الوحدة{{ $currencyCode ? ' ('.$currencyCode.')' : '' }}</span>
                     </th>
+                    <th class="px-3 py-2 text-right">percentage(%)</th>
                     <th class="px-3 py-2 text-right">
                         <span data-invoice-fee-total-label data-invoice-price-label-base="المجموع">المجموع{{ $currencyCode ? ' ('.$currencyCode.')' : '' }}</span>
                     </th>
@@ -427,6 +442,16 @@
                                    class="admin-filter-control w-28 text-right @error('custom_fees.'.$index.'.unit_price') border-red-500 @enderror">
                             @error('custom_fees.'.$index.'.unit_price')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                         </td>
+                        <td class="px-3 py-2">
+                            <input type="number" name="custom_fees[{{ $index }}][margin_percentage]"
+                                   value="{{ $customFee['margin_percentage'] ?? '' }}"
+                                   step="0.01"
+                                   placeholder="0"
+                                   data-invoice-po-field
+                                   data-invoice-custom-fee-margin
+                                   class="admin-filter-control w-24 text-right @error('custom_fees.'.$index.'.margin_percentage') border-red-500 @enderror">
+                            @error('custom_fees.'.$index.'.margin_percentage')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                        </td>
                         <td class="px-3 py-2 text-right font-medium text-slate-900 tabular-nums" data-invoice-custom-fee-line-total>0.00</td>
                         <td class="px-3 py-2 text-center">
                             <button type="button" data-invoice-remove-custom-fee
@@ -460,3 +485,4 @@
 <script type="application/json" id="invoice-suggested-manual-po">@json($suggestedManualPoNumber ?? '')</script>
 <script type="application/json" id="invoice-old-manual-lines">@json($oldManualLines)</script>
 <script type="application/json" id="invoice-old-item-zones">@json(old('purchase_order_item_zones', $invoiceDefaults['purchase_order_item_zones'] ?? []))</script>
+<script type="application/json" id="invoice-old-item-margins">@json(old('purchase_order_item_margins', $invoiceDefaults['purchase_order_item_margins'] ?? []))</script>

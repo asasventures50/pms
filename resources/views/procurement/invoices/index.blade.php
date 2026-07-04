@@ -56,16 +56,12 @@
                     <td class="px-4 py-3 text-right text-slate-900">{{ $invoice->formatMoneyAmount($invoice->total_price) }}</td>
                     <td class="px-4 py-3 text-right">
                         <div class="flex flex-wrap items-center justify-end gap-3">
+                            <a href="{{ route('invoices.show', $invoice) }}"
+                               class="font-medium text-slate-700 hover:text-slate-900">View</a>
                             <a href="{{ route('invoices.edit', $invoice) }}"
                                class="font-medium text-slate-700 hover:text-slate-900">Edit</a>
                             <a href="{{ route('invoices.print', $invoice) }}"
                                class="font-medium text-slate-700 hover:text-slate-900">Print</a>
-                            <form action="{{ route('invoices.destroy', $invoice) }}" method="post" class="inline"
-                                  onsubmit="return confirm('Delete invoice {{ $invoice->invoice_number }}? This cannot be undone.');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="font-medium text-red-700 hover:text-red-900">Delete</button>
-                            </form>
                         </div>
                     </td>
                 </tr>

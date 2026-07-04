@@ -19,16 +19,25 @@
         <div class="flex flex-wrap gap-3">
             <button type="submit"
                     class="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-slate-800">
-                Save &amp; Print
+                Save
             </button>
             <a href="{{ route('invoices.print', $invoice) }}"
                class="rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-800 hover:bg-slate-50">
-                Print without saving
+                Print
             </a>
             <a href="{{ route('invoices.index') }}"
                class="rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-800 hover:bg-slate-50">
                 Cancel
             </a>
+            <form action="{{ route('invoices.destroy', $invoice) }}" method="post" class="inline"
+                  onsubmit="return confirm('Delete invoice {{ $invoice->invoice_number }}? This cannot be undone.');">
+                @csrf
+                @method('DELETE')
+                <button type="submit"
+                        class="rounded-lg border border-red-300 bg-white px-5 py-2.5 text-sm font-medium text-red-700 hover:bg-red-50">
+                    Delete
+                </button>
+            </form>
         </div>
     </form>
 @endsection

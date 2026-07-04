@@ -200,7 +200,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('invoices.print');
 
     Route::resource('invoices', InvoiceController::class)
-        ->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])
+        ->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy'])
         ->middleware('permission:invoices.create');
 
     Route::get('procurement-requests/{procurement_request}/schedule-of-work-items', [ScheduleOfWorkController::class, 'procurementRequestItems'])

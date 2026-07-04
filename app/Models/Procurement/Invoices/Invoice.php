@@ -130,14 +130,19 @@ class Invoice extends Model
                 $description = trim((string) ($fee['description'] ?? $fee['label'] ?? ''));
                 $quantity = round((float) ($fee['quantity'] ?? 1), 3);
                 $unitPrice = round((float) ($fee['unit_price'] ?? 0), 2);
-                $amount = round((float) ($fee['amount'] ?? ($quantity * $unitPrice)), 2);
+                $marginPercentage = round((float) ($fee['margin_percentage'] ?? 0), 2);
+                $amount = round((float) ($fee['amount'] ?? 0), 2);
 
-                if ($description === '' || $amount <= 0) {
+                if ($description === '') {
                     return null;
                 }
 
-                if ($quantity > 0 && $unitPrice > 0) {
-                    $amount = round($quantity * $unitPrice, 2);
+                if ($quantity > 0 && $unitPrice >= 0) {
+                    $amount = round($quantity * $unitPrice * (1 + $marginPercentage / 100), 2);
+                }
+
+                if ($amount <= 0) {
+                    return null;
                 }
 
                 return [
@@ -146,6 +151,7 @@ class Invoice extends Model
                     'quantity' => $quantity,
                     'unit' => trim((string) ($fee['unit'] ?? '')),
                     'unit_price' => $unitPrice,
+                    'margin_percentage' => $marginPercentage,
                     'amount' => $amount,
                 ];
             })
@@ -192,6 +198,7 @@ class Invoice extends Model
             'quantity' => 1,
             'unit' => '',
             'unit_price' => $amount,
+            'margin_percentage' => 0,
             'amount' => $amount,
         ];
     }

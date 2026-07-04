@@ -87,6 +87,7 @@ class InvoicePersistenceService
                 'quantity' => $row['quantity'],
                 'unit' => $row['unit'] ?? null,
                 'unit_price' => $row['unit_price'],
+                'margin_percentage' => $row['margin_percentage'] ?? 0,
                 'line_total' => $row['line_total'],
                 'source_purchase_order_item_ids' => $row['source_purchase_order_item_ids'] ?? null,
             ]);
@@ -136,12 +137,13 @@ class InvoicePersistenceService
                 $quantity = round((float) ($fee['quantity'] ?? 0), 3);
                 $unit = trim((string) ($fee['unit'] ?? ''));
                 $unitPrice = round((float) ($fee['unit_price'] ?? 0), 2);
+                $marginPercentage = round((float) ($fee['margin_percentage'] ?? 0), 2);
 
                 if ($description === '' || $quantity <= 0 || $unitPrice < 0) {
                     return null;
                 }
 
-                $amount = round($quantity * $unitPrice, 2);
+                $amount = round($quantity * $unitPrice * (1 + $marginPercentage / 100), 2);
                 if ($amount <= 0) {
                     return null;
                 }
@@ -152,6 +154,7 @@ class InvoicePersistenceService
                     'quantity' => $quantity,
                     'unit' => $unit !== '' ? $unit : null,
                     'unit_price' => $unitPrice,
+                    'margin_percentage' => $marginPercentage,
                     'amount' => $amount,
                 ];
             })

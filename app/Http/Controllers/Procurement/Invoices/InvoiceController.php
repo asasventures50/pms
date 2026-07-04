@@ -78,6 +78,36 @@ class InvoiceController extends Controller
             ->with('success', 'Invoice created successfully.');
     }
 
+    public function show(Invoice $invoice): View
+    {
+        $invoice->load(['items', 'purchaseOrders.procurementRequest', 'creator']);
+
+        $sourcePoItemIds = $invoice->items
+            ->flatMap(fn ($item) => $item->source_purchase_order_item_ids ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        $poItemsById = PurchaseOrderItem::query()
+            ->whereIn('id', $sourcePoItemIds)
+            ->with([
+                'purchaseOrder.procurementRequest.items.project',
+                'purchaseOrder.procurementRequest.items.zone',
+                'purchaseOrder.procurementRequest.project',
+                'purchaseOrder.procurementRequest.zone',
+            ])
+            ->get()
+            ->keyBy('id');
+
+        $projectZoneResolver = InvoiceProjectZoneResolver::fromPurchaseOrderItems($poItemsById->values());
+
+        return view('procurement.invoices.show', [
+            'invoice' => $invoice,
+            'poItemsById' => $poItemsById,
+            'projectZoneResolver' => $projectZoneResolver,
+        ]);
+    }
+
     public function edit(Invoice $invoice): View
     {
         $invoice->load(['purchaseOrders', 'items']);
@@ -103,7 +133,7 @@ class InvoiceController extends Controller
         $invoice = $this->persistence->update($invoice, $payload['header'], $payload['purchase_order_ids'], $payload['lines']);
 
         return redirect()
-            ->route('invoices.print', $invoice)
+            ->route('invoices.edit', $invoice)
             ->with('success', 'Invoice updated successfully.');
     }
 
@@ -330,6 +360,11 @@ class InvoiceController extends Controller
             return back()->withInput()->withErrors(['purchase_order_item_ids' => 'Select at least one line item.']);
         }
 
+        $margins = collect($validated['purchase_order_item_margins'] ?? [])
+            ->mapWithKeys(fn ($margin, $id) => [(int) $id => (float) ($margin ?? 0)])
+            ->all();
+        $lines = $this->applyMarginsToPoLines($lines, $margins, $selectedItems);
+
         $projectZoneResolver = InvoiceProjectZoneResolver::fromPurchaseOrderItems($selectedItems);
         $zoneOverrides = collect($validated['purchase_order_item_zones'] ?? [])
             ->mapWithKeys(fn ($zone, $id) => [(int) $id => trim((string) $zone)])
@@ -404,6 +439,8 @@ class InvoiceController extends Controller
                 continue;
             }
 
+            $marginPercentage = round((float) ($row['margin_percentage'] ?? 0), 2);
+
             $lines[] = [
                 'line_number' => $lineNumber++,
                 'description' => $description,
@@ -411,7 +448,8 @@ class InvoiceController extends Controller
                 'quantity' => $quantity,
                 'unit' => $unit !== '' ? $unit : null,
                 'unit_price' => $unitPrice,
-                'line_total' => round($quantity * $unitPrice, 2),
+                'margin_percentage' => $marginPercentage,
+                'line_total' => self::calculateLineTotal($quantity, $unitPrice, $marginPercentage),
                 'source_purchase_order_item_ids' => null,
             ];
         }
@@ -470,6 +508,7 @@ class InvoiceController extends Controller
                         'quantity' => $item->quantity,
                         'unit' => $item->unit ?? '',
                         'unit_price' => $item->unit_price,
+                        'margin_percentage' => $item->margin_percentage ?? 0,
                     ];
                 })->values()->all(),
                 'recipient_name' => $invoice->recipient_name,
@@ -509,6 +548,7 @@ class InvoiceController extends Controller
             'currency_code' => $invoice->currency_code ?? 'USD',
             'custom_fees' => $invoice->feeRowsForEdit(),
             'purchase_order_item_zones' => $this->purchaseOrderItemZonesFromInvoice($invoice),
+            'purchase_order_item_margins' => $this->purchaseOrderItemMarginsFromInvoice($invoice),
         ];
     }
 
@@ -569,6 +609,83 @@ class InvoiceController extends Controller
         }
 
         return $zones;
+    }
+
+    /**
+     * @return array<int, float>
+     */
+    private function purchaseOrderItemMarginsFromInvoice(Invoice $invoice): array
+    {
+        $margins = [];
+
+        foreach ($invoice->items as $item) {
+            $sourceIds = collect($item->source_purchase_order_item_ids ?? [])
+                ->map(fn ($id) => (int) $id)
+                ->values();
+
+            if ($sourceIds->count() === 1) {
+                $margins[$sourceIds->first()] = (float) ($item->margin_percentage ?? 0);
+            }
+        }
+
+        return $margins;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $lines
+     * @param  array<int, float>  $margins
+     * @param  \Illuminate\Support\Collection<int, PurchaseOrderItem>  $selectedItems
+     * @return list<array<string, mixed>>
+     */
+    private function applyMarginsToPoLines(array $lines, array $margins, \Illuminate\Support\Collection $selectedItems): array
+    {
+        return array_map(function (array $line) use ($margins, $selectedItems) {
+            $sourceIds = collect($line['source_purchase_order_item_ids'] ?? [])
+                ->map(fn ($id) => (int) $id)
+                ->values()
+                ->all();
+
+            if (count($sourceIds) === 1) {
+                $margin = round((float) ($margins[$sourceIds[0]] ?? 0), 2);
+                $line['margin_percentage'] = $margin;
+                $line['line_total'] = self::calculateLineTotal(
+                    (float) $line['quantity'],
+                    (float) $line['unit_price'],
+                    $margin,
+                );
+
+                return $line;
+            }
+
+            $adjustedTotal = 0.0;
+
+            foreach ($sourceIds as $itemId) {
+                $poItem = $selectedItems->firstWhere('id', $itemId);
+
+                if ($poItem === null) {
+                    continue;
+                }
+
+                $margin = round((float) ($margins[$itemId] ?? 0), 2);
+                $adjustedTotal += self::calculateLineTotal(
+                    (float) $poItem->quantity,
+                    (float) $poItem->unit_price,
+                    $margin,
+                );
+            }
+
+            $adjustedTotal = round($adjustedTotal, 2);
+            $line['line_total'] = $adjustedTotal;
+            $line['unit_price'] = $adjustedTotal;
+            $line['margin_percentage'] = 0;
+
+            return $line;
+        }, $lines);
+    }
+
+    private static function calculateLineTotal(float $quantity, float $unitPrice, float $marginPercentage): float
+    {
+        return round($quantity * $unitPrice * (1 + $marginPercentage / 100), 2);
     }
 
     /**

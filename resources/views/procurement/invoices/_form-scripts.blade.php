@@ -46,6 +46,7 @@
         let poItems = [];
         let oldItemIds = [];
         let oldItemZones = {};
+        let oldItemMargins = {};
         let mergeGroups = [];
         let nextGroupId = 1;
         let currencyTouched = @json(filled(old('currency_code')) || filled(($invoiceDefaults ?? [])['currency_code'] ?? null));
@@ -71,6 +72,12 @@
             oldItemZones = JSON.parse(document.getElementById('invoice-old-item-zones')?.textContent || '{}');
         } catch (e) {
             oldItemZones = {};
+        }
+
+        try {
+            oldItemMargins = JSON.parse(document.getElementById('invoice-old-item-margins')?.textContent || '{}');
+        } catch (e) {
+            oldItemMargins = {};
         }
 
         try {
@@ -187,6 +194,19 @@
 
         function formatMoney(value) {
             return (Math.round(parseFloat(value || 0) * 100) / 100).toFixed(2);
+        }
+
+        function calculateLineTotal(quantity, unitPrice, marginPercentage) {
+            const qty = parseFloat(quantity || 0);
+            const price = parseFloat(unitPrice || 0);
+            const margin = parseFloat(marginPercentage || 0);
+            return qty * price * (1 + margin / 100);
+        }
+
+        function marginForPoItem(itemId) {
+            const row = linesBody?.querySelector('tr input[data-po-item-id="' + itemId + '"]')?.closest('tr');
+            const marginInput = row?.querySelector('[data-invoice-po-item-margin]');
+            return parseFloat(marginInput?.value || oldItemMargins[itemId] || 0);
         }
 
         function groupForItem(itemId) {
@@ -349,6 +369,7 @@
                     ['quantity', '[data-invoice-custom-fee-quantity]'],
                     ['unit', '[data-invoice-custom-fee-unit]'],
                     ['unit_price', '[data-invoice-custom-fee-unit-price]'],
+                    ['margin_percentage', '[data-invoice-custom-fee-margin]'],
                 ];
 
                 fields.forEach(function (pair) {
@@ -363,7 +384,8 @@
         function customFeeLineTotal(row) {
             const quantity = parseFloat(row.querySelector('[data-invoice-custom-fee-quantity]')?.value || 0);
             const unitPrice = parseFloat(row.querySelector('[data-invoice-custom-fee-unit-price]')?.value || 0);
-            return quantity > 0 && unitPrice >= 0 ? quantity * unitPrice : 0;
+            const margin = parseFloat(row.querySelector('[data-invoice-custom-fee-margin]')?.value || 0);
+            return quantity > 0 && unitPrice >= 0 ? calculateLineTotal(quantity, unitPrice, margin) : 0;
         }
 
         function updateCustomFeeRowTotal(row) {
@@ -374,7 +396,7 @@
         }
 
         function setupCustomFeeRow(row) {
-            row.querySelectorAll('[data-invoice-custom-fee-quantity], [data-invoice-custom-fee-unit-price]').forEach(function (input) {
+            row.querySelectorAll('[data-invoice-custom-fee-quantity], [data-invoice-custom-fee-unit-price], [data-invoice-custom-fee-margin]').forEach(function (input) {
                 input.addEventListener('input', function () {
                     updateCustomFeeRowTotal(row);
                     updateGrandTotalPreview();
@@ -469,6 +491,19 @@
             priceTd.appendChild(priceInput);
             row.appendChild(priceTd);
 
+            const marginTd = document.createElement('td');
+            marginTd.className = 'px-3 py-2';
+            const marginInput = document.createElement('input');
+            marginInput.type = 'number';
+            marginInput.value = fee.margin_percentage ?? '';
+            marginInput.step = '0.01';
+            marginInput.placeholder = '0';
+            marginInput.setAttribute('data-invoice-custom-fee-margin', '');
+            marginInput.setAttribute('data-invoice-po-field', '');
+            marginInput.className = 'admin-filter-control w-24 text-right';
+            marginTd.appendChild(marginInput);
+            row.appendChild(marginTd);
+
             const totalTd = document.createElement('td');
             totalTd.className = 'px-3 py-2 text-right font-medium text-slate-900 tabular-nums';
             totalTd.setAttribute('data-invoice-custom-fee-line-total', '');
@@ -502,7 +537,8 @@
         function manualLineTotal(row) {
             const quantity = parseFloat(row.querySelector('[data-invoice-manual-line-quantity]')?.value || 0);
             const unitPrice = parseFloat(row.querySelector('[data-invoice-manual-line-unit-price]')?.value || 0);
-            return quantity > 0 && unitPrice >= 0 ? quantity * unitPrice : 0;
+            const margin = parseFloat(row.querySelector('[data-invoice-manual-line-margin]')?.value || 0);
+            return quantity > 0 && unitPrice >= 0 ? calculateLineTotal(quantity, unitPrice, margin) : 0;
         }
 
         function updateManualLineRowTotal(row) {
@@ -526,6 +562,7 @@
                     ['quantity', '[data-invoice-manual-line-quantity]'],
                     ['unit', '[data-invoice-manual-line-unit]'],
                     ['unit_price', '[data-invoice-manual-line-unit-price]'],
+                    ['margin_percentage', '[data-invoice-manual-line-margin]'],
                 ];
 
                 fields.forEach(function (pair) {
@@ -538,7 +575,7 @@
         }
 
         function setupManualLineRow(row) {
-            row.querySelectorAll('[data-invoice-manual-line-quantity], [data-invoice-manual-line-unit-price]').forEach(function (input) {
+            row.querySelectorAll('[data-invoice-manual-line-quantity], [data-invoice-manual-line-unit-price], [data-invoice-manual-line-margin]').forEach(function (input) {
                 input.addEventListener('input', function () {
                     updateManualLineRowTotal(row);
                     updateGrandTotalPreview();
@@ -600,6 +637,7 @@
                 ['quantity', 'number', '', '[data-invoice-manual-line-quantity]', 'admin-filter-control w-24 text-right'],
                 ['unit', 'text', 'مثال: قطعة', '[data-invoice-manual-line-unit]', 'admin-filter-control w-24'],
                 ['unit_price', 'number', '', '[data-invoice-manual-line-unit-price]', 'admin-filter-control w-28 text-right'],
+                ['margin_percentage', 'number', '0', '[data-invoice-manual-line-margin]', 'admin-filter-control w-24 text-right'],
             ];
 
             const dataAttrs = {
@@ -607,6 +645,7 @@
                 quantity: 'data-invoice-manual-line-quantity',
                 unit: 'data-invoice-manual-line-unit',
                 unit_price: 'data-invoice-manual-line-unit-price',
+                margin_percentage: 'data-invoice-manual-line-margin',
             };
 
             fields.forEach(function (field) {
@@ -628,6 +667,10 @@
                 if (field[0] === 'unit_price') {
                     input.min = '0';
                     input.step = '0.01';
+                }
+                if (field[0] === 'margin_percentage') {
+                    input.step = '0.01';
+                    input.placeholder = '0';
                 }
                 td.appendChild(input);
                 row.appendChild(td);
@@ -739,17 +782,29 @@
             const group = groupForItem(itemId);
             if (!group) {
                 const item = poItems.find(function (row) { return row.id === itemId; });
-                return item ? parseFloat(item.line_total || 0) : 0;
+                if (!item) {
+                    return 0;
+                }
+                return calculateLineTotal(item.quantity, item.unit_price, marginForPoItem(itemId));
             }
 
             let total = 0;
             group.itemIds.forEach(function (id) {
                 const item = poItems.find(function (row) { return row.id === id; });
                 if (item) {
-                    total += parseFloat(item.line_total || 0);
+                    total += calculateLineTotal(item.quantity, item.unit_price, marginForPoItem(id));
                 }
             });
             return total;
+        }
+
+        function updatePoLineRowTotal(row, item) {
+            const totalCell = row.querySelector('[data-invoice-po-line-total]');
+            if (!totalCell || !item) {
+                return;
+            }
+            const margin = marginForPoItem(item.id);
+            totalCell.textContent = formatMoney(calculateLineTotal(item.quantity, item.unit_price, margin));
         }
 
         function countedItemIdsForTotal() {
@@ -1032,9 +1087,32 @@
                 priceTd.textContent = formatMoney(item.unit_price);
                 tr.appendChild(priceTd);
 
+                const marginTd = document.createElement('td');
+                marginTd.className = 'px-3 py-3';
+                const marginInput = document.createElement('input');
+                marginInput.type = 'number';
+                marginInput.name = 'purchase_order_item_margins[' + item.id + ']';
+                marginInput.value = oldItemMargins[item.id] ?? oldItemMargins[String(item.id)] ?? '';
+                marginInput.step = '0.01';
+                marginInput.placeholder = '0';
+                marginInput.setAttribute('data-invoice-po-field', '');
+                marginInput.setAttribute('data-invoice-po-item-margin', String(item.id));
+                marginInput.className = 'admin-filter-control w-24 text-right';
+                marginInput.addEventListener('input', function () {
+                    updatePoLineRowTotal(tr, item);
+                    updateGrandTotalPreview();
+                });
+                marginTd.appendChild(marginInput);
+                tr.appendChild(marginTd);
+
                 const totalTd = document.createElement('td');
                 totalTd.className = 'px-3 py-3 text-right font-medium text-slate-900';
-                totalTd.textContent = formatMoney(item.line_total);
+                totalTd.setAttribute('data-invoice-po-line-total', '');
+                totalTd.textContent = formatMoney(calculateLineTotal(
+                    item.quantity,
+                    item.unit_price,
+                    oldItemMargins[item.id] ?? oldItemMargins[String(item.id)] ?? 0,
+                ));
                 tr.appendChild(totalTd);
 
                 linesBody.appendChild(tr);

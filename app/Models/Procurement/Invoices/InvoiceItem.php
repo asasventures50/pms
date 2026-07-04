@@ -21,6 +21,7 @@ class InvoiceItem extends Model
         'quantity',
         'unit',
         'unit_price',
+        'margin_percentage',
         'line_total',
         'source_purchase_order_item_ids',
     ];
@@ -30,6 +31,7 @@ class InvoiceItem extends Model
         return [
             'quantity' => 'decimal:3',
             'unit_price' => 'decimal:2',
+            'margin_percentage' => 'decimal:2',
             'line_total' => 'decimal:2',
             'source_purchase_order_item_ids' => 'array',
         ];

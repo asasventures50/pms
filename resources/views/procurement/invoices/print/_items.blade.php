@@ -52,7 +52,7 @@
             <td class="inv-cell-text">{{ $line->description }}</td>
             <td class="inv-cell-num">{{ number_format($line->quantity, 3) }}</td>
             <td class="inv-cell-num">{{ $unit !== '' ? $unit : '—' }}</td>
-            <td class="inv-cell-money">{{ number_format($line->unit_price, 2) }}</td>
+            <td class="inv-cell-money">{{ number_format($line->quantity > 0 ? $line->line_total / $line->quantity : 0, 2) }}</td>
             <td class="inv-cell-money">{{ number_format($line->line_total, 2) }}</td>
         </tr>
     @endforeach
@@ -67,7 +67,7 @@
             <td class="inv-cell-text">{{ $fee['description'] }}</td>
             <td class="inv-cell-num">{{ number_format($fee['quantity'], 3) }}</td>
             <td class="inv-cell-num">{{ ($fee['unit'] ?? '') !== '' ? $fee['unit'] : '—' }}</td>
-            <td class="inv-cell-money">{{ number_format($fee['unit_price'], 2) }}</td>
+            <td class="inv-cell-money">{{ number_format($fee['quantity'] > 0 ? $fee['amount'] / $fee['quantity'] : 0, 2) }}</td>
             <td class="inv-cell-money">{{ number_format($fee['amount'], 2) }}</td>
         </tr>
     @endforeach
