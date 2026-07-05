@@ -62,4 +62,17 @@ class PurchaseOrderPayloadResolver
 
         $validated['currency_code'] = strtoupper(trim((string) $raw));
     }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    public static function normalizePackage(array &$validated): void
+    {
+        if (! array_key_exists('package', $validated)) {
+            return;
+        }
+
+        $package = trim((string) ($validated['package'] ?? ''));
+        $validated['package'] = $package !== '' ? $package : null;
+    }
 }

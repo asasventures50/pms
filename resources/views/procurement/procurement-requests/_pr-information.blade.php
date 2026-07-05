@@ -39,6 +39,16 @@
             </div>
             @error('project_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
+        <div>
+            <label for="pr_package" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+                Package <span class="font-normal normal-case text-slate-400">/ الحزمة</span>
+            </label>
+            <input type="text" name="package" id="pr_package" maxlength="500"
+                   value="{{ old('package', $formDefaults['package'] ?? '') }}"
+                   class="admin-filter-control mt-1 w-full @error('package') border-red-500 @enderror"
+                   placeholder="Optional">
+            @error('package')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+        </div>
     </div>
 
     <div class="mt-4 grid gap-4 sm:grid-cols-2">

@@ -331,6 +331,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const poPrContextScopeType = document.getElementById('po-pr-context-scope-type');
     const poPrContextCategory = document.getElementById('po-pr-context-category');
     const poPrContextProject = document.getElementById('po-pr-context-project');
+    const poPackageInput = document.getElementById('package');
     const poCompanyLogo = document.querySelector('[data-po-company-logo]');
     const poCompanyLogoFallback = document.querySelector('[data-po-company-logo-fallback]');
     const poCompanyLabel = document.querySelector('[data-po-company-label]');
@@ -500,10 +501,31 @@ document.addEventListener('DOMContentLoaded', function () {
             poPrContextProject.textContent = payload.project || '—';
         }
 
+        maybePrefillPackageFromPr(payload.package || '');
+
         poPrScopeTypeKeys = Array.isArray(payload.scopeTypeKeys) ? payload.scopeTypeKeys : [];
         if (typeof window.poSyncGeneralTerms === 'function') {
             window.poSyncGeneralTerms();
         }
+    }
+
+    function maybePrefillPackageFromPr(prPackage) {
+        if (!poPackageInput || poPackageInput.dataset.userEdited === '1') {
+            return;
+        }
+
+        const current = (poPackageInput.value || '').trim();
+        const incoming = (prPackage || '').trim();
+
+        if (current === '' && incoming !== '') {
+            poPackageInput.value = incoming;
+        }
+    }
+
+    if (poPackageInput) {
+        poPackageInput.addEventListener('input', function () {
+            poPackageInput.dataset.userEdited = '1';
+        });
     }
 
     function clearPoPrContextPanel() {
@@ -533,6 +555,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 : (Array.isArray(data?.scope_type_keys) ? data.scope_type_keys : []),
             procurementType: requestContext.procurement_type || '',
             geographicScope: requestContext.geographic_scope || '',
+            package: requestContext.package || '',
         };
     }
 

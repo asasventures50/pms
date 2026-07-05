@@ -377,7 +377,7 @@ class ProcurementRequestPersistenceService
         $header = [];
 
         foreach ([
-            'request_number', 'classification', 'status', 'company_key', 'project_id',
+            'request_number', 'classification', 'status', 'company_key', 'project_id', 'package',
             'category_id', 'subcategory_id', 'justification', 'delivery_lead_time_days',
             'delivery_location', 'currency_code', 'scope_of_work', 'warranty_coverage',
             'compliance_prequalification_level',
@@ -435,6 +435,11 @@ class ProcurementRequestPersistenceService
                 $validated['vendor_types'],
                 ProcurementVendorType::values()
             );
+        }
+
+        if (array_key_exists('package', $header)) {
+            $package = trim((string) ($header['package'] ?? ''));
+            $header['package'] = $package !== '' ? $package : null;
         }
 
         return $header;

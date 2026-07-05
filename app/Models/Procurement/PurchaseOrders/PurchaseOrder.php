@@ -42,6 +42,7 @@ class PurchaseOrder extends Model
         'status',
         'vendor_id',
         'procurement_request_id',
+        'package',
         'vendor_code',
         'vendor_language',
         'vendor_description',

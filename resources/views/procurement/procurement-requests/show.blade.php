@@ -49,6 +49,9 @@
             <dl class="mt-4 grid gap-4 sm:grid-cols-2">
                 <div><dt class="text-xs uppercase text-slate-500">Company</dt><dd class="mt-0.5">{{ PrCompany::resolve($procurementRequest->company_key)->label() }}</dd></div>
                 <div><dt class="text-xs uppercase text-slate-500">Project</dt><dd class="mt-0.5">@if ($procurementRequest->project){{ $procurementRequest->project->code }} — {{ $procurementRequest->project->name }}@else — @endif</dd></div>
+                @if (filled($procurementRequest->package))
+                    <div><dt class="text-xs uppercase text-slate-500">Package / الحزمة</dt><dd class="mt-0.5">{{ $procurementRequest->package }}</dd></div>
+                @endif
                 <div><dt class="text-xs uppercase text-slate-500">Category</dt><dd class="mt-0.5">{{ $procurementRequest->category?->name_en ?? $formData['legacy_category'] ?? '—' }}</dd></div>
                 <div><dt class="text-xs uppercase text-slate-500">Subcategory</dt><dd class="mt-0.5">{{ $procurementRequest->subcategory?->name_en ?? $formData['legacy_subcategory'] ?? '—' }}</dd></div>
                 <div><dt class="text-xs uppercase text-slate-500">Procurement type</dt><dd class="mt-0.5">{{ ProcurementCheckboxGroup::display($procurementRequest->procurement_types, ProcurementType::values(), fn ($v) => ProcurementType::from($v)->label()) ?: '—' }}</dd></div>

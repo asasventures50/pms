@@ -196,6 +196,7 @@ class PurchaseOrderController extends Controller
         PurchaseOrderPayloadResolver::finalizeForStore($validated);
 
         PurchaseOrderPayloadResolver::normalizeCurrency($validated, $request->user());
+        PurchaseOrderPayloadResolver::normalizePackage($validated);
 
         ProcurementRequestCommercialTermsForPurchaseOrder::normalizeHeader($validated);
 
@@ -403,6 +404,7 @@ class PurchaseOrderController extends Controller
         PurchaseOrderPayloadResolver::finalizeForUpdate($validated);
 
         PurchaseOrderPayloadResolver::normalizeCurrency($validated, $request->user());
+        PurchaseOrderPayloadResolver::normalizePackage($validated);
 
         ProcurementRequestCommercialTermsForPurchaseOrder::normalizeHeader($validated);
 

@@ -44,6 +44,7 @@ class StoreProcurementRequestRequest extends FormRequest
             'status' => ['nullable', 'string', Rule::in(ProcurementRequestStatus::values())],
             'company_key' => ['required', 'string', Rule::in(PrCompany::values())],
             'project_id' => ['required', 'integer', 'exists:projects,id'],
+            'package' => ['nullable', 'string', 'max:500'],
             'category_id' => ['required', 'integer', 'exists:categories,id'],
             'subcategory_id' => ['nullable', 'integer', 'exists:subcategories,id'],
             'procurement_types' => ['nullable', 'array'],

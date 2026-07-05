@@ -73,6 +73,18 @@
             'prContext' => $prContext ?? null,
             'scopeTypeKeys' => $scopeTypeKeys ?? [],
         ])
+
+        <div class="mt-4 max-w-md">
+            <label for="package" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+                Package <span class="font-normal normal-case text-slate-400">/ الحزمة</span>
+            </label>
+            <input type="text" name="package" id="package" maxlength="500"
+                   value="{{ old('package', $po?->package ?? '') }}"
+                   class="admin-filter-control mt-1 w-full @error('package') border-red-500 @enderror"
+                   placeholder="Optional — inherited from linked P.R. if left blank">
+            <p class="mt-1 text-xs text-slate-500">Override here only if this P.O. needs a different package than the linked P.R.</p>
+            @error('package')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+        </div>
     </section>
 
     @include('procurement._our-company', [

@@ -91,6 +91,18 @@
                             <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Project</dt>
                             <dd class="mt-0.5 text-slate-900">{{ ($prContext['project'] ?? '') ?: '—' }}</dd>
                         </div>
+                        @php
+                            $displayPackage = trim((string) ($purchaseOrder->package ?? ''));
+                            if ($displayPackage === '') {
+                                $displayPackage = trim((string) ($prContext['package'] ?? ''));
+                            }
+                        @endphp
+                        @if (filled($displayPackage))
+                            <div>
+                                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Package / الحزمة</dt>
+                                <dd class="mt-0.5 text-slate-900">{{ $displayPackage }}</dd>
+                            </div>
+                        @endif
                     </dl>
                 </div>
             @endif

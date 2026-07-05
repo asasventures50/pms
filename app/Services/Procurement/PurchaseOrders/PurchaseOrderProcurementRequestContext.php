@@ -21,6 +21,7 @@ class PurchaseOrderProcurementRequestContext
      *     category: string,
      *     scope_type: string,
      *     project: string,
+     *     package: string,
      *     procurement_type: string,
      *     geographic_scope: string,
      *     supporting_documents: list<array{file_name: string, document_type: ?string, file_description: ?string}>,
@@ -76,7 +77,7 @@ class PurchaseOrderProcurementRequestContext
 
     /**
      * @param  Collection<int, ProcurementRequestItem>  $items
-     * @return array{company: string, category: string, scope_type: string, project: string, procurement_type: string, geographic_scope: string}
+     * @return array{company: string, category: string, scope_type: string, project: string, package: string, procurement_type: string, geographic_scope: string}
      */
     public static function aggregateFromRequest(
         ProcurementRequest $request,
@@ -119,6 +120,7 @@ class PurchaseOrderProcurementRequestContext
             'category' => $categoryLabel !== '' ? $categoryLabel : $fromItems['category'],
             'scope_type' => $scopeType !== '' ? $scopeType : $fromItems['scope_type'],
             'project' => $projectLabel !== '' ? $projectLabel : $fromItems['project'],
+            'package' => trim((string) ($request->package ?? '')),
             'procurement_type' => $printLabels !== null
                 ? $printLabels->procurementTypeDisplayFromRequest($request)
                 : self::procurementTypeDisplayFromRequest($request),
@@ -335,7 +337,7 @@ class PurchaseOrderProcurementRequestContext
     }
 
     /**
-     * @return array{company: string, category: string, scope_type: string, project: string, procurement_type: string, geographic_scope: string}
+     * @return array{company: string, category: string, scope_type: string, project: string, package: string, procurement_type: string, geographic_scope: string}
      */
     public static function emptyAggregates(): array
     {
@@ -344,6 +346,7 @@ class PurchaseOrderProcurementRequestContext
             'scope_type' => '',
             'category' => '',
             'project' => '',
+            'package' => '',
             'procurement_type' => '',
             'geographic_scope' => '',
         ];

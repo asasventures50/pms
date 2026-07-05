@@ -318,9 +318,10 @@
     }
 
     .po-items-table .po-cell-text {
-        text-align: left;
+        text-align: start;
         white-space: pre-wrap;
         word-break: break-word;
+        overflow-wrap: anywhere;
     }
 
     .po-items-table .po-cell-item {
@@ -369,12 +370,12 @@
 
     .po-items-table col.col-desc,
     .po-items-table .col-desc {
-        width: 10%;
+        width: 32%;
     }
 
     .po-items-table col.col-scope,
     .po-items-table .col-scope {
-        width: 40%;
+        width: 16%;
     }
 
     .po-items-table col.col-qty,

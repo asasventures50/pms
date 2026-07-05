@@ -43,6 +43,7 @@ class StorePurchaseOrderRequest extends FormRequest
             'ordered_at' => ['nullable', 'date'],
             'vendor_id' => ['nullable', 'integer', Rule::exists('vendors', 'id')->whereNull('deleted_at')],
             'procurement_request_id' => ['nullable', 'integer', Rule::exists('procurement_requests', 'id')->whereNull('deleted_at')],
+            'package' => ['nullable', 'string', 'max:500'],
             ...$this->vendorFieldRules(),
             'delivery_contact_name' => ['nullable', 'string', 'max:255'],
             'delivery_contact_phone' => ['nullable', 'string', 'max:50'],

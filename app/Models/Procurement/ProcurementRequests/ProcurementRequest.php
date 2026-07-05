@@ -35,6 +35,7 @@ class ProcurementRequest extends Model
         'requestor_department',
         'company_key',
         'project_id',
+        'package',
         'zone_id',
         'category_id',
         'subcategory_id',

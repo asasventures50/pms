@@ -42,6 +42,7 @@ class ProcurementRequestFormDataResolver
         return [
             'company_key' => $procurementRequest->company_key ?? PrCompany::AsasVentures->value,
             'project_id' => $procurementRequest->project_id ?? $firstItem?->project_id,
+            'package' => $procurementRequest->package,
             'category_id' => $procurementRequest->category_id,
             'subcategory_id' => $procurementRequest->subcategory_id,
             'legacy_category' => $firstItem?->category,

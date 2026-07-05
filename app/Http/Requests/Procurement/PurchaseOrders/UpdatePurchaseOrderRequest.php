@@ -28,6 +28,7 @@ class UpdatePurchaseOrderRequest extends FormRequest
             'ordered_at' => ['sometimes', 'nullable', 'date'],
             'vendor_id' => ['sometimes', 'nullable', 'integer', Rule::exists('vendors', 'id')->whereNull('deleted_at')],
             'procurement_request_id' => ['sometimes', 'nullable', 'integer', Rule::exists('procurement_requests', 'id')->whereNull('deleted_at')],
+            'package' => ['nullable', 'string', 'max:500'],
             ...$this->vendorFieldRules(sometimes: true),
             'delivery_contact_name' => ['sometimes', 'nullable', 'string', 'max:255'],
             'delivery_contact_phone' => ['sometimes', 'nullable', 'string', 'max:50'],

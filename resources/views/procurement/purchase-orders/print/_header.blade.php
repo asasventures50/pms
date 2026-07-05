@@ -71,5 +71,17 @@
             <span class="po-form-label">{{ $printLabels->t('project') }}</span>
             <span class="po-form-line">{{ $prContext['project'] ?? '' }}</span>
         </div>
+        @php
+            $printPackage = trim((string) ($purchaseOrder->package ?? ''));
+            if ($printPackage === '') {
+                $printPackage = trim((string) ($prContext['package'] ?? ''));
+            }
+        @endphp
+        @if (filled($printPackage))
+            <div class="po-form-group">
+                <span class="po-form-label">{{ $printLabels->t('package') }}</span>
+                <span class="po-form-line">{{ $printPackage }}</span>
+            </div>
+        @endif
     </div>
 </div>
