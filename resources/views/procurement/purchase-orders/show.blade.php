@@ -3,22 +3,40 @@
 @section('title', 'Purchase Order '.$purchaseOrder->po_number)
 
 @section('content')
+    @php
+        use App\Enums\Procurement\Rfqs\RfqTermsLocale;
+    @endphp
     <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between print:hidden">
         <div>
             <h1 class="text-2xl font-semibold tracking-tight text-slate-900 font-mono">{{ $purchaseOrder->po_number }}</h1>
             <p class="mt-1 text-sm text-slate-600">Requested by {{ $purchaseOrder->creator?->name ?? '—' }}</p>
         </div>
-        <div class="flex flex-wrap gap-3">
+        <div class="flex flex-wrap items-center gap-3">
             @if (auth()->user()->hasPermission('purchase-orders.update'))
                 <a href="{{ route('purchase-orders.edit', $purchaseOrder) }}"
                    class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">Edit</a>
             @endif
             <a href="{{ route('purchase-orders.index') }}"
                class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">Back to list</a>
-            <a href="{{ route('purchase-orders.print', ['purchase_order' => $purchaseOrder, 'locale' => 'en']) }}" target="_blank" rel="noopener"
-               class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">Print (EN)</a>
-            <a href="{{ route('purchase-orders.print', ['purchase_order' => $purchaseOrder, 'locale' => 'ar']) }}" target="_blank" rel="noopener"
-               class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">Print (AR)</a>
+            <div class="inline-flex flex-wrap items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2">
+                <label for="po-print-locale" class="text-sm font-medium text-slate-600">Language</label>
+                <select id="po-print-locale"
+                        class="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 focus:border-slate-400 focus:outline-none">
+                    @foreach (RfqTermsLocale::cases() as $locale)
+                        <option value="{{ $locale->value }}" @selected($locale === RfqTermsLocale::En)>{{ $locale->label() }}</option>
+                    @endforeach
+                </select>
+                <label for="po-print-with-terms" class="text-sm font-medium text-slate-600">Terms</label>
+                <select id="po-print-with-terms"
+                        class="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 focus:border-slate-400 focus:outline-none">
+                    <option value="1">With terms &amp; conditions</option>
+                    <option value="0">Without terms &amp; conditions</option>
+                </select>
+                <button type="button" id="po-print-btn"
+                        class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-1.5 text-sm font-medium text-white hover:bg-slate-800">
+                    Print
+                </button>
+            </div>
         </div>
     </div>
 
@@ -236,3 +254,16 @@
         </footer>
     </article>
 @endsection
+
+@push('scripts')
+    <script>
+        document.getElementById('po-print-btn')?.addEventListener('click', function () {
+            const locale = document.getElementById('po-print-locale')?.value ?? 'en';
+            const withTerms = document.getElementById('po-print-with-terms')?.value ?? '1';
+            const baseUrl = @json(route('purchase-orders.print', $purchaseOrder));
+            const url = baseUrl + '?locale=' + encodeURIComponent(locale) + '&with_terms=' + encodeURIComponent(withTerms);
+
+            window.open(url, '_blank', 'noopener');
+        });
+    </script>
+@endpush

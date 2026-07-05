@@ -1,7 +1,6 @@
 @php
-    use App\Enums\Procurement\Rfqs\RfqTermsLocale;
-
     $printLabels = $printLabels ?? \App\Services\Procurement\PurchaseOrders\PurchaseOrderPrintLabels::resolve(null);
+    $withTerms = $withTerms ?? true;
 @endphp
 
 @extends('layouts.print')
@@ -91,13 +90,6 @@
             <strong style="font-family:monospace;">{{ $purchaseOrder->po_number }}</strong> — {{ $printLabels->t('print_preview') }}
         </p>
         <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:16px;">
-            <span style="font-size:13px;color:#475569;">{{ $printLabels->t('language') }}:</span>
-            @foreach (RfqTermsLocale::cases() as $locale)
-                <a href="{{ route('purchase-orders.print', ['purchase_order' => $purchaseOrder, 'locale' => $locale->value]) }}"
-                   style="padding:8px 12px;border:1px solid {{ $printLabels->locale() === $locale->value ? '#0f172a' : '#cbd5e1' }};background:{{ $printLabels->locale() === $locale->value ? '#0f172a' : '#fff' }};color:{{ $printLabels->locale() === $locale->value ? '#fff' : '#1e293b' }};border-radius:6px;font-size:13px;text-decoration:none;">
-                    {{ $locale->label() }}
-                </a>
-            @endforeach
             <button type="button" onclick="window.print()"
                     style="padding:8px 16px;background:#0f172a;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;">
                 {{ $printLabels->t('print') }}

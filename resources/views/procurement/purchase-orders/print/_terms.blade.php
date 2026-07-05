@@ -10,6 +10,7 @@
     $paymentTermsRtl = $paymentTermsText !== '' && TextDirection::isRtl($paymentTermsText);
     $notesText = trim((string) ($purchaseOrder->notes ?? ''));
     $notesRtl = $notesText !== '' && TextDirection::isRtl($notesText);
+    $withTerms = $withTerms ?? true;
 @endphp
 
 <div class="po-section-title">{{ $printLabels->t('order_terms') }}</div>
@@ -40,6 +41,7 @@
     <div class="po-field-value" @if ($notesRtl) dir="rtl" lang="ar" @endif>{{ $notesText }}</div>
 </div>
 
+@if ($withTerms)
 <div @class(['po-terms-block', 'po-terms-block--rtl' => $termsRtl]) @if ($termsRtl) dir="rtl" lang="ar" @endif>
     <div class="po-field-label">{{ $printLabels->t('terms_and_conditions') }}</div>
     @if (count($terms) > 0)
@@ -66,3 +68,4 @@
         <div class="po-field-value po-field-value--empty"></div>
     @endif
 </div>
+@endif

@@ -266,6 +266,7 @@ class PurchaseOrderController extends Controller
         $this->authorizePurchaseOrderView($request->user(), $purchaseOrder);
 
         $printLabels = PurchaseOrderPrintLabels::resolve($request->query('locale'));
+        $withTerms = $request->query('with_terms', '1') !== '0';
 
         $purchaseOrder->load([
             'vendor.primaryLocation',
@@ -287,11 +288,15 @@ class PurchaseOrderController extends Controller
 
             'buyerCompany' => BuyerCompany::forDisplay($purchaseOrder),
 
-            'terms' => $this->resolvedTermsForPurchaseOrder($purchaseOrder, $printLabels->locale()),
+            'terms' => $withTerms
+                ? $this->resolvedTermsForPurchaseOrder($purchaseOrder, $printLabels->locale())
+                : [],
 
             'prContext' => PurchaseOrderProcurementRequestContext::resolve($purchaseOrder, $printLabels),
 
             'printLabels' => $printLabels,
+
+            'withTerms' => $withTerms,
 
         ]);
 

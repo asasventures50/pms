@@ -12,6 +12,7 @@
     $poLogoExists = $poCompany->logoExists();
     $poLogoFallbackHtml = $poCompany->logoFallbackHtml();
     $termsLocale = $printLabels->locale();
+    $withTerms = $withTerms ?? true;
 @endphp
 
 @include('procurement.purchase-orders.print._page-setup', ['buyer' => $buyer])
@@ -31,7 +32,7 @@
         'prContext' => $prContext,
     ])
     @include('procurement.purchase-orders.print._supporting-documents', ['prContext' => $prContext])
-    @include('procurement.purchase-orders.print._terms', ['termsLocale' => $termsLocale])
+    @include('procurement.purchase-orders.print._terms', ['termsLocale' => $termsLocale, 'withTerms' => $withTerms])
     @include('procurement.purchase-orders.print._signatures')
 </div>
 
