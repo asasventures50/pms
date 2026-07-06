@@ -388,18 +388,7 @@
         flex-direction: column;
         align-items: center;
         text-align: center;
-    }
-
-    .inv-pre-footer-signature--receive {
-        justify-self: start;
-    }
-
-    .inv-pre-footer-signature--accounts {
-        justify-self: center;
-    }
-
-    .inv-pre-footer-signature--general {
-        justify-self: end;
+        justify-self: stretch;
     }
 
     .inv-signature-label {
@@ -407,7 +396,7 @@
         font-size: 13px;
         color: #111827;
         line-height: 1.4;
-        max-width: 12rem;
+        max-width: 100%;
     }
 
     .inv-signature-name {
@@ -420,32 +409,23 @@
     }
 
     .inv-signature-line {
-        width: 13rem;
-        max-width: 100%;
+        width: 100%;
+        max-width: 13rem;
         margin-top: 8px;
         flex-shrink: 0;
         border-top: 2px solid #111827;
     }
 
-    .inv-signature-caption {
-        width: 13rem;
-        max-width: 100%;
-        margin-top: 12px;
-        flex-shrink: 0;
-        font-size: 11px;
-        color: #374151;
-        text-align: right;
-        padding-inline-end: 6px;
-        line-height: 3;
-    }
-
     .inv-signature-pad {
-        width: 13rem;
-        max-width: 100%;
+        width: 100%;
+        max-width: 13rem;
         height: 4.5em;
-        margin-top: 8px;
+        margin-top: 10px;
         flex-shrink: 0;
+        border: 1px dashed #cbd5e1;
+        border-radius: 6px;
         box-sizing: border-box;
+        background: #fff;
     }
 
     .inv-pre-footer-extra {
@@ -587,6 +567,7 @@
             padding-top: 2px;
         }
 
+        .inv-signature-pad,
         .inv-extra-pad {
             border-color: #d1d5db;
             -webkit-print-color-adjust: exact;
