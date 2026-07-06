@@ -168,6 +168,18 @@
         word-wrap: break-word;
     }
 
+    .inv-items-table th.col-qty,
+    .inv-items-table th.col-unit,
+    .inv-items-table th.col-price,
+    .inv-items-table th.col-total,
+    .inv-items-table td:nth-child(4),
+    .inv-items-table td:nth-child(5),
+    .inv-items-table td:nth-child(6),
+    .inv-items-table td:nth-child(7) {
+        padding-left: 4px;
+        padding-right: 4px;
+    }
+
     .inv-items-table thead th {
         background: #f8fafc;
         font-weight: 600;
@@ -179,31 +191,31 @@
     }
 
     .inv-items-table .col-num {
-        width: 36px;
+        width: 3%;
     }
 
     .inv-items-table .col-project {
-        width: 110px;
+        width: 13%;
     }
 
     .inv-items-table .col-desc {
-        width: auto;
+        width: 48%;
     }
 
     .inv-items-table .col-qty {
-        width: 70px;
+        width: 5.5%;
     }
 
     .inv-items-table .col-unit {
-        width: 60px;
+        width: 5%;
     }
 
     .inv-items-table .col-price {
-        width: 90px;
+        width: 12%;
     }
 
     .inv-items-table .col-total {
-        width: 100px;
+        width: 13.5%;
     }
 
     .inv-cell-num {
@@ -216,6 +228,7 @@
         text-align: right;
         line-height: 1.6;
         color: #111827;
+        overflow-wrap: anywhere;
     }
 
     .inv-cell-project {
@@ -230,6 +243,8 @@
         direction: ltr;
         font-variant-numeric: tabular-nums;
         color: #111827;
+        white-space: nowrap;
+        font-size: 11px;
     }
 
     .inv-fee-label {
