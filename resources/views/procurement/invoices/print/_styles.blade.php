@@ -345,17 +345,32 @@
     }
 
     .inv-pre-footer {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
         width: 100%;
         margin-top: 0;
         margin-bottom: 0;
-        padding: 8px 0 4px;
+        padding: 12px 0 8px;
         border-top: 1px solid #e5e7eb;
-        align-items: start;
         break-inside: avoid-page;
         page-break-inside: avoid;
+    }
+
+    .inv-pre-footer-signatures {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 20px;
+        width: 100%;
+        align-items: start;
+    }
+
+    .inv-pre-footer-extras {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 24px;
+        width: 100%;
+        padding-top: 4px;
     }
 
     .inv-print-bottom {
@@ -405,17 +420,17 @@
     }
 
     .inv-signature-line {
-        width: 12rem;
+        width: 13rem;
         max-width: 100%;
-        margin-top: 4px;
+        margin-top: 8px;
         flex-shrink: 0;
         border-top: 2px solid #111827;
     }
 
     .inv-signature-caption {
-        width: 12rem;
+        width: 13rem;
         max-width: 100%;
-        margin-top: 10px;
+        margin-top: 12px;
         flex-shrink: 0;
         font-size: 11px;
         color: #374151;
@@ -425,12 +440,38 @@
     }
 
     .inv-signature-pad {
-        width: 12rem;
+        width: 13rem;
         max-width: 100%;
-        height: 2.6em;
-        margin-top: 4px;
+        height: 4.5em;
+        margin-top: 8px;
         flex-shrink: 0;
         box-sizing: border-box;
+    }
+
+    .inv-pre-footer-extra {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        min-width: 0;
+    }
+
+    .inv-extra-label {
+        font-weight: 700;
+        font-size: 13px;
+        color: #111827;
+        line-height: 1.4;
+    }
+
+    .inv-extra-pad {
+        width: 100%;
+        max-width: 16rem;
+        height: 5.5em;
+        margin-top: 10px;
+        border: 1px dashed #cbd5e1;
+        border-radius: 6px;
+        box-sizing: border-box;
+        background: #fff;
     }
 
     .inv-footer {
@@ -526,13 +567,30 @@
         }
 
         .inv-pre-footer {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
             border-top: none;
             margin-top: 0;
             margin-bottom: 0;
-            padding: 6px 0 4px;
+            padding: 10px 0 6px;
             break-inside: avoid-page;
             page-break-inside: avoid;
+        }
+
+        .inv-pre-footer-signatures {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .inv-pre-footer-extras {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+            padding-top: 2px;
+        }
+
+        .inv-extra-pad {
+            border-color: #d1d5db;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
 
         .inv-footer {
