@@ -444,10 +444,6 @@
     }
 
     @media print {
-        @page {
-            margin: 10mm 10mm 10mm;
-        }
-
         body.po-print-body {
             background: #fff;
         }

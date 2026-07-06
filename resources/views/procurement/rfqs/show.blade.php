@@ -3,6 +3,8 @@
 @section('title', 'RFQ '.$rfq->rfq_number)
 
 @section('content')
+    @include('print._page-numbers-inline')
+
     @php
         $canAddQuotation = auth()->user()->hasPermission('vendor-quotations.create')
             || auth()->user()->hasPermission('rfqs.update');

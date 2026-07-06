@@ -1,3 +1,9 @@
+@php
+    use App\Support\PrintPageNumberCss;
+@endphp
+
+{!! PrintPageNumberCss::styleTag('landscape', '10mm', '10mm', '16mm', '10mm') !!}
+
 <style>
     .comparison-document {
         --comparison-header-bg: #f8fafc;
@@ -78,11 +84,6 @@
     }
 
     @media print {
-        @page {
-            size: landscape;
-            margin: 10mm;
-        }
-
         html,
         body {
             -webkit-print-color-adjust: exact !important;

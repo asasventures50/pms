@@ -19,6 +19,8 @@
     @include('procurement.invoices.print._styles')
 @endpush
 
+@include('print._page-numbers')
+
 @section('content')
     <div class="print-toolbar inv-print-page">
         <p style="margin:0 0 12px;font-size:13px;color:#475569;">

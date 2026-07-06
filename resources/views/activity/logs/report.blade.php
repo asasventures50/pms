@@ -3,6 +3,8 @@
 @section('title', 'Activity report')
 
 @section('content')
+    @include('print._page-numbers')
+
     <div class="activity-report">
         <div class="activity-report__toolbar no-print">
             <h1 class="activity-report__title">Activity report</h1>
