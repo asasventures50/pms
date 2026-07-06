@@ -52,15 +52,39 @@ class InvoiceController extends Controller
         ]);
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
         $purchaseOrders = PurchaseOrder::query()
             ->orderByDesc('id')
             ->get(['id', 'po_number', 'vendor_company_name', 'ordered_at']);
 
+        $existingInvoices = Invoice::query()
+            ->orderByDesc('id')
+            ->limit(250)
+            ->get(['id', 'invoice_number', 'po_number', 'recipient_name', 'vendor_company_name', 'invoiced_at', 'source']);
+
+        $invoiceDefaults = [];
+        $duplicateFrom = null;
+
+        if ($request->filled('duplicate_from')) {
+            $duplicateFrom = Invoice::query()
+                ->with(['purchaseOrders', 'items'])
+                ->findOrFail((int) $request->query('duplicate_from'));
+
+            $invoiceDefaults = $this->formDefaultsFromInvoice($duplicateFrom);
+
+            if ($duplicateFrom->isManual()) {
+                unset($invoiceDefaults['manual_po_number']);
+            }
+        }
+
         return view('procurement.invoices.create', [
             'purchaseOrders' => $purchaseOrders,
+            'existingInvoices' => $existingInvoices,
+            'duplicateFrom' => $duplicateFrom,
+            'invoiceDefaults' => $invoiceDefaults,
             'suggestedManualPoNumber' => $this->manualPoNumberGenerator->next(),
+            'allowDuplicate' => true,
         ]);
     }
 

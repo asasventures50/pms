@@ -6,7 +6,7 @@
     <div class="mb-6">
         <a href="{{ route('invoices.index') }}" class="text-sm font-medium text-slate-600 hover:text-slate-900">← Invoices</a>
         <h1 class="mt-2 text-2xl font-semibold tracking-tight text-slate-900">Add Invoice</h1>
-        <p class="mt-1 text-sm text-slate-600">Select one or more purchase orders, choose line items, add optional fees, then print the invoice in Arabic.</p>
+        <p class="mt-1 text-sm text-slate-600">Select purchase orders, duplicate an existing invoice, enter data manually, then print.</p>
     </div>
 
     <form method="post" action="{{ route('invoices.store') }}" id="invoice-form" class="space-y-6">

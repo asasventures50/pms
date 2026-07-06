@@ -2,8 +2,11 @@
     use App\Services\Procurement\Invoices\InvoiceProjectZoneResolver;
 
     $defaults = $invoiceDefaults ?? [];
-    $source = old('source', $defaults['source'] ?? \App\Models\Procurement\Invoices\Invoice::SOURCE_PURCHASE_ORDER);
-    $isManual = $source === \App\Models\Procurement\Invoices\Invoice::SOURCE_MANUAL;
+    $allowDuplicate = $allowDuplicate ?? ! isset($invoice);
+    $duplicateFromInvoice = $duplicateFrom ?? null;
+    $actualSource = old('source', $defaults['source'] ?? \App\Models\Procurement\Invoices\Invoice::SOURCE_PURCHASE_ORDER);
+    $isDuplicateUi = $allowDuplicate && ($duplicateFromInvoice !== null || old('ui_source') === \App\Models\Procurement\Invoices\Invoice::SOURCE_DUPLICATE);
+    $isManual = $actualSource === \App\Models\Procurement\Invoices\Invoice::SOURCE_MANUAL;
     $oldPoIds = collect(old('purchase_order_ids', $defaults['purchase_order_ids'] ?? []))->map(fn ($id) => (int) $id)->all();
     $oldItemIds = collect(old('purchase_order_item_ids', $defaults['purchase_order_item_ids'] ?? []))->map(fn ($id) => (int) $id)->all();
     $oldMergeGroups = old('merge_groups', $defaults['merge_groups'] ?? []);
@@ -34,7 +37,7 @@
         $oldManualLines = [['zone' => '', 'description' => '', 'quantity' => '', 'unit' => '', 'unit_price' => '', 'margin_percentage' => '']];
     }
     $manualProjectName = old('manual_project_name', $defaults['manual_project_name'] ?? '');
-    $showContentSections = $isManual || count($oldPoIds) > 0;
+    $showContentSections = $isManual || count($oldPoIds) > 0 || $duplicateFromInvoice !== null;
     $oldNotes = collect(old('notes', $defaults['notes'] ?? []))->map(fn ($note) => (string) $note)->filter()->values()->all();
     if ($oldNotes === []) {
         $oldNotes = [''];
@@ -61,25 +64,80 @@
 <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
     <section>
         <h2 class="text-lg font-semibold text-slate-900">مصدر الفاتورة</h2>
-        <p class="mt-1 text-sm text-slate-500">اختر استيراد البنود من أمر شراء، أو إدخال كل البيانات يدوياً.</p>
+        <p class="mt-1 text-sm text-slate-500">اختر استيراد البنود من أمر شراء، إدخال يدوي، أو نسخ من فاتورة موجودة.</p>
+        <input type="hidden" name="source" id="invoice-source-input" value="{{ $actualSource }}">
+        @if ($allowDuplicate)
+            <input type="hidden" name="ui_source" id="invoice-ui-source-input"
+                   value="{{ $isDuplicateUi ? \App\Models\Procurement\Invoices\Invoice::SOURCE_DUPLICATE : $actualSource }}">
+            <input type="hidden" id="invoice-duplicate-loaded" value="{{ $duplicateFromInvoice ? '1' : '0' }}">
+        @endif
         <div class="mt-4 flex flex-wrap gap-6">
             <label class="inline-flex items-center gap-2 text-sm text-slate-800">
-                <input type="radio" name="source" value="{{ \App\Models\Procurement\Invoices\Invoice::SOURCE_PURCHASE_ORDER }}"
+                <input type="radio" value="{{ \App\Models\Procurement\Invoices\Invoice::SOURCE_PURCHASE_ORDER }}"
                        data-invoice-source-radio
                        class="border-slate-300"
-                       @checked(!$isManual)>
+                       @checked(! $isDuplicateUi && ! $isManual)>
                 <span>من أمر شراء (P.O.)</span>
             </label>
             <label class="inline-flex items-center gap-2 text-sm text-slate-800">
-                <input type="radio" name="source" value="{{ \App\Models\Procurement\Invoices\Invoice::SOURCE_MANUAL }}"
+                <input type="radio" value="{{ \App\Models\Procurement\Invoices\Invoice::SOURCE_MANUAL }}"
                        data-invoice-source-radio
                        class="border-slate-300"
-                       @checked($isManual)>
+                       @checked(! $isDuplicateUi && $isManual)>
                 <span>إدخال يدوي</span>
             </label>
+            @if ($allowDuplicate)
+                <label class="inline-flex items-center gap-2 text-sm text-slate-800">
+                    <input type="radio" value="{{ \App\Models\Procurement\Invoices\Invoice::SOURCE_DUPLICATE }}"
+                           data-invoice-source-radio
+                           class="border-slate-300"
+                           @checked($isDuplicateUi)>
+                    <span>نسخ من فاتورة موجودة</span>
+                </label>
+            @endif
         </div>
         @error('source')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
     </section>
+
+    @if ($allowDuplicate)
+        <section id="invoice-duplicate-section" class="@unless($isDuplicateUi) hidden @endunless">
+            <h2 class="text-lg font-semibold text-slate-900">اختر الفاتورة المراد نسخها</h2>
+            <p class="mt-1 text-sm text-slate-500">سيتم إنشاء فاتورة جديدة بنفس البيانات — الفاتورة الأصلية تبقى كما هي.</p>
+            @if ($duplicateFromInvoice)
+                <div class="mt-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+                    نسخ من فاتورة
+                    <span class="font-mono font-semibold">{{ $duplicateFromInvoice->invoice_number }}</span>
+                    @if ($duplicateFromInvoice->po_number)
+                        <span class="text-blue-800">(PO: {{ $duplicateFromInvoice->po_number }})</span>
+                    @endif
+                    — يمكنك تعديل أي حقل قبل الحفظ.
+                </div>
+            @endif
+            <div class="mt-4 max-w-2xl">
+                <label for="invoice-duplicate-select" class="block text-xs font-medium uppercase tracking-wide text-slate-500">فاتورة</label>
+                <select id="invoice-duplicate-select"
+                        data-duplicate-url="{{ route('invoices.create') }}"
+                        class="admin-filter-control mt-1 w-full">
+                    <option value="">— اختر فاتورة —</option>
+                    @foreach (($existingInvoices ?? []) as $existingInvoice)
+                        <option value="{{ $existingInvoice->id }}"
+                                @selected($duplicateFromInvoice?->id === $existingInvoice->id)>
+                            {{ $existingInvoice->invoice_number }}
+                            @if ($existingInvoice->po_number)
+                                — PO: {{ $existingInvoice->po_number }}
+                            @endif
+                            @if ($existingInvoice->recipient_name)
+                                — {{ $existingInvoice->recipient_name }}
+                            @endif
+                            @if ($existingInvoice->invoiced_at)
+                                ({{ $existingInvoice->invoiced_at->format('Y-m-d') }})
+                            @endif
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        </section>
+    @endif
 
     <section id="invoice-po-section" class="@if($isManual) hidden @endif">
         <h2 class="text-lg font-semibold text-slate-900">Purchase orders</h2>
@@ -481,7 +539,7 @@
 <script type="application/json" id="invoice-old-item-ids">@json($oldItemIds)</script>
 <script type="application/json" id="invoice-old-po-ids">@json($oldPoIds)</script>
 <script type="application/json" id="invoice-old-merge-groups">@json($oldMergeGroups)</script>
-<script type="application/json" id="invoice-initial-source">@json($source)</script>
+<script type="application/json" id="invoice-initial-source">@json($isDuplicateUi ? \App\Models\Procurement\Invoices\Invoice::SOURCE_DUPLICATE : $actualSource)</script>
 <script type="application/json" id="invoice-suggested-manual-po">@json($suggestedManualPoNumber ?? '')</script>
 <script type="application/json" id="invoice-old-manual-lines">@json($oldManualLines)</script>
 <script type="application/json" id="invoice-old-item-zones">@json(old('purchase_order_item_zones', $invoiceDefaults['purchase_order_item_zones'] ?? []))</script>

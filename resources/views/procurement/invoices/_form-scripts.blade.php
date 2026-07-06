@@ -32,9 +32,15 @@
         const grandTotalPreview = document.getElementById('invoice-grand-total-preview');
         const grandTotalPreviewPo = document.getElementById('invoice-grand-total-preview-po');
         const urlTemplate = poList?.getAttribute('data-items-url-template');
+        const sourceInput = document.getElementById('invoice-source-input');
+        const uiSourceInput = document.getElementById('invoice-ui-source-input');
+        const duplicateSection = document.getElementById('invoice-duplicate-section');
+        const duplicateSelect = document.getElementById('invoice-duplicate-select');
+        const duplicateLoadedInput = document.getElementById('invoice-duplicate-loaded');
 
         const SOURCE_PO = 'purchase_order';
         const SOURCE_MANUAL = 'manual';
+        const SOURCE_DUPLICATE = 'duplicate';
 
         let currentSource = SOURCE_PO;
         try {
@@ -96,8 +102,20 @@
             mergeGroups = [];
         }
 
+        function isDuplicateMode() {
+            return currentSource === SOURCE_DUPLICATE;
+        }
+
+        function hasDuplicateLoaded() {
+            return duplicateLoadedInput?.value === '1';
+        }
+
+        function actualSource() {
+            return sourceInput?.value || SOURCE_PO;
+        }
+
         function isManualMode() {
-            return currentSource === SOURCE_MANUAL;
+            return actualSource() === SOURCE_MANUAL;
         }
 
         function activeCurrencyInput() {
@@ -138,23 +156,31 @@
         }
 
         function applySourceMode() {
+            const duplicate = isDuplicateMode();
+            const duplicateLoaded = duplicate && hasDuplicateLoaded();
             const manual = isManualMode();
             const hasPoSelection = selectedPoIds().length > 0;
+            const showWorkflow = !duplicate || duplicateLoaded;
 
-            poSection?.classList.toggle('hidden', manual);
-            manualHeaderSection?.classList.toggle('hidden', !manual);
-            manualLinesSection?.classList.toggle('hidden', !manual);
-            linesSection?.classList.toggle('hidden', manual || !hasPoSelection);
+            duplicateSection?.classList.toggle('hidden', !duplicate);
 
-            const showExtras = manual || hasPoSelection;
+            const showPoWorkflow = showWorkflow && !manual;
+            const showManualWorkflow = showWorkflow && manual;
+
+            poSection?.classList.toggle('hidden', !showPoWorkflow);
+            manualHeaderSection?.classList.toggle('hidden', !showManualWorkflow);
+            manualLinesSection?.classList.toggle('hidden', !showManualWorkflow);
+            linesSection?.classList.toggle('hidden', !showPoWorkflow || !hasPoSelection);
+
+            const showExtras = showManualWorkflow || (showPoWorkflow && hasPoSelection);
             notesSection?.classList.toggle('hidden', !showExtras);
-            feesSection?.classList.toggle('hidden', manual || !hasPoSelection);
+            feesSection?.classList.toggle('hidden', !showManualWorkflow && !(showPoWorkflow && hasPoSelection));
 
-            setContainerFieldsDisabled(poSection, manual);
-            setContainerFieldsDisabled(linesSection, manual);
-            setContainerFieldsDisabled(feesSection, manual);
-            setContainerFieldsDisabled(manualHeaderSection, !manual);
-            setContainerFieldsDisabled(manualLinesSection, !manual);
+            setContainerFieldsDisabled(poSection, !showPoWorkflow);
+            setContainerFieldsDisabled(linesSection, !showPoWorkflow);
+            setContainerFieldsDisabled(feesSection, !showPoWorkflow);
+            setContainerFieldsDisabled(manualHeaderSection, !showManualWorkflow);
+            setContainerFieldsDisabled(manualLinesSection, !showManualWorkflow);
 
             if (manual && manualLinesBody && manualLinesBody.querySelectorAll('[data-invoice-manual-line-row]').length === 0) {
                 addManualLineRow({});
@@ -188,8 +214,40 @@
                     return;
                 }
                 currentSource = radio.value;
+
+                if (currentSource === SOURCE_PO) {
+                    if (sourceInput) {
+                        sourceInput.value = SOURCE_PO;
+                    }
+                    if (uiSourceInput) {
+                        uiSourceInput.value = SOURCE_PO;
+                    }
+                } else if (currentSource === SOURCE_MANUAL) {
+                    if (sourceInput) {
+                        sourceInput.value = SOURCE_MANUAL;
+                    }
+                    if (uiSourceInput) {
+                        uiSourceInput.value = SOURCE_MANUAL;
+                    }
+                } else if (currentSource === SOURCE_DUPLICATE && uiSourceInput) {
+                    uiSourceInput.value = SOURCE_DUPLICATE;
+                }
+
                 applySourceMode();
             });
+        });
+
+        duplicateSelect?.addEventListener('change', function () {
+            const invoiceId = duplicateSelect.value;
+            const baseUrl = duplicateSelect.getAttribute('data-duplicate-url');
+
+            if (!invoiceId || !baseUrl) {
+                return;
+            }
+
+            const url = new URL(baseUrl, window.location.origin);
+            url.searchParams.set('duplicate_from', invoiceId);
+            window.location.href = url.toString();
         });
 
         function formatMoney(value) {
@@ -1233,7 +1291,7 @@
             syncMergeGroupInputs();
         });
 
-        if (selectedPoIds().length > 0 && !isManualMode()) {
+        if ((selectedPoIds().length > 0 && !isManualMode()) || (hasDuplicateLoaded() && !isManualMode())) {
             loadSelectedPurchaseOrders();
         } else {
             renderMergeGroupsPanel();

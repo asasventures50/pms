@@ -15,6 +15,9 @@ class Invoice extends Model
 
     public const SOURCE_MANUAL = 'manual';
 
+    /** UI-only: duplicate-from-existing flow on create — never stored in the database. */
+    public const SOURCE_DUPLICATE = 'duplicate';
+
     protected $table = 'invoices';
 
     /**
