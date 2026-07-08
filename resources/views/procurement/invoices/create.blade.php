@@ -15,7 +15,7 @@
         <div class="flex flex-wrap gap-3">
             <button type="submit"
                     class="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-slate-800">
-                Create &amp; Print
+                Save
             </button>
             <a href="{{ route('invoices.index') }}"
                class="rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-800 hover:bg-slate-50">

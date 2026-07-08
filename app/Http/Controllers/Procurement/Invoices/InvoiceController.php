@@ -98,7 +98,7 @@ class InvoiceController extends Controller
         $invoice = $this->persistence->create($payload['header'], $payload['purchase_order_ids'], $payload['lines']);
 
         return redirect()
-            ->route('invoices.print', $invoice)
+            ->route('invoices.show', $invoice)
             ->with('success', 'Invoice created successfully.');
     }
 
