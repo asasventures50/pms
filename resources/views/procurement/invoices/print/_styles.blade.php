@@ -24,6 +24,22 @@
         flex: 0 1 auto;
     }
 
+    .inv-print-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+    }
+
+    .inv-print-cell {
+        padding: 0;
+        border: none;
+        vertical-align: top;
+    }
+
+    .inv-footer-space {
+        height: 0;
+    }
+
     .inv-print--rtl {
         direction: rtl;
         text-align: right;
@@ -574,12 +590,25 @@
             print-color-adjust: exact;
         }
 
+        .inv-print-tfoot {
+            display: table-footer-group;
+        }
+
+        .inv-footer-space {
+            height: 15mm;
+        }
+
         .inv-footer {
-            position: static;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
             margin: 0;
             padding: 6px 0 4px;
             border-top: 1px solid #e5e7eb;
             background: #fff;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
 
         .inv-totals-grand td {
