@@ -419,7 +419,7 @@
     .inv-signature-pad {
         width: 100%;
         max-width: 13rem;
-        height: 4.5em;
+        height: 7em;
         margin-top: 10px;
         flex-shrink: 0;
         border: 1px dashed #cbd5e1;

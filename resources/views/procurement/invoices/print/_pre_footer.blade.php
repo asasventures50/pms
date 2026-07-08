@@ -19,15 +19,5 @@
         </div>
     </div>
 
-    <div class="inv-pre-footer-extras">
-        <div class="inv-pre-footer-extra">
-            <span class="inv-extra-label">كتاب تفويض</span>
-            <div class="inv-extra-pad" aria-hidden="true"></div>
-        </div>
 
-        <div class="inv-pre-footer-extra">
-            <span class="inv-extra-label">ختم الشركة المستلمة</span>
-            <div class="inv-extra-pad" aria-hidden="true"></div>
-        </div>
-    </div>
 </div>
