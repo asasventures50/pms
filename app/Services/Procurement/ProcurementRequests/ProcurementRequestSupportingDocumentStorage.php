@@ -168,6 +168,20 @@ class ProcurementRequestSupportingDocumentStorage
         return $stored;
     }
 
+    public function purgeStoredFilesForRequest(ProcurementRequest $request): void
+    {
+        $documents = ProcurementRequestDocument::query()
+            ->where(function ($query) use ($request) {
+                $query->where('procurement_request_id', $request->id)
+                    ->orWhereHas('item', fn ($itemQuery) => $itemQuery->where('procurement_request_id', $request->id));
+            })
+            ->get(['id', 'file_path']);
+
+        foreach ($documents as $document) {
+            $this->deleteFile($document->file_path);
+        }
+    }
+
     /**
      * @param  list<int>  $ids
      */

@@ -25,6 +25,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class ProcurementRequestController extends Controller
@@ -227,11 +228,14 @@ class ProcurementRequestController extends Controller
 
     public function destroy(ProcurementRequest $procurementRequest): RedirectResponse
     {
-        $procurementRequest->delete();
+        DB::transaction(function () use ($procurementRequest) {
+            $this->documents->purgeStoredFilesForRequest($procurementRequest);
+            $procurementRequest->forceDelete();
+        });
 
         return redirect()
             ->route('procurement-requests.index')
-            ->with('success', 'Procurement request deleted successfully.');
+            ->with('success', 'Procurement request deleted permanently.');
     }
 
     private function authorizeProcurementRequestView(?User $user, ProcurementRequest $procurementRequest): void
