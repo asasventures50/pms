@@ -5,12 +5,14 @@ namespace App\Models\Procurement\PurchaseOrders;
 use App\Enums\Procurement\PurchaseOrders\PaymentStatus;
 use App\Enums\Procurement\PurchaseOrders\PurchaseOrderStatus;
 use App\Models\Concerns\LogsActivity;
+use App\Models\Procurement\Invoices\Invoice;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
 use App\Models\Procurement\Vendors\Vendor;
 use App\Models\User;
 use App\Services\Procurement\PurchaseOrders\VendorPurchaseOrderSnapshot;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -147,6 +149,12 @@ class PurchaseOrder extends Model
     public function items(): HasMany
     {
         return $this->hasMany(PurchaseOrderItem::class)->orderBy('sort_order');
+    }
+
+    public function invoices(): BelongsToMany
+    {
+        return $this->belongsToMany(Invoice::class, 'invoice_purchase_orders')
+            ->withTimestamps();
     }
 
     public function displayCurrency(): ?string

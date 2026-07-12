@@ -50,6 +50,8 @@ use Illuminate\Http\RedirectResponse;
 
 use Illuminate\Http\Request;
 
+use Illuminate\Support\Facades\DB;
+
 use Illuminate\View\View;
 
 
@@ -428,7 +430,23 @@ class PurchaseOrderController extends Controller
 
     {
 
-        $purchaseOrder->delete();
+        if ($purchaseOrder->invoices()->exists()) {
+
+            return redirect()
+
+                ->route('purchase-orders.index')
+
+                ->with('error', 'Cannot delete purchase order '.$purchaseOrder->po_number.' because it is linked to one or more invoices.');
+
+        }
+
+
+
+        DB::transaction(function () use ($purchaseOrder) {
+
+            $purchaseOrder->forceDelete();
+
+        });
 
 
 
@@ -436,7 +454,7 @@ class PurchaseOrderController extends Controller
 
             ->route('purchase-orders.index')
 
-            ->with('success', 'Purchase order deleted successfully.');
+            ->with('success', 'Purchase order deleted permanently.');
 
     }
 

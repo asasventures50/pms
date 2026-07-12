@@ -85,6 +85,13 @@
                             @if (auth()->user()->hasPermission('purchase-orders.update'))
                                 <span class="mx-1 text-slate-300">|</span>
                                 <a href="{{ route('purchase-orders.edit', $po) }}" class="font-medium text-slate-700 hover:text-slate-900">Edit</a>
+                                <span class="mx-1 text-slate-300">|</span>
+                                <form action="{{ route('purchase-orders.destroy', $po) }}" method="post" class="inline"
+                                      onsubmit="return confirm('Delete purchase order {{ $po->po_number }}? This cannot be undone.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="font-medium text-red-700 hover:text-red-900">Delete</button>
+                                </form>
                             @endif
                         </td>
                     </tr>
