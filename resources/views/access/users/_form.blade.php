@@ -42,6 +42,15 @@
     </div>
 
     <div>
+        <label for="daily_receipt_limit" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Daily quick receipt limit</label>
+        <input type="number" id="daily_receipt_limit" name="daily_receipt_limit" step="0.01" min="0"
+               value="{{ old('daily_receipt_limit', $user?->daily_receipt_limit ?? 200) }}"
+               class="admin-filter-control @error('daily_receipt_limit') border-red-500 @enderror">
+        @error('daily_receipt_limit')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+        <p class="mt-1 text-xs text-slate-500">Max pending + approved quick receipt amount per expense day (default 200).</p>
+    </div>
+
+    <div>
         <label for="password" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
             Password @if (! $user?->exists)<span class="text-red-600">*</span>@else<span class="normal-case text-slate-400">(leave blank to keep)</span>@endif
         </label>

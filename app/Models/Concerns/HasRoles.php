@@ -6,6 +6,7 @@ use App\Models\Access\Permission;
 use App\Models\Access\Role;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
 use App\Models\Procurement\PurchaseOrders\PurchaseOrder;
+use App\Models\Procurement\QuickReceipts\QuickReceipt;
 use App\Models\Procurement\Rfqs\Rfq;
 use App\Support\Access\PermissionCatalog;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -150,6 +151,73 @@ trait HasRoles
 
         return $this->hasPermission('purchase-orders.view')
             || $this->hasPermission('purchase-orders.view-own');
+    }
+
+    public function canViewAllQuickReceipts(): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        return $this->resolvePermissionNames()->contains('quick-receipts.view');
+    }
+
+    public function scopesQuickReceiptsToOwn(): bool
+    {
+        if ($this->canViewAllQuickReceipts()) {
+            return false;
+        }
+
+        $granted = $this->resolvePermissionNames();
+
+        return $granted->contains('quick-receipts.view-own')
+            || $granted->contains('quick-receipts.create');
+    }
+
+    public function canViewQuickReceipt(QuickReceipt $receipt): bool
+    {
+        if ($this->isSuperAdmin() || $this->canViewAllQuickReceipts()) {
+            return true;
+        }
+
+        if ($this->resolvePermissionNames()->contains('quick-receipts.approve')) {
+            return true;
+        }
+
+        if ($this->scopesQuickReceiptsToOwn()) {
+            return (int) $receipt->user_id === (int) $this->id;
+        }
+
+        return $this->hasPermission('quick-receipts.view')
+            || $this->hasPermission('quick-receipts.view-own');
+    }
+
+    public function canUpdateQuickReceipt(QuickReceipt $receipt): bool
+    {
+        // Approved receipts are immutable for everyone (including super-admin).
+        if ($receipt->isLocked() || $receipt->isApproved()) {
+            return false;
+        }
+
+        if ($this->isSuperAdmin() || $this->canViewAllQuickReceipts()) {
+            return true;
+        }
+
+        if (! $this->hasPermission('quick-receipts.update') && ! $this->hasPermission('quick-receipts.create')) {
+            return false;
+        }
+
+        return (int) $receipt->user_id === (int) $this->id;
+    }
+
+    public function canDeleteQuickReceipt(QuickReceipt $receipt): bool
+    {
+        return $this->canUpdateQuickReceipt($receipt);
+    }
+
+    public function canApproveQuickReceipts(): bool
+    {
+        return $this->isSuperAdmin() || $this->hasPermission('quick-receipts.approve');
     }
 
     public function canViewAllQuotationComparisons(): bool

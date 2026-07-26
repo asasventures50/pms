@@ -21,6 +21,7 @@ use App\Http\Controllers\Procurement\Projects\ProjectController;
 use App\Http\Controllers\Procurement\Projects\ProjectQuickStoreController;
 use App\Http\Controllers\Procurement\Projects\ZoneQuickStoreController;
 use App\Http\Controllers\Procurement\PurchaseOrders\PurchaseOrderController;
+use App\Http\Controllers\Procurement\QuickReceipts\QuickReceiptController;
 use App\Http\Controllers\Procurement\Rfqs\RfqController;
 use App\Http\Controllers\Procurement\Rfqs\RfqGeneralTermController;
 use App\Http\Controllers\Procurement\Rfqs\RfqQuotationComparisonController;
@@ -203,6 +204,23 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('invoices', InvoiceController::class)
         ->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy'])
         ->middleware('permission:invoices.create');
+
+    Route::get('quick-receipts/{quick_receipt}/print', [QuickReceiptController::class, 'print'])
+        ->middleware('permission:quick-receipts.view|quick-receipts.view-own|quick-receipts.approve')
+        ->name('quick-receipts.print');
+
+    Route::post('quick-receipts/{quick_receipt}/approve', [QuickReceiptController::class, 'approve'])
+        ->middleware('permission:quick-receipts.approve')
+        ->name('quick-receipts.approve');
+
+    Route::post('quick-receipts/{quick_receipt}/reject', [QuickReceiptController::class, 'reject'])
+        ->middleware('permission:quick-receipts.approve')
+        ->name('quick-receipts.reject');
+
+    Route::resource('quick-receipts', QuickReceiptController::class)
+        ->middlewareFor(['index', 'show'], 'permission:quick-receipts.view|quick-receipts.view-own|quick-receipts.approve')
+        ->middlewareFor(['create', 'store'], 'permission:quick-receipts.create')
+        ->middlewareFor(['edit', 'update', 'destroy'], 'permission:quick-receipts.update|quick-receipts.create');
 
     Route::get('procurement-requests/{procurement_request}/schedule-of-work-items', [ScheduleOfWorkController::class, 'procurementRequestItems'])
         ->middleware('permission:schedule-of-works.create')

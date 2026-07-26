@@ -25,6 +25,7 @@ class UpdateUserRequest extends FormRequest
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
             'department' => ['required', 'string', Rule::in(array_keys(UserDepartment::options()))],
             'currency_code' => ['nullable', 'string', 'size:3', 'alpha'],
+            'daily_receipt_limit' => ['nullable', 'numeric', 'min:0', 'max:999999999.99'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
             'roles' => ['nullable', 'array'],
             'roles.*' => ['string', Rule::exists('roles', 'name')],

@@ -70,6 +70,7 @@ class UserController extends Controller
             'email' => $data['email'],
             'department' => $data['department'],
             'currency_code' => self::normalizeCurrencyCode($data['currency_code'] ?? null),
+            'daily_receipt_limit' => self::normalizeDailyReceiptLimit($data['daily_receipt_limit'] ?? null),
             'password' => Hash::make($data['password']),
         ]);
 
@@ -100,6 +101,7 @@ class UserController extends Controller
             'email' => $data['email'],
             'department' => $data['department'],
             'currency_code' => self::normalizeCurrencyCode($data['currency_code'] ?? null),
+            'daily_receipt_limit' => self::normalizeDailyReceiptLimit($data['daily_receipt_limit'] ?? null),
         ]);
 
         if (! empty($data['password'])) {
@@ -143,5 +145,14 @@ class UserController extends Controller
         }
 
         return strtoupper(trim((string) $raw));
+    }
+
+    private static function normalizeDailyReceiptLimit(mixed $raw): float
+    {
+        if ($raw === null || $raw === '') {
+            return 200.0;
+        }
+
+        return round((float) $raw, 2);
     }
 }

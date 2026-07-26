@@ -38,6 +38,13 @@ final class PermissionCatalog
 
             'schedule-of-works.create' => ['label' => 'Add / Edit schedule of works', 'group' => 'Schedule of works'],
 
+            'quick-receipts.view' => ['label' => 'View all quick receipts', 'group' => 'Quick receipts'],
+            'quick-receipts.view-own' => ['label' => 'View own quick receipts only', 'group' => 'Quick receipts'],
+            'quick-receipts.create' => ['label' => 'Create quick receipts', 'group' => 'Quick receipts'],
+            'quick-receipts.update' => ['label' => 'Update own draft quick receipts', 'group' => 'Quick receipts'],
+            'quick-receipts.approve' => ['label' => 'Approve or reject quick receipts', 'group' => 'Quick receipts'],
+
+
             'rfqs.view' => ['label' => 'View RFQs', 'group' => 'RFQs'],
             'rfqs.create' => ['label' => 'Create RFQs', 'group' => 'RFQs'],
             'rfqs.update' => ['label' => 'Update RFQs', 'group' => 'RFQs'],
@@ -114,6 +121,9 @@ final class PermissionCatalog
             'quotation-comparison.view-own',
             'quotation-comparison.select',
             'vendor-quotations.view',
+            'quick-receipts.view-own',
+            'quick-receipts.create',
+            'quick-receipts.update',
         ];
     }
 
