@@ -14,7 +14,7 @@ final class BuyerCompany
 
     public const PHONE = '011-3344955/ 011-3344954';
 
-    public const EMAIL = 'asasventures.sy@gmail.com';
+    public const EMAIL = 'info@asassyria.com';
 
     public const FAX = '011-3344953';
 
