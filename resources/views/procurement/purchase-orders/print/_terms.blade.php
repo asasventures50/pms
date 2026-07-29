@@ -20,7 +20,12 @@
         <span class="po-form-line po-form-line--flex">{{ $purchaseOrder->handover_at->format('d-m-Y') }}</span>
     </div>
 @endif
-@if ($purchaseOrder->dismantling_at)
+@if ($purchaseOrder->dismantling_days !== null)
+    <div class="po-form-group po-form-group--row">
+        <span class="po-form-label po-form-label--wide">{{ $printLabels->t('dismantling_days') }}</span>
+        <span class="po-form-line po-form-line--flex">{{ $purchaseOrder->dismantling_days }} {{ $printLabels->t('days') }}</span>
+    </div>
+@elseif ($purchaseOrder->dismantling_at)
     <div class="po-form-group po-form-group--row">
         <span class="po-form-label po-form-label--wide">{{ $printLabels->t('dismantling_date') }}</span>
         <span class="po-form-line po-form-line--flex">{{ $purchaseOrder->dismantling_at->format('d-m-Y') }}</span>

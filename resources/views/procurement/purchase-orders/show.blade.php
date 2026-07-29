@@ -202,13 +202,18 @@
                         <dd class="text-slate-900">{{ $purchaseOrder->handover_at->format('Y-m-d') }}</dd>
                     </div>
                 @endif
-                @if ($purchaseOrder->dismantling_at)
+                @if ($purchaseOrder->dismantling_days !== null)
+                    <div>
+                        <dt class="text-xs text-slate-500">Dismantling days</dt>
+                        <dd class="text-slate-900">{{ $purchaseOrder->dismantling_days }} days</dd>
+                    </div>
+                @elseif ($purchaseOrder->dismantling_at)
                     <div>
                         <dt class="text-xs text-slate-500">Dismantling date</dt>
                         <dd class="text-slate-900">{{ $purchaseOrder->dismantling_at->format('Y-m-d') }}</dd>
                     </div>
                 @endif
-                @if ($purchaseOrder->handover_at && $purchaseOrder->dismantling_at)
+                @if ($purchaseOrder->handover_at && $purchaseOrder->dismantling_at && $purchaseOrder->dismantling_days === null)
                     <div>
                         <dt class="text-xs text-slate-500">Maintenance period</dt>
                         <dd class="text-slate-900">{{ $purchaseOrder->handover_at->format('Y-m-d') }} — {{ $purchaseOrder->dismantling_at->format('Y-m-d') }}</dd>

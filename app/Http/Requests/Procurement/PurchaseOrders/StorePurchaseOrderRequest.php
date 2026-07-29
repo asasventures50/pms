@@ -63,7 +63,7 @@ class StorePurchaseOrderRequest extends FormRequest
             'warranty_coverage' => ['nullable', 'string', 'max:5000'],
             'show_maintenance' => ['nullable', 'boolean'],
             'handover_at' => ['nullable', 'date'],
-            'dismantling_at' => ['nullable', 'date', 'after_or_equal:handover_at'],
+            'dismantling_days' => ['nullable', 'integer', 'min:1', 'max:99999'],
             'terms_locale' => ['nullable', 'string', Rule::in(RfqTermsLocale::values())],
             'terms_custom' => ['nullable', 'array'],
             'terms_custom.*' => ['nullable'],

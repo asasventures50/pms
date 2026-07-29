@@ -93,7 +93,7 @@ class PurchaseOrderPersistenceService
                 : null,
             array_values(array_unique($poLineNumbers)),
             $header['handover_at'] ?? null,
-            $header['dismantling_at'] ?? null,
+            $header['dismantling_days'] ?? $header['dismantling_at'] ?? null,
         );
         $general = $this->termsService->activeTextsForScopeTypes($scopeTypes, $locale);
         $custom = $this->termsService->normalizeCustomTermsInput($header['terms_custom'] ?? [], $locale);

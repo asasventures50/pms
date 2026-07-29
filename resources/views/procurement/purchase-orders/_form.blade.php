@@ -140,18 +140,19 @@
                 <label for="handover_at" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Handover date (maintenance from)</label>
                 <input type="date" name="handover_at" id="handover_at"
                        value="{{ old('handover_at', $po?->handover_at?->format('Y-m-d') ?? '') }}"
-                       class="admin-filter-control po-order-term-date @error('handover_at') border-red-500 @enderror">
+                       class="admin-filter-control po-order-term-field po-order-term-date @error('handover_at') border-red-500 @enderror">
                 @error('handover_at')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
             <div>
-                <label for="dismantling_at" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Dismantling date (if any)</label>
-                <input type="date" name="dismantling_at" id="dismantling_at"
-                       value="{{ old('dismantling_at', $po?->dismantling_at?->format('Y-m-d') ?? '') }}"
-                       class="admin-filter-control po-order-term-date @error('dismantling_at') border-red-500 @enderror">
-                @error('dismantling_at')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                <label for="dismantling_days" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Dismantling days (if any)</label>
+                <input type="number" name="dismantling_days" id="dismantling_days" min="1" step="1"
+                       value="{{ old('dismantling_days', $po?->dismantling_days ?? '') }}"
+                       class="admin-filter-control po-order-term-field @error('dismantling_days') border-red-500 @enderror"
+                       placeholder="Days">
+                @error('dismantling_days')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
             <div class="md:col-span-2">
-                <p class="text-xs text-slate-500">Maintenance period runs from handover date until dismantling date (when set).</p>
+                <p class="text-xs text-slate-500">Maintenance period runs from the handover date. Enter dismantling as a number of days when applicable.</p>
             </div>
             @php
                 $paymentTermsValue = old('payment_terms', $po?->payment_terms ?? '');
