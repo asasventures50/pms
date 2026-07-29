@@ -26,6 +26,12 @@
         <span class="po-form-line po-form-line--flex">{{ $purchaseOrder->dismantling_at->format('d-m-Y') }}</span>
     </div>
 @endif
+@if ($purchaseOrder->execution_delivery_days !== null)
+    <div class="po-field-block">
+        <div class="po-field-label">{{ $printLabels->t('execution_delivery_days') }}</div>
+        <div class="po-field-value">{{ $purchaseOrder->execution_delivery_days }} {{ $printLabels->t('days_unit') }}</div>
+    </div>
+@endif
 
 @if ($showPaymentTerms)
     <div class="po-field-block">

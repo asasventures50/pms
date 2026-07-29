@@ -64,6 +64,7 @@ class StorePurchaseOrderRequest extends FormRequest
             'show_maintenance' => ['nullable', 'boolean'],
             'handover_at' => ['nullable', 'date'],
             'dismantling_at' => ['nullable', 'date', 'after_or_equal:handover_at'],
+            'execution_delivery_days' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'terms_locale' => ['nullable', 'string', Rule::in(RfqTermsLocale::values())],
             'terms_custom' => ['nullable', 'array'],
             'terms_custom.*' => ['nullable'],

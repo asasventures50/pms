@@ -49,6 +49,7 @@ class UpdatePurchaseOrderRequest extends FormRequest
             'show_maintenance' => ['sometimes', 'nullable', 'boolean'],
             'handover_at' => ['sometimes', 'nullable', 'date'],
             'dismantling_at' => ['sometimes', 'nullable', 'date', 'after_or_equal:handover_at'],
+            'execution_delivery_days' => ['sometimes', 'nullable', 'integer', 'min:0', 'max:9999'],
             'terms_locale' => ['sometimes', 'nullable', 'string', Rule::in(RfqTermsLocale::values())],
             'terms_custom' => ['sometimes', 'nullable', 'array'],
             'terms_custom.*' => ['sometimes', 'nullable'],

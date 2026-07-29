@@ -208,6 +208,12 @@
                         <dd class="text-slate-900">{{ $purchaseOrder->dismantling_at->format('Y-m-d') }}</dd>
                     </div>
                 @endif
+                @if ($purchaseOrder->execution_delivery_days !== null)
+                    <div>
+                        <dt class="text-xs text-slate-500">Time period for execution and delivery of the works from the Purchase Order issue date</dt>
+                        <dd class="text-slate-900">{{ $purchaseOrder->execution_delivery_days }} days</dd>
+                    </div>
+                @endif
                 @if ($purchaseOrder->handover_at && $purchaseOrder->dismantling_at)
                     <div>
                         <dt class="text-xs text-slate-500">Maintenance period</dt>

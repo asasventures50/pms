@@ -151,6 +151,15 @@
                 @error('dismantling_at')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
             <div class="md:col-span-2">
+                <label for="execution_delivery_days" class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+                    Time period for execution and delivery of the works from the Purchase Order issue date (days)
+                </label>
+                <input type="number" name="execution_delivery_days" id="execution_delivery_days" min="0" max="9999" step="1"
+                       value="{{ old('execution_delivery_days', $po?->execution_delivery_days ?? '') }}"
+                       class="admin-filter-control mt-1 w-full max-w-xs @error('execution_delivery_days') border-red-500 @enderror">
+                @error('execution_delivery_days')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
+            <div class="md:col-span-2">
                 <p class="text-xs text-slate-500">Maintenance period runs from handover date until dismantling date (when set).</p>
             </div>
             @php
