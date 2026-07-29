@@ -285,7 +285,7 @@ class RfqGeneralTermsService
             ),
             $this->scopeTypesFromOrderTermDates(
                 $purchaseOrder->handover_at,
-                $purchaseOrder->dismantling_days ?? $purchaseOrder->dismantling_at,
+                $purchaseOrder->dismantling_at,
             ),
         );
     }

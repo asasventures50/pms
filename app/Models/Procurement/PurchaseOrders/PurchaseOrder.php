@@ -110,8 +110,7 @@ class PurchaseOrder extends Model
             'ordered_at' => 'date',
             'delivered_at' => 'date',
             'handover_at' => 'date',
-            'dismantling_at' => 'date', // Legacy date — kept for old P.O. records; UI uses dismantling_days.
-            'dismantling_days' => 'integer',
+            'dismantling_at' => 'date',
             'vendor_signed_at' => 'date',
             'procurement_signed_at' => 'date',
             'finance_signed_at' => 'date',

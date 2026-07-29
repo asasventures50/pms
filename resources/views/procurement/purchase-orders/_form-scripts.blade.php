@@ -965,7 +965,7 @@ document.addEventListener('DOMContentLoaded', function () {
     );
     const termsLocaleInputs = document.querySelectorAll('.po-terms-locale');
     const handoverInput = document.getElementById('handover_at');
-    const dismantlingInput = document.getElementById('dismantling_days');
+    const dismantlingInput = document.getElementById('dismantling_at');
 
     function currentTermsLocale() {
         const checked = document.querySelector('.po-terms-locale:checked');
@@ -1038,7 +1038,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const empty = document.createElement('li');
                 empty.id = 'po-general-terms-empty';
                 empty.className = 'text-slate-500';
-                empty.textContent = 'Company-wide terms load automatically. Set handover date or dismantling days to include related scope terms.';
+                empty.textContent = 'Company-wide terms load automatically. Set handover or dismantling dates to include related scope terms.';
                 generalTermsList.appendChild(empty);
                 return;
             }
@@ -1068,9 +1068,8 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
 
-        document.querySelectorAll('.po-order-term-field').forEach(function (input) {
+        document.querySelectorAll('.po-order-term-date').forEach(function (input) {
             input.addEventListener('change', window.poSyncGeneralTerms);
-            input.addEventListener('input', window.poSyncGeneralTerms);
         });
 
         window.poSyncGeneralTerms();
