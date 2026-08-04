@@ -31,6 +31,10 @@
                     style="padding:8px 16px;background:#0f172a;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;">
                 طباعة
             </button>
+            <a href="{{ route('invoices.export', $invoice) }}"
+               style="padding:8px 16px;border:1px solid #cbd5e1;background:#fff;color:#1e293b;border-radius:6px;font-size:13px;text-decoration:none;">
+                تصدير Excel
+            </a>
             <a href="{{ route('invoices.index') }}"
                style="padding:8px 16px;border:1px solid #cbd5e1;background:#fff;color:#1e293b;border-radius:6px;font-size:13px;text-decoration:none;">
                 العودة للفواتير

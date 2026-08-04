@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Procurement\Invoices;
 
+use App\Exports\Procurement\InvoiceExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Procurement\Invoices\StoreInvoiceRequest;
 use App\Http\Requests\Procurement\Invoices\UpdateInvoiceRequest;
@@ -14,10 +15,15 @@ use App\Services\Procurement\Invoices\InvoiceManualPoNumberGenerator;
 use App\Services\Procurement\Invoices\InvoicePersistenceService;
 use App\Services\Procurement\Invoices\InvoiceProjectZoneResolver;
 use App\Services\Procurement\PurchaseOrders\ProcurementRequestLineUnitLookup;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class InvoiceController extends Controller
 {
@@ -31,25 +37,34 @@ class InvoiceController extends Controller
     {
         $perPage = max(1, min(100, (int) $request->query('per_page', 15)));
 
-        $query = Invoice::query()
+        $invoices = $this->listQuery($request)
             ->with(['purchaseOrders', 'creator'])
-            ->latest();
-
-        if ($request->filled('q')) {
-            $term = '%'.$request->string('q').'%';
-            $query->where(function ($q) use ($term) {
-                $q->where('invoice_number', 'like', $term)
-                    ->orWhere('po_number', 'like', $term)
-                    ->orWhere('recipient_name', 'like', $term)
-                    ->orWhere('vendor_company_name', 'like', $term);
-            });
-        }
-
-        $invoices = $query->paginate($perPage)->withQueryString();
+            ->paginate($perPage)
+            ->withQueryString();
 
         return view('procurement.invoices.index', [
             'invoices' => $invoices,
         ]);
+    }
+
+    /**
+     * Read-only Excel download matching the print document. Does not mutate invoice data.
+     */
+    public function export(Invoice $invoice): BinaryFileResponse
+    {
+        $context = $this->printContext($invoice);
+        $safeNumber = Str::of($invoice->invoice_number)->replaceMatches('/[^\w\-.]+/u', '_');
+        $filename = 'invoice-'.$safeNumber.'-'.now()->format('Y-m-d_His').'.xlsx';
+
+        return Excel::download(
+            new InvoiceExport(
+                $context['invoice'],
+                $context['poItemsById'],
+                $context['projectZoneResolver'],
+                $context['unitsByLineCode'],
+            ),
+            $filename
+        );
     }
 
     public function create(Request $request): View
@@ -173,34 +188,7 @@ class InvoiceController extends Controller
 
     public function print(Invoice $invoice): View
     {
-        $invoice->load(['items', 'purchaseOrders.procurementRequest', 'creator']);
-
-        $sourcePoItemIds = $invoice->items
-            ->flatMap(fn ($item) => $item->source_purchase_order_item_ids ?? [])
-            ->map(fn ($id) => (int) $id)
-            ->unique()
-            ->values();
-
-        $poItemsById = PurchaseOrderItem::query()
-            ->whereIn('id', $sourcePoItemIds)
-            ->with([
-                'purchaseOrder.procurementRequest.items.project',
-                'purchaseOrder.procurementRequest.items.zone',
-                'purchaseOrder.procurementRequest.project',
-                'purchaseOrder.procurementRequest.zone',
-            ])
-            ->get()
-            ->keyBy('id');
-
-        $projectZoneResolver = InvoiceProjectZoneResolver::fromPurchaseOrderItems($poItemsById->values());
-        $unitsByLineCode = ProcurementRequestLineUnitLookup::unitsByLineCodeForPurchaseOrderItems($poItemsById->values());
-
-        return view('procurement.invoices.print', [
-            'invoice' => $invoice,
-            'poItemsById' => $poItemsById,
-            'projectZoneResolver' => $projectZoneResolver,
-            'unitsByLineCode' => $unitsByLineCode,
-        ]);
+        return view('procurement.invoices.print', $this->printContext($invoice));
     }
 
     public function purchaseOrderItems(PurchaseOrder $purchaseOrder): JsonResponse
@@ -241,6 +229,65 @@ class InvoiceController extends Controller
                 'line_total' => (float) $item->line_total,
             ])->values()->all(),
         ]);
+    }
+
+    /**
+     * Shared read-only context for print view and Excel export.
+     *
+     * @return array{
+     *     invoice: Invoice,
+     *     poItemsById: Collection<int|string, PurchaseOrderItem>,
+     *     projectZoneResolver: InvoiceProjectZoneResolver,
+     *     unitsByLineCode: array<string, string>
+     * }
+     */
+    private function printContext(Invoice $invoice): array
+    {
+        $invoice->load(['items', 'purchaseOrders.procurementRequest', 'creator']);
+
+        $sourcePoItemIds = $invoice->items
+            ->flatMap(fn ($item) => $item->source_purchase_order_item_ids ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        $poItemsById = PurchaseOrderItem::query()
+            ->whereIn('id', $sourcePoItemIds)
+            ->with([
+                'purchaseOrder.procurementRequest.items.project',
+                'purchaseOrder.procurementRequest.items.zone',
+                'purchaseOrder.procurementRequest.project',
+                'purchaseOrder.procurementRequest.zone',
+            ])
+            ->get()
+            ->keyBy('id');
+
+        return [
+            'invoice' => $invoice,
+            'poItemsById' => $poItemsById,
+            'projectZoneResolver' => InvoiceProjectZoneResolver::fromPurchaseOrderItems($poItemsById->values()),
+            'unitsByLineCode' => ProcurementRequestLineUnitLookup::unitsByLineCodeForPurchaseOrderItems($poItemsById->values()),
+        ];
+    }
+
+    /**
+     * @return Builder<Invoice>
+     */
+    private function listQuery(Request $request): Builder
+    {
+        $query = Invoice::query()->latest('id');
+
+        if ($request->filled('q')) {
+            $term = '%'.$request->string('q').'%';
+            $query->where(function ($q) use ($term) {
+                $q->where('invoice_number', 'like', $term)
+                    ->orWhere('po_number', 'like', $term)
+                    ->orWhere('recipient_name', 'like', $term)
+                    ->orWhere('vendor_company_name', 'like', $term);
+            });
+        }
+
+        return $query;
     }
 
     /**

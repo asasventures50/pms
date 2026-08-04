@@ -201,6 +201,10 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('permission:invoices.create')
         ->name('invoices.print');
 
+    Route::get('invoices/{invoice}/export', [InvoiceController::class, 'export'])
+        ->middleware('permission:invoices.create')
+        ->name('invoices.export');
+
     Route::resource('invoices', InvoiceController::class)
         ->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy'])
         ->middleware('permission:invoices.create');
