@@ -6,7 +6,7 @@
     <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Import Categories</h1>
-            <p class="mt-1 text-sm text-slate-600">Upload an Excel or CSV file. Rows are matched by category slug or English name, then subcategory slug or English name.</p>
+            <p class="mt-1 text-sm text-slate-600">Upload an Excel or CSV file with categories and subcategories. Category cells can be filled once, then left blank on following subcategory rows — they inherit the category above. Status accepts Active or Inactive.</p>
         </div>
         <a href="{{ route('categories.index') }}" class="text-sm font-medium text-slate-600 hover:text-slate-900">Back to list</a>
     </div>

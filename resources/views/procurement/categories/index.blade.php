@@ -14,11 +14,11 @@
                 Add Category
             </a>
             <a href="{{ route('categories.export') }}"
-               class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">
+               class="inline-flex items-center justify-center rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-emerald-700 hover:border-emerald-700">
                 Export Excel
             </a>
             <a href="{{ route('categories.import.form') }}"
-               class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">
+               class="inline-flex items-center justify-center rounded-lg border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-emerald-700 hover:border-emerald-700">
                 Import Excel
             </a>
         </div>

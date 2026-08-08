@@ -11,9 +11,22 @@ use Illuminate\Support\Str;
 
 class CategoryImportProcessor
 {
+    /**
+     * Last explicit category values — used when following rows leave category cells blank.
+     *
+     * @var array{
+     *     category_name_ar: string,
+     *     category_name_en: string,
+     *     category_slug: string,
+     *     category_status: string
+     * }|null
+     */
+    private ?array $carriedCategory = null;
+
     public function process(Collection $rows): CategoriesImportResult
     {
         $result = new CategoriesImportResult;
+        $this->carriedCategory = null;
 
         foreach ($rows as $index => $row) {
             $line = $index + 2;
@@ -22,6 +35,8 @@ class CategoryImportProcessor
             if ($this->isRowEmpty($data)) {
                 continue;
             }
+
+            $data = $this->applyCategoryCarryForward($data);
 
             try {
                 $this->processRow($data, $result);
@@ -33,6 +48,18 @@ class CategoryImportProcessor
 
         return $result;
     }
+
+    /**
+     * Friendly export headers → canonical import keys.
+     *
+     * @var array<string, string>
+     */
+    private const HEADER_ALIASES = [
+        'category_arabic' => 'category_name_ar',
+        'category_english' => 'category_name_en',
+        'subcategory_arabic' => 'subcategory_name_ar',
+        'subcategory_english' => 'subcategory_name_en',
+    ];
 
     /**
      * @param  array<string, mixed>|Collection<int|string, mixed>  $row
@@ -50,10 +77,57 @@ class CategoryImportProcessor
 
             $key = strtolower(preg_replace('/[^a-z0-9]+/i', '_', $k));
             $key = trim($key, '_');
+            $key = self::HEADER_ALIASES[$key] ?? $key;
             $out[$key] = is_string($v) ? trim($v) : $v;
         }
 
         return $out;
+    }
+
+    private function normalizeStatus(string $status, string $fallback = 'active'): string
+    {
+        $value = strtolower(trim($status));
+
+        return in_array($value, ['active', 'inactive'], true) ? $value : $fallback;
+    }
+
+    /**
+     * Fill blank category cells from the previous explicit category row.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function applyCategoryCarryForward(array $data): array
+    {
+        $catNameEn = trim((string) ($data['category_name_en'] ?? ''));
+        $catNameAr = trim((string) ($data['category_name_ar'] ?? ''));
+        $catSlug = trim((string) ($data['category_slug'] ?? ''));
+        $catStatus = trim((string) ($data['category_status'] ?? ''));
+
+        $hasCategoryIdentity = $catNameEn !== '' || $catSlug !== '';
+
+        if ($hasCategoryIdentity) {
+            $this->carriedCategory = [
+                'category_name_ar' => $catNameAr,
+                'category_name_en' => $catNameEn,
+                'category_slug' => $catSlug,
+                'category_status' => $catStatus,
+            ];
+
+            return $data;
+        }
+
+        if ($this->carriedCategory === null) {
+            return $data;
+        }
+
+        foreach ($this->carriedCategory as $key => $value) {
+            if (trim((string) ($data[$key] ?? '')) === '') {
+                $data[$key] = $value;
+            }
+        }
+
+        return $data;
     }
 
     /**
@@ -132,7 +206,7 @@ class CategoryImportProcessor
                 ->first();
         }
 
-        $status = in_array($catStatus, ['active', 'inactive'], true) ? $catStatus : 'active';
+        $status = $this->normalizeStatus($catStatus);
 
         if (! $category) {
             $category = Category::query()->create([
@@ -150,7 +224,7 @@ class CategoryImportProcessor
             'name_en' => $catNameEn !== '' ? $catNameEn : $category->name_en,
             'name_ar' => $catNameAr !== '' ? $catNameAr : $category->name_ar,
             'slug' => $catSlug,
-            'status' => $catStatus !== '' ? $status : $category->status,
+            'status' => $catStatus !== '' ? $this->normalizeStatus($catStatus, (string) $category->status) : $category->status,
         ]);
 
         if ($category->isDirty()) {
@@ -169,7 +243,7 @@ class CategoryImportProcessor
         string $subStatus,
         CategoriesImportResult $result
     ): void {
-        $status = in_array($subStatus, ['active', 'inactive'], true) ? $subStatus : 'active';
+        $status = $this->normalizeStatus($subStatus);
 
         $sub = Subcategory::query()
             ->where('category_id', $category->id)
@@ -198,7 +272,7 @@ class CategoryImportProcessor
             'name_en' => $subNameEn !== '' ? $subNameEn : $sub->name_en,
             'name_ar' => $subNameAr !== '' ? $subNameAr : $sub->name_ar,
             'slug' => $subSlug,
-            'status' => $subStatus !== '' ? $status : $sub->status,
+            'status' => $subStatus !== '' ? $this->normalizeStatus($subStatus, (string) $sub->status) : $sub->status,
         ]);
 
         if ($sub->isDirty()) {

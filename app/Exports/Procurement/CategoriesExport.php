@@ -2,52 +2,81 @@
 
 namespace App\Exports\Procurement;
 
+use App\Exports\Procurement\Concerns\FormatsCategoriesExcelSheet;
 use App\Models\Procurement\Vendors\Category;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
 
-class CategoriesExport implements FromCollection, WithHeadings, WithTitle
+class CategoriesExport implements FromCollection, WithColumnWidths, WithEvents, WithHeadings, WithStyles, WithTitle
 {
+    use FormatsCategoriesExcelSheet;
+
     public function collection(): Collection
     {
-        return Category::query()
-            ->withCount('subcategories')
-            ->withCount(['vendors as vendors_count' => function ($q) {
-                $q->select(DB::raw('count(distinct vendors.id)'));
-            }])
-            ->orderBy('id')
-            ->get()
-            ->map(fn (Category $category) => [
-                $category->id,
-                $category->name_ar,
-                $category->name_en,
-                $category->slug,
-                $category->status,
-                (int) $category->subcategories_count,
-                (int) $category->vendors_count,
-                $category->created_at?->format('Y-m-d H:i'),
-            ]);
-    }
+        $rows = collect();
 
-    public function headings(): array
-    {
-        return [
-            'id',
-            'name_ar',
-            'name_en',
-            'slug',
-            'status',
-            'subcategories_count',
-            'vendors_count',
-            'created_at',
-        ];
+        $categories = Category::query()
+            ->with(['subcategories' => fn ($q) => $q->orderBy('name_ar')->orderBy('name_en')->orderBy('id')])
+            ->orderBy('name_ar')
+            ->orderBy('name_en')
+            ->orderBy('id')
+            ->get();
+
+        foreach ($categories as $category) {
+            if ($category->subcategories->isEmpty()) {
+                $rows->push([
+                    $category->name_ar,
+                    $category->name_en,
+                    $category->slug,
+                    $this->formatStatus($category->status),
+                    null,
+                    null,
+                    null,
+                    null,
+                ]);
+
+                continue;
+            }
+
+            $isFirstSubcategory = true;
+
+            foreach ($category->subcategories as $subcategory) {
+                $rows->push([
+                    $isFirstSubcategory ? $category->name_ar : null,
+                    $isFirstSubcategory ? $category->name_en : null,
+                    $isFirstSubcategory ? $category->slug : null,
+                    $isFirstSubcategory ? $this->formatStatus($category->status) : null,
+                    $subcategory->name_ar,
+                    $subcategory->name_en,
+                    $subcategory->slug,
+                    $this->formatStatus($subcategory->status),
+                ]);
+
+                $isFirstSubcategory = false;
+            }
+        }
+
+        return $rows;
     }
 
     public function title(): string
     {
-        return 'categories';
+        return 'Categories';
+    }
+
+    private function formatStatus(?string $status): string
+    {
+        $value = strtolower(trim((string) $status));
+
+        return match ($value) {
+            'active' => 'Active',
+            'inactive' => 'Inactive',
+            default => $status ? ucfirst($status) : 'Active',
+        };
     }
 }

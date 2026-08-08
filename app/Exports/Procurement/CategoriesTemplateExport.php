@@ -2,13 +2,19 @@
 
 namespace App\Exports\Procurement;
 
+use App\Exports\Procurement\Concerns\FormatsCategoriesExcelSheet;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
 
-class CategoriesTemplateExport implements FromCollection, WithHeadings, WithTitle
+class CategoriesTemplateExport implements FromCollection, WithColumnWidths, WithEvents, WithHeadings, WithStyles, WithTitle
 {
+    use FormatsCategoriesExcelSheet;
+
     public function collection(): Collection
     {
         return collect([
@@ -16,31 +22,27 @@ class CategoriesTemplateExport implements FromCollection, WithHeadings, WithTitl
                 'مثال',
                 'Example Category',
                 'example-category',
-                'active',
-                'مثال فرعي',
-                'Example Subcategory',
-                'example-subcategory',
-                'active',
+                'Active',
+                'مثال فرعي ١',
+                'Example Subcategory 1',
+                'example-subcategory-1',
+                'Active',
+            ],
+            [
+                null,
+                null,
+                null,
+                null,
+                'مثال فرعي ٢',
+                'Example Subcategory 2',
+                'example-subcategory-2',
+                'Active',
             ],
         ]);
     }
 
-    public function headings(): array
-    {
-        return [
-            'category_name_ar',
-            'category_name_en',
-            'category_slug',
-            'category_status',
-            'subcategory_name_ar',
-            'subcategory_name_en',
-            'subcategory_slug',
-            'subcategory_status',
-        ];
-    }
-
     public function title(): string
     {
-        return 'template';
+        return 'Template';
     }
 }
