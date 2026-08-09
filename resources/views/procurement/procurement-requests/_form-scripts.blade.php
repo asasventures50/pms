@@ -21,8 +21,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const categoryMap = JSON.parse(document.getElementById('pr-category-subcategories')?.textContent || '{}');
 
     const projectSelect = document.getElementById('pr_project_id');
-    const categorySelect = document.getElementById('pr_category_id');
-    const subcategorySelect = document.getElementById('pr_subcategory_id');
     const currencyInput = document.getElementById('currency_code');
 
     function reindexTableRows(tbody, rowSelector, prefix, fields) {
@@ -48,20 +46,20 @@ document.addEventListener('DOMContentLoaded', function () {
         const label = selected?.dataset?.zoneLabel || (selected?.value ? selected.textContent.trim() : '');
         if (label && zoneSelect.value) {
             hint.textContent = label;
-            hint.className = 'mt-1.5 text-xs font-medium leading-snug text-slate-800';
+            hint.className = 'mt-1 text-xs font-medium leading-snug text-slate-800';
             zoneSelect.title = label;
         } else if (!hasProject) {
-            hint.textContent = 'اختر المشروع من قسم PR information أولاً.';
-            hint.className = 'mt-1.5 text-xs leading-snug text-slate-500';
+            hint.textContent = 'Project first';
+            hint.className = 'mt-1 text-xs leading-snug text-slate-500';
             zoneSelect.title = '';
         } else {
-            hint.textContent = 'اختياري — حدّد منطقة التسليم لهذا البند.';
-            hint.className = 'mt-1.5 text-xs leading-snug text-slate-500';
+            hint.textContent = '';
+            hint.className = 'mt-1 text-xs leading-snug text-slate-500';
             zoneSelect.title = '';
         }
         const placeholder = zoneSelect.querySelector('option[value=""]');
         if (placeholder) {
-            placeholder.textContent = hasProject ? '— اختر المنطقة —' : '— اختر المشروع أولاً —';
+            placeholder.textContent = hasProject ? '— Zone —' : '— Project first —';
         }
     }
 
@@ -88,26 +86,37 @@ document.addEventListener('DOMContentLoaded', function () {
         boqBody?.querySelectorAll('.pr-boq-row').forEach(syncBoqRowZones);
     }
 
-    function syncSubcategories() {
+    function syncBoqRowSubcategories(row) {
+        const categorySelect = row?.querySelector?.('[data-pr-category-select]');
+        const subcategorySelect = row?.querySelector?.('[data-pr-subcategory-select]');
         if (!categorySelect || !subcategorySelect) return;
+
         const categoryId = categorySelect.value;
         const hasCategory = Boolean(categoryId);
         subcategorySelect.disabled = !hasCategory;
-        const allowed = categoryMap[categoryId] || [];
-        const allowedIds = allowed.map(function (s) { return String(s.id); });
+
         subcategorySelect.querySelectorAll('option').forEach(function (option) {
             if (!option.value) return;
-            const matches = hasCategory && allowedIds.includes(option.value);
+            const matches = hasCategory && option.dataset.categoryId === categoryId;
             option.hidden = !matches;
             option.disabled = !matches;
         });
-        if (!hasCategory || !allowedIds.includes(subcategorySelect.value)) subcategorySelect.value = '';
-        document.querySelector('[data-pr-add-subcategory]')?.toggleAttribute('disabled', !hasCategory);
+
+        const selected = subcategorySelect.selectedOptions[0];
+        if (!hasCategory || (selected && (selected.disabled || selected.hidden))) {
+            subcategorySelect.value = '';
+        }
+
+        row.querySelector('[data-pr-add-subcategory]')?.toggleAttribute('disabled', !hasCategory);
+    }
+
+    function syncAllBoqSubcategories() {
+        boqBody?.querySelectorAll('.pr-boq-row').forEach(syncBoqRowSubcategories);
     }
 
     window.prCategorySubcategoryMap = categoryMap;
-    window.prSyncSubcategories = syncSubcategories;
     window.prSyncBoqRowZones = syncBoqRowZones;
+    window.prSyncBoqRowSubcategories = syncBoqRowSubcategories;
 
     function recalcBoqRow(row) {
         const qty = parseFloat(row.querySelector('[data-pr-boq-qty]')?.value || '0') || 0;
@@ -134,7 +143,14 @@ document.addEventListener('DOMContentLoaded', function () {
         row.querySelector('[data-pr-zone-select]')?.addEventListener('change', function () {
             updateBoqZoneHint(row);
         });
+        row.querySelector('[data-pr-category-select]')?.addEventListener('change', function () {
+            syncBoqRowSubcategories(row);
+        });
+        row.querySelector('[data-pr-add-subcategory]')?.addEventListener('click', function () {
+            if (quickStoreUrls.subcategory) window.prQuickAddSubcategory?.(row);
+        });
         syncBoqRowZones(row);
+        syncBoqRowSubcategories(row);
         recalcBoqRow(row);
     }
 
@@ -207,9 +223,8 @@ document.addEventListener('DOMContentLoaded', function () {
     reindexDocumentRows();
 
     projectSelect?.addEventListener('change', syncAllBoqZones);
-    categorySelect?.addEventListener('change', syncSubcategories);
     syncAllBoqZones();
-    syncSubcategories();
+    syncAllBoqSubcategories();
 
     currencyInput?.addEventListener('input', function () {
         currencyInput.value = currencyInput.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3);
@@ -218,9 +233,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const prSection = document.querySelector('.pr-document');
     document.querySelector('[data-pr-add-project]')?.addEventListener('click', function () {
         if (quickStoreUrls.project) window.prQuickAddProject?.(prSection);
-    });
-    document.querySelector('[data-pr-add-subcategory]')?.addEventListener('click', function () {
-        if (quickStoreUrls.subcategory) window.prQuickAddSubcategory?.(prSection);
     });
 
     const companySelect = document.getElementById('company_key');

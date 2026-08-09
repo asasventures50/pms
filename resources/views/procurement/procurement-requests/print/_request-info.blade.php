@@ -54,8 +54,9 @@
     <div class="po-grid-col">
         <div class="po-form-group"><span class="po-form-label">{{ $printLabels->t('company') }}</span><span class="po-form-line">{{ PrCompany::resolve($procurementRequest->company_key)->label() }}</span></div>
         <div class="po-form-group"><span class="po-form-label">{{ $printLabels->t('project') }}</span><span class="po-form-line">@if ($procurementRequest->project){{ $procurementRequest->project->code }} — {{ $procurementRequest->project->name }}@else {{ $emDash }} @endif</span></div>
-        <div class="po-form-group"><span class="po-form-label">{{ $printLabels->t('category') }}</span><span class="po-form-line">{{ $printLabels->categoryName($procurementRequest->category, $formData['legacy_category'] ?? null) }}</span></div>
-        <div class="po-form-group"><span class="po-form-label">{{ $printLabels->t('subcategory') }}</span><span class="po-form-line">{{ $printLabels->subcategoryName($procurementRequest->subcategory, $formData['legacy_subcategory'] ?? null) }}</span></div>
+        @if (filled($procurementRequest->package))
+            <div class="po-form-group"><span class="po-form-label">Package</span><span class="po-form-line">{{ $procurementRequest->package }}</span></div>
+        @endif
     </div>
     <div class="po-grid-col">
         @include('procurement.procurement-requests.print._checkbox-group', [

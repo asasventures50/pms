@@ -1,14 +1,17 @@
 @php
     $boqItems = old('items', $formDefaults['items'] ?? []);
     $projects = $projects ?? collect();
+    $categories = $categories ?? collect();
     $selectedProjectId = old('project_id', $formDefaults['project_id'] ?? '');
+    $canQuickAddSubcategory = auth()->user()->hasPermission('categories.create')
+        || auth()->user()->hasPermission('procurement-requests.create');
 @endphp
 
 <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
     <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h3 class="text-sm font-semibold text-slate-900">BOQ</h3>
-            <p class="mt-1 text-xs text-slate-500">Bill of quantities — add one row per item.</p>
+            <p class="mt-1 text-xs text-slate-500">Bill of quantities — category & subcategory are per line.</p>
         </div>
         <div class="sm:w-40">
             <label for="currency_code" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Currency</label>
@@ -23,21 +26,25 @@
     @error('items')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
 
     <div class="mt-4 overflow-x-auto">
-        <table class="min-w-[56rem] w-full text-left text-sm">
+        <table class="min-w-[72rem] w-full text-left text-sm">
             <colgroup>
-                <col class="w-[9%]">
+                <col class="w-[8%]">
+                <col class="w-[14%]">
+                <col class="w-[12%]">
+                <col class="w-[12%]">
                 <col class="w-[22%]">
-                <col class="w-[28%]">
+                <col class="w-[7%]">
+                <col class="w-[7%]">
                 <col class="w-[8%]">
                 <col class="w-[8%]">
-                <col class="w-[10%]">
-                <col class="w-[10%]">
                 <col class="w-[5%]">
             </colgroup>
             <thead class="text-xs font-semibold uppercase tracking-wide text-slate-500">
             <tr>
                 <th class="px-2 py-2">Item</th>
-                <th class="px-2 py-2">Zone <span class="font-normal normal-case text-slate-400">(per line)</span></th>
+                <th class="px-2 py-2">Zone</th>
+                <th class="px-2 py-2">Category <span class="text-red-600">*</span></th>
+                <th class="px-2 py-2">Subcategory</th>
                 <th class="px-2 py-2">Description <span class="text-red-600">*</span></th>
                 <th class="px-2 py-2">Qty</th>
                 <th class="px-2 py-2">Unit</th>
@@ -52,7 +59,9 @@
                     'index' => $index,
                     'row' => $row,
                     'projects' => $projects,
+                    'categories' => $categories,
                     'selectedProjectId' => $selectedProjectId,
+                    'canQuickAddSubcategory' => $canQuickAddSubcategory,
                 ])
             @endforeach
             </tbody>
@@ -86,6 +95,8 @@
             'row' => [
                 'item_name' => '',
                 'zone_id' => '',
+                'category_id' => '',
+                'subcategory_id' => '',
                 'description' => '',
                 'unit' => '',
                 'quantity' => 1,
@@ -93,11 +104,16 @@
                 'total_price' => 0,
             ],
             'projects' => $projects,
+            'categories' => $categories,
             'selectedProjectId' => $selectedProjectId,
+            'canQuickAddSubcategory' => $canQuickAddSubcategory,
         ])
     </template>
 </section>
 
 @if (auth()->user()->hasPermission('projects.update'))
     @include('procurement.procurement-requests.partials._quick-add-zone-modal')
+@endif
+@if ($canQuickAddSubcategory)
+    @include('procurement.procurement-requests.partials._quick-add-subcategory-modal')
 @endif

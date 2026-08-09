@@ -98,17 +98,37 @@ class ProcurementRequestPersistenceService
             $zoneId = $row['zone_id'] ?? null;
             $zoneId = ($zoneId !== null && $zoneId !== '') ? (int) $zoneId : null;
 
+            $categoryId = $row['category_id'] ?? null;
+            $categoryId = ($categoryId !== null && $categoryId !== '') ? (int) $categoryId : null;
+
+            $subcategoryId = $row['subcategory_id'] ?? null;
+            $subcategoryId = ($subcategoryId !== null && $subcategoryId !== '') ? (int) $subcategoryId : null;
+
+            [$categoryName, $subcategoryName] = $this->resolveCatalogNames($categoryId, $subcategoryId);
+
             $attributes = [
                 'sort_order' => $index,
                 'line_number' => ProcurementRequestLineNumberFormatter::format($request->request_number, $index),
                 'item_name' => isset($row['item_name']) ? trim((string) $row['item_name']) : null,
                 'zone_id' => $zoneId,
+                'category_id' => $categoryId,
+                'subcategory_id' => $subcategoryId,
                 'description' => $row['description'] ?? null,
                 'unit' => isset($row['unit']) ? trim((string) $row['unit']) : null,
                 'quantity' => $quantity,
                 'unit_price' => $unitPrice,
                 'total_price' => $totalPrice,
             ];
+
+            // Refresh denormalized labels from catalog; never wipe legacy text when FK is empty.
+            if ($categoryId !== null) {
+                $attributes['category'] = $categoryName;
+            }
+            if ($subcategoryId !== null) {
+                $attributes['subcategory'] = $subcategoryName;
+            } elseif ($categoryId !== null) {
+                $attributes['subcategory'] = null;
+            }
 
             $itemId = $row['id'] ?? null;
             $item = null;
@@ -357,6 +377,16 @@ class ProcurementRequestPersistenceService
                 $entry['zone_id'] = (int) $zoneId;
             }
 
+            $categoryId = $row['category_id'] ?? null;
+            if ($categoryId !== null && $categoryId !== '') {
+                $entry['category_id'] = (int) $categoryId;
+            }
+
+            $subcategoryId = $row['subcategory_id'] ?? null;
+            if ($subcategoryId !== null && $subcategoryId !== '') {
+                $entry['subcategory_id'] = (int) $subcategoryId;
+            }
+
             $itemId = $row['id'] ?? null;
             if ($itemId !== null && $itemId !== '') {
                 $entry['id'] = (int) $itemId;
@@ -369,6 +399,27 @@ class ProcurementRequestPersistenceService
     }
 
     /**
+     * @return array{0: ?string, 1: ?string}
+     */
+    private function resolveCatalogNames(?int $categoryId, ?int $subcategoryId): array
+    {
+        $categoryName = null;
+        $subcategoryName = null;
+
+        if ($categoryId !== null) {
+            $category = \App\Models\Procurement\Vendors\Category::query()->find($categoryId);
+            $categoryName = $category?->name_en ?: $category?->name_ar;
+        }
+
+        if ($subcategoryId !== null) {
+            $subcategory = \App\Models\Procurement\Vendors\Subcategory::query()->find($subcategoryId);
+            $subcategoryName = $subcategory?->name_en ?: $subcategory?->name_ar;
+        }
+
+        return [$categoryName, $subcategoryName];
+    }
+
+    /**
      * @param  array<string, mixed>  $validated
      * @return array<string, mixed>
      */
@@ -378,7 +429,7 @@ class ProcurementRequestPersistenceService
 
         foreach ([
             'request_number', 'classification', 'status', 'company_key', 'project_id', 'package',
-            'category_id', 'subcategory_id', 'justification', 'delivery_lead_time_days',
+            'justification', 'delivery_lead_time_days',
             'delivery_location', 'currency_code', 'scope_of_work', 'warranty_coverage',
             'compliance_prequalification_level',
             'primary_insurance_requirements', 'final_insurance_requirements',

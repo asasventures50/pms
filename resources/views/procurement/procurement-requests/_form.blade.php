@@ -41,12 +41,12 @@
     @include('procurement.procurement-requests._pr-information', [
         'formDefaults' => $formDefaults,
         'projects' => $projects ?? collect(),
-        'categories' => $categories ?? collect(),
     ])
 
     @include('procurement.procurement-requests._boq', [
         'formDefaults' => $formDefaults,
         'projects' => $projects ?? collect(),
+        'categories' => $categories ?? collect(),
     ])
 
     @include('procurement.procurement-requests._justification-delivery', [

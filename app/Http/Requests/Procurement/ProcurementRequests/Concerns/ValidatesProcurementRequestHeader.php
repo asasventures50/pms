@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Procurement\ProcurementRequests\Concerns;
 
 use App\Models\Procurement\Projects\Zone;
+use App\Models\Procurement\Vendors\Subcategory;
 use Illuminate\Contracts\Validation\Validator;
 
 trait ValidatesProcurementRequestHeader
@@ -10,24 +11,6 @@ trait ValidatesProcurementRequestHeader
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator): void {
-            $categoryId = $this->input('category_id');
-            $subcategoryId = $this->input('subcategory_id');
-
-            if ($subcategoryId && ! $categoryId) {
-                $validator->errors()->add('subcategory_id', 'Select a category before choosing a subcategory.');
-            }
-
-            if ($subcategoryId && $categoryId) {
-                $valid = \App\Models\Procurement\Vendors\Subcategory::query()
-                    ->whereKey($subcategoryId)
-                    ->where('category_id', $categoryId)
-                    ->exists();
-
-                if (! $valid) {
-                    $validator->errors()->add('subcategory_id', 'The selected subcategory does not belong to this category.');
-                }
-            }
-
             $flexible = filter_var($this->input('flexible_delivery_date', false), FILTER_VALIDATE_BOOLEAN);
             $leadTime = $this->input('delivery_lead_time_days');
 
@@ -66,11 +49,7 @@ trait ValidatesProcurementRequestHeader
                         "items.$index.zone_id",
                         'Select a project before choosing a zone.'
                     );
-
-                    continue;
-                }
-
-                if ($zoneId && $headerProjectId) {
+                } elseif ($zoneId && $headerProjectId) {
                     $valid = Zone::query()
                         ->whereKey($zoneId)
                         ->where('project_id', $headerProjectId)
@@ -80,6 +59,30 @@ trait ValidatesProcurementRequestHeader
                         $validator->errors()->add(
                             "items.$index.zone_id",
                             'The selected zone does not belong to this project.'
+                        );
+                    }
+                }
+
+                $categoryId = $row['category_id'] ?? null;
+                $subcategoryId = $row['subcategory_id'] ?? null;
+
+                if ($subcategoryId && ! $categoryId) {
+                    $validator->errors()->add(
+                        "items.$index.subcategory_id",
+                        'Select a category before choosing a subcategory.'
+                    );
+                }
+
+                if ($subcategoryId && $categoryId) {
+                    $valid = Subcategory::query()
+                        ->whereKey($subcategoryId)
+                        ->where('category_id', $categoryId)
+                        ->exists();
+
+                    if (! $valid) {
+                        $validator->errors()->add(
+                            "items.$index.subcategory_id",
+                            'The selected subcategory does not belong to this category.'
                         );
                     }
                 }

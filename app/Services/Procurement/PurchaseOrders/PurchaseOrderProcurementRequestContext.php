@@ -87,37 +87,21 @@ class PurchaseOrderProcurementRequestContext
         $fromItems = self::aggregateFromItems($items, $printLabels);
 
         if ($request->relationLoaded('project') || $request->project_id) {
-            $request->loadMissing(['project', 'category', 'subcategory']);
+            $request->loadMissing(['project']);
         }
+
+        $items->loadMissing(['catalogCategory', 'catalogSubcategory']);
 
         $projectLabel = '';
         if ($request->project) {
             $projectLabel = trim(($request->project->code ? $request->project->code.' — ' : '').($request->project->name ?? ''));
         }
 
-        $categoryLabel = '';
-        if ($request->category) {
-            if ($printLabels !== null) {
-                $category = $printLabels->categoryName($request->category);
-                $subcategory = $printLabels->subcategoryName($request->subcategory);
-            } else {
-                $category = $request->category->name_en ?? $request->category->name_ar ?? '';
-                $subcategory = $request->subcategory?->name_en ?? $request->subcategory?->name_ar ?? '';
-            }
-
-            $categoryLabel = match (true) {
-                $category !== '' && $subcategory !== '' => $category.' / '.$subcategory,
-                $category !== '' => $category,
-                $subcategory !== '' => $subcategory,
-                default => '',
-            };
-        }
-
         $scopeType = self::scopeTypeDisplayFromRequest($request, $items, $printLabels);
 
         return [
             'company' => PrCompany::resolve($request->company_key)->label(),
-            'category' => $categoryLabel !== '' ? $categoryLabel : $fromItems['category'],
+            'category' => $fromItems['category'],
             'scope_type' => $scopeType !== '' ? $scopeType : $fromItems['scope_type'],
             'project' => $projectLabel !== '' ? $projectLabel : $fromItems['project'],
             'package' => trim((string) ($request->package ?? '')),
@@ -245,15 +229,7 @@ class PurchaseOrderProcurementRequestContext
         $labels = [];
 
         foreach ($items as $item) {
-            $category = trim((string) ($item->category ?? ''));
-            $subcategory = trim((string) ($item->subcategory ?? ''));
-
-            $label = match (true) {
-                $category !== '' && $subcategory !== '' => $category.' / '.$subcategory,
-                $category !== '' => $category,
-                $subcategory !== '' => $subcategory,
-                default => '',
-            };
+            $label = $item->resolvedCategoryLabel();
 
             if ($label !== '') {
                 $labels[$label] = true;

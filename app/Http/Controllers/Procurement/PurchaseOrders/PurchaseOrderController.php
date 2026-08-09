@@ -243,6 +243,8 @@ class PurchaseOrderController extends Controller
             'procurementRequest.headerDocuments',
             'procurementRequest.items.project',
             'procurementRequest.items.documents',
+            'procurementRequest.items.catalogCategory',
+            'procurementRequest.items.catalogSubcategory',
         ]);
 
         $prContext = PurchaseOrderProcurementRequestContext::resolve($purchaseOrder);
@@ -281,8 +283,8 @@ class PurchaseOrderController extends Controller
             'procurementRequest.headerDocuments',
             'procurementRequest.items.project',
             'procurementRequest.items.documents',
-            'procurementRequest.category',
-            'procurementRequest.subcategory',
+            'procurementRequest.items.catalogCategory',
+            'procurementRequest.items.catalogSubcategory',
         ]);
 
         return view('procurement.purchase-orders.print', [

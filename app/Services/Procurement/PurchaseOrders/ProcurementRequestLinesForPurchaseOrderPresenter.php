@@ -31,9 +31,9 @@ class ProcurementRequestLinesForPurchaseOrderPresenter
     {
         $procurementRequest->loadMissing([
             'items.project:id,code,name',
+            'items.catalogCategory:id,name_en,name_ar',
+            'items.catalogSubcategory:id,name_en,name_ar',
             'project:id,code,name',
-            'category:id,name_en,name_ar',
-            'subcategory:id,name_en,name_ar',
         ]);
 
         $items = $procurementRequest->items
@@ -85,27 +85,7 @@ class ProcurementRequestLinesForPurchaseOrderPresenter
 
     private function categoryLabel(ProcurementRequest $request, ProcurementRequestItem $line): string
     {
-        if ($request->category) {
-            $category = $request->category->name_en ?? $request->category->name_ar ?? '';
-            $subcategory = $request->subcategory?->name_en ?? $request->subcategory?->name_ar ?? '';
-
-            return match (true) {
-                $category !== '' && $subcategory !== '' => $category.' / '.$subcategory,
-                $category !== '' => $category,
-                $subcategory !== '' => $subcategory,
-                default => '',
-            };
-        }
-
-        $category = trim((string) ($line->category ?? ''));
-        $subcategory = trim((string) ($line->subcategory ?? ''));
-
-        return match (true) {
-            $category !== '' && $subcategory !== '' => $category.' / '.$subcategory,
-            $category !== '' => $category,
-            $subcategory !== '' => $subcategory,
-            default => '',
-        };
+        return $line->resolvedCategoryLabel();
     }
 
     private function scopeDisplay(ProcurementRequest $request, ProcurementRequestItem $line): string

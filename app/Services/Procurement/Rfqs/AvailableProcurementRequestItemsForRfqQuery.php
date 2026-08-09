@@ -28,6 +28,8 @@ class AvailableProcurementRequestItemsForRfqQuery
                 'procurementRequest:id,request_number',
                 'project:id,code,name',
                 'zone:id,code,name',
+                'catalogCategory:id,name_en,name_ar',
+                'catalogSubcategory:id,name_en,name_ar',
                 'documents:id,procurement_request_item_id,file_name,file_path',
             ])
             ->whereHas('procurementRequest', fn ($q) => $q->whereNull('deleted_at'))
@@ -68,8 +70,8 @@ class AvailableProcurementRequestItemsForRfqQuery
             'zone' => $item->zone
                 ? trim($item->zone->code.' — '.$item->zone->name)
                 : '',
-            'category' => $item->category ?? '',
-            'subcategory' => $item->subcategory ?? '',
+            'category' => $item->resolvedCategoryName(),
+            'subcategory' => $item->resolvedSubcategoryName(),
             'scope_type' => ProcurementScopeType::display($item->scope_type),
             'scope_types' => ProcurementScopeType::selectedValues($item->scope_type),
             'description' => $item->description ?? '',

@@ -20,11 +20,10 @@ class ScheduleOfWorkPrSectionsMapper
     public function map(ProcurementRequest $procurementRequest): array
     {
         $procurementRequest->loadMissing([
-            'items',
+            'items.catalogCategory',
+            'items.catalogSubcategory',
             'project',
             'zone',
-            'category',
-            'subcategory',
             'paymentTerms',
             'retentions',
             'timelineEntries',
@@ -42,8 +41,8 @@ class ScheduleOfWorkPrSectionsMapper
             'pr_info' => [
                 'project' => $context['project'] ?? '',
                 'zone' => $this->zoneLabel($procurementRequest),
-                'category' => $this->categoryLabel($procurementRequest),
-                'subcategory' => $this->subcategoryLabel($procurementRequest),
+                'category' => $this->aggregateCategoryLabels($items),
+                'subcategory' => $this->aggregateSubcategoryLabels($items),
                 'procurement_type' => $context['procurement_type'] ?? '',
                 'geographic_scope' => $context['geographic_scope'] ?? '',
                 'vendor_type' => $context['scope_type'] ?? '',
@@ -193,39 +192,37 @@ class ScheduleOfWorkPrSectionsMapper
         };
     }
 
-    private function categoryLabel(ProcurementRequest $procurementRequest): string
+    /**
+     * @param  Collection<int, \App\Models\Procurement\ProcurementRequests\ProcurementRequestItem>  $items
+     */
+    private function aggregateCategoryLabels(Collection $items): string
     {
-        $category = $procurementRequest->category;
-        if ($category === null) {
-            return '';
+        $labels = [];
+
+        foreach ($items as $item) {
+            $label = $item->resolvedCategoryName();
+            if ($label !== '') {
+                $labels[$label] = true;
+            }
         }
 
-        $en = trim((string) ($category->name_en ?? ''));
-        $ar = trim((string) ($category->name_ar ?? ''));
-
-        return match (true) {
-            $en !== '' && $ar !== '' => $ar.' — '.$en,
-            $en !== '' => $en,
-            $ar !== '' => $ar,
-            default => '',
-        };
+        return implode('; ', array_keys($labels));
     }
 
-    private function subcategoryLabel(ProcurementRequest $procurementRequest): string
+    /**
+     * @param  Collection<int, \App\Models\Procurement\ProcurementRequests\ProcurementRequestItem>  $items
+     */
+    private function aggregateSubcategoryLabels(Collection $items): string
     {
-        $subcategory = $procurementRequest->subcategory;
-        if ($subcategory === null) {
-            return '';
+        $labels = [];
+
+        foreach ($items as $item) {
+            $label = $item->resolvedSubcategoryName();
+            if ($label !== '') {
+                $labels[$label] = true;
+            }
         }
 
-        $en = trim((string) ($subcategory->name_en ?? ''));
-        $ar = trim((string) ($subcategory->name_ar ?? ''));
-
-        return match (true) {
-            $en !== '' && $ar !== '' => $ar.' — '.$en,
-            $en !== '' => $en,
-            $ar !== '' => $ar,
-            default => '',
-        };
+        return implode('; ', array_keys($labels));
     }
 }

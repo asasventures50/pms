@@ -7,8 +7,6 @@ use App\Enums\Procurement\ProcurementRequests\ProcurementRequestStatus;
 use App\Models\Concerns\LogsActivity;
 use App\Models\Procurement\Projects\Project;
 use App\Models\Procurement\Projects\Zone;
-use App\Models\Procurement\Vendors\Category;
-use App\Models\Procurement\Vendors\Subcategory;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -37,8 +35,6 @@ class ProcurementRequest extends Model
         'project_id',
         'package',
         'zone_id',
-        'category_id',
-        'subcategory_id',
         'procurement_types',
         'geographic_scopes',
         'vendor_types',
@@ -104,16 +100,6 @@ class ProcurementRequest extends Model
     public function zone(): BelongsTo
     {
         return $this->belongsTo(Zone::class);
-    }
-
-    public function category(): BelongsTo
-    {
-        return $this->belongsTo(Category::class);
-    }
-
-    public function subcategory(): BelongsTo
-    {
-        return $this->belongsTo(Subcategory::class);
     }
 
     public function items(): HasMany

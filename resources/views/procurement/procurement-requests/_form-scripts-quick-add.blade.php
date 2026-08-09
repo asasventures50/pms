@@ -280,7 +280,9 @@
             if (targetSelect) {
                 targetSelect.value = String(payload.id);
             }
-            window.prSyncSubcategories?.();
+            if (context && window.prSyncBoqRowSubcategories) {
+                window.prSyncBoqRowSubcategories(context);
+            }
             modal?.classList.add('hidden');
         } finally {
             btn.disabled = false;

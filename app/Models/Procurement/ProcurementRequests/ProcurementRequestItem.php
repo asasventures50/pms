@@ -4,8 +4,10 @@ namespace App\Models\Procurement\ProcurementRequests;
 
 use App\Models\Procurement\Projects\Project;
 use App\Models\Procurement\Projects\Zone;
-use Illuminate\Database\Eloquent\Model;
 use App\Models\Procurement\Rfqs\RfqItem;
+use App\Models\Procurement\Vendors\Category;
+use App\Models\Procurement\Vendors\Subcategory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -23,6 +25,8 @@ class ProcurementRequestItem extends Model
         'item_name',
         'project_id',
         'zone_id',
+        'category_id',
+        'subcategory_id',
         'category',
         'subcategory',
         'scope_type',
@@ -64,6 +68,16 @@ class ProcurementRequestItem extends Model
         return $this->belongsTo(Zone::class);
     }
 
+    public function catalogCategory(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'category_id');
+    }
+
+    public function catalogSubcategory(): BelongsTo
+    {
+        return $this->belongsTo(Subcategory::class, 'subcategory_id');
+    }
+
     public function documents(): HasMany
     {
         return $this->hasMany(ProcurementRequestDocument::class)->latest();
@@ -72,5 +86,42 @@ class ProcurementRequestItem extends Model
     public function rfqItems(): HasMany
     {
         return $this->hasMany(RfqItem::class);
+    }
+
+    public function resolvedCategoryName(): string
+    {
+        $this->loadMissing('catalogCategory');
+
+        $fromCatalog = trim((string) ($this->catalogCategory?->name_en ?? $this->catalogCategory?->name_ar ?? ''));
+        if ($fromCatalog !== '') {
+            return $fromCatalog;
+        }
+
+        return trim((string) ($this->attributes['category'] ?? ''));
+    }
+
+    public function resolvedSubcategoryName(): string
+    {
+        $this->loadMissing('catalogSubcategory');
+
+        $fromCatalog = trim((string) ($this->catalogSubcategory?->name_en ?? $this->catalogSubcategory?->name_ar ?? ''));
+        if ($fromCatalog !== '') {
+            return $fromCatalog;
+        }
+
+        return trim((string) ($this->attributes['subcategory'] ?? ''));
+    }
+
+    public function resolvedCategoryLabel(): string
+    {
+        $category = $this->resolvedCategoryName();
+        $subcategory = $this->resolvedSubcategoryName();
+
+        return match (true) {
+            $category !== '' && $subcategory !== '' => $category.' / '.$subcategory,
+            $category !== '' => $category,
+            $subcategory !== '' => $subcategory,
+            default => '',
+        };
     }
 }

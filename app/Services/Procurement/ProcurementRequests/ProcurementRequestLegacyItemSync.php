@@ -11,15 +11,6 @@ class ProcurementRequestLegacyItemSync
 {
     public static function applyToItem(ProcurementRequest $request, ProcurementRequestItem $item): void
     {
-        $request->loadMissing(['category', 'subcategory']);
-
-        $categoryName = $request->category?->name_en
-            ?? $request->category?->name_ar
-            ?? null;
-        $subcategoryName = $request->subcategory?->name_en
-            ?? $request->subcategory?->name_ar
-            ?? null;
-
         $vendorTypes = ProcurementCheckboxGroup::selectedValues(
             $request->vendor_types,
             ProcurementVendorType::values()
@@ -32,8 +23,6 @@ class ProcurementRequestLegacyItemSync
 
         $item->fill([
             'project_id' => $request->project_id,
-            'category' => $categoryName,
-            'subcategory' => $subcategoryName,
             'scope_type' => $scopeLabels === [] ? $item->scope_type : implode(', ', $scopeLabels),
             'justification' => $request->justification,
             'scope_of_work' => $request->scope_of_work,

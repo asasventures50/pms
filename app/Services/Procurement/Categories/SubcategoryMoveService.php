@@ -4,7 +4,7 @@ namespace App\Services\Procurement\Categories;
 
 use App\DataTransferObjects\Procurement\SubcategoryMoveImpact;
 use App\DataTransferObjects\Procurement\SubcategoryMoveResult;
-use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
+use App\Models\Procurement\ProcurementRequests\ProcurementRequestItem;
 use App\Models\Procurement\Vendors\Category;
 use App\Models\Procurement\Vendors\Subcategory;
 use App\Models\Procurement\Vendors\VendorBrochure;
@@ -64,7 +64,7 @@ class SubcategoryMoveService
             $brochuresUpdated = VendorBrochure::query()
                 ->where('subcategory_id', $subcategory->id)
                 ->update(['category_id' => $target->id]);
-            $procurementRequestsUpdated = ProcurementRequest::query()
+            $procurementRequestsUpdated = ProcurementRequestItem::query()
                 ->where('subcategory_id', $subcategory->id)
                 ->update(['category_id' => $target->id]);
 
@@ -96,7 +96,7 @@ class SubcategoryMoveService
 
     private function countProcurementRequests(Subcategory $subcategory): int
     {
-        return ProcurementRequest::query()
+        return ProcurementRequestItem::query()
             ->where('subcategory_id', $subcategory->id)
             ->count();
     }

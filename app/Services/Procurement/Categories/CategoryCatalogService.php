@@ -2,7 +2,7 @@
 
 namespace App\Services\Procurement\Categories;
 
-use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
+use App\Models\Procurement\ProcurementRequests\ProcurementRequestItem;
 use App\Models\Procurement\Vendors\Category;
 use App\Models\Procurement\Vendors\Subcategory;
 use App\Models\Procurement\Vendors\VendorBrochure;
@@ -187,7 +187,7 @@ class CategoryCatalogService
                 'subcategory_id' => null,
             ]);
 
-        ProcurementRequest::query()
+        ProcurementRequestItem::query()
             ->where('category_id', $category->id)
             ->update([
                 'category_id' => null,
@@ -201,7 +201,7 @@ class CategoryCatalogService
             ->where('subcategory_id', $subcategory->id)
             ->update(['subcategory_id' => null]);
 
-        ProcurementRequest::query()
+        ProcurementRequestItem::query()
             ->where('subcategory_id', $subcategory->id)
             ->update(['subcategory_id' => null]);
     }
