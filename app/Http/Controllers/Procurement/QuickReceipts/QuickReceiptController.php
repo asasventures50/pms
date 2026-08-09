@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Procurement\QuickReceipts;
 use App\Enums\Procurement\PrCompany;
 use App\Enums\Procurement\QuickReceipts\QuickReceiptStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Procurement\QuickReceipts\SignQuickReceiptRequest;
 use App\Http\Requests\Procurement\QuickReceipts\StoreQuickReceiptRequest;
 use App\Http\Requests\Procurement\QuickReceipts\UpdateQuickReceiptRequest;
 use App\Models\Procurement\QuickReceipts\QuickReceipt;
@@ -118,6 +119,7 @@ class QuickReceiptController extends Controller
             'canDelete' => $user->canDeleteQuickReceipt($quickReceipt),
             'canApprove' => $user->canApproveQuickReceipts()
                 && $quickReceipt->status === QuickReceiptStatus::PendingApproval,
+            'canSign' => $user->canSignQuickReceipt($quickReceipt),
             'dailyLimit' => $quickReceipt->user?->dailyReceiptLimitAmount() ?? 200.0,
             'spentOnDate' => $this->dailyLimit->spentOnDate(
                 $quickReceipt->user ?? $user,
@@ -219,12 +221,24 @@ class QuickReceiptController extends Controller
             ->with('success', 'Quick receipt rejected. The employee can edit and resubmit.');
     }
 
+    public function sign(SignQuickReceiptRequest $request, QuickReceipt $quickReceipt): RedirectResponse
+    {
+        /** @var UploadedFile $attachment */
+        $attachment = $request->file('attachment');
+
+        $receipt = $this->persistence->sign($quickReceipt, $attachment);
+
+        return redirect()
+            ->route('quick-receipts.show', $receipt)
+            ->with('success', 'Signed document uploaded. Receipt marked as signed.');
+    }
+
     public function print(QuickReceipt $quickReceipt): View
     {
         $this->authorizeView($quickReceipt);
 
         if (! $quickReceipt->isPrintable()) {
-            abort(403, 'Only approved quick receipts can be printed.');
+            abort(403, 'Only approved or signed quick receipts can be printed.');
         }
 
         $quickReceipt->load(['user', 'approver', 'category']);
@@ -263,7 +277,7 @@ class QuickReceiptController extends Controller
     private function assertNotLocked(QuickReceipt $receipt): void
     {
         if ($receipt->isLocked()) {
-            abort(403, 'Approved receipts are locked and cannot be edited or deleted.');
+            abort(403, 'Approved or signed receipts are locked and cannot be edited or deleted.');
         }
     }
 

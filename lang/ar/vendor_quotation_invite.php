@@ -23,9 +23,17 @@ return [
     'quantity' => 'الكمية',
     'unit' => 'الوحدة',
     'unit_price' => 'سعر الوحدة',
+    'currency' => 'العملة',
+    'quantity_quoted' => 'الكمية المعروضة',
+    'brand' => 'العلامة التجارية',
+    'model' => 'الموديل / رقم القطعة',
+    'discount' => 'الخصم',
+    'installation' => 'رسوم التركيب',
+    'delivery_charges' => 'رسوم التوصيل',
     'line_total' => 'المجموع',
     'line_notes' => 'ملاحظات',
     'your_prices' => 'أسعارك',
+    'optional_if_any' => '(إن وجد)',
 
     'terms_heading' => 'الشروط والأحكام',
     'contact_heading' => 'بيانات التواصل',
@@ -41,5 +49,6 @@ return [
 
     'errors' => [
         'price_required' => 'يرجى إدخال سعر وحدة لبند واحد على الأقل.',
+        'no_negative' => 'القيم السالبة غير مسموحة.',
     ],
 ];

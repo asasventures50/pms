@@ -194,8 +194,8 @@ trait HasRoles
 
     public function canUpdateQuickReceipt(QuickReceipt $receipt): bool
     {
-        // Approved receipts are immutable for everyone (including super-admin).
-        if ($receipt->isLocked() || $receipt->isApproved()) {
+        // Approved/signed receipts are immutable for everyone (including super-admin).
+        if ($receipt->isLocked() || $receipt->isApproved() || $receipt->isSigned()) {
             return false;
         }
 
@@ -213,6 +213,23 @@ trait HasRoles
     public function canDeleteQuickReceipt(QuickReceipt $receipt): bool
     {
         return $this->canUpdateQuickReceipt($receipt);
+    }
+
+    public function canSignQuickReceipt(QuickReceipt $receipt): bool
+    {
+        if (! $receipt->isSignable()) {
+            return false;
+        }
+
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        if (! $this->hasPermission('quick-receipts.create') && ! $this->hasPermission('quick-receipts.update')) {
+            return false;
+        }
+
+        return (int) $receipt->user_id === (int) $this->id;
     }
 
     public function canApproveQuickReceipts(): bool

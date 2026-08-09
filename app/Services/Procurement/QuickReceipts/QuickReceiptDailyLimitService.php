@@ -12,7 +12,7 @@ use Illuminate\Validation\ValidationException;
 class QuickReceiptDailyLimitService
 {
     /**
-     * Sum of pending_approval + approved receipt amounts for the employee on a given expense date.
+     * Sum of pending_approval + approved + signed receipt amounts for the employee on a given expense date.
      */
     public function spentOnDate(User $user, CarbonInterface|string $date, ?int $excludeReceiptId = null): float
     {

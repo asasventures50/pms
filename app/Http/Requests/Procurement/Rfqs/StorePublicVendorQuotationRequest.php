@@ -35,6 +35,13 @@ class StorePublicVendorQuotationRequest extends FormRequest
                 Rule::exists('rfq_items', 'id')->where('rfq_id', $invite->rfq_id),
             ],
             'items.*.unit_price' => ['nullable', 'numeric', 'min:0'],
+            'items.*.currency' => ['nullable', 'string', 'max:10'],
+            'items.*.quantity_quoted' => ['nullable', 'numeric', 'min:0'],
+            'items.*.brand' => ['nullable', 'string', 'max:255'],
+            'items.*.model' => ['nullable', 'string', 'max:255'],
+            'items.*.discount' => ['nullable', 'numeric', 'min:0'],
+            'items.*.installation' => ['nullable', 'numeric', 'min:0'],
+            'items.*.delivery_charges' => ['nullable', 'numeric', 'min:0'],
             'items.*.remarks' => ['nullable', 'string', 'max:2000'],
         ];
     }
@@ -60,6 +67,25 @@ class StorePublicVendorQuotationRequest extends FormRequest
 
             if (! $hasPrice) {
                 $validator->errors()->add('items', __('vendor_quotation_invite.errors.price_required'));
+            }
+
+            foreach ($items as $index => $row) {
+                if (! is_array($row)) {
+                    continue;
+                }
+
+                foreach (['unit_price', 'quantity_quoted', 'discount', 'installation', 'delivery_charges'] as $key) {
+                    if (! array_key_exists($key, $row) || $row[$key] === '' || $row[$key] === null) {
+                        continue;
+                    }
+
+                    if ((float) $row[$key] < 0) {
+                        $validator->errors()->add(
+                            "items.{$index}.{$key}",
+                            __('vendor_quotation_invite.errors.no_negative')
+                        );
+                    }
+                }
             }
         });
     }

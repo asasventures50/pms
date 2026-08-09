@@ -13,7 +13,7 @@
         Daily limit: <strong>{{ number_format($dailyLimit, 2) }}</strong>
         · Used on selected day: <strong>{{ number_format($spentToday, 2) }}</strong>
         · Remaining: <strong>{{ number_format($remainingToday, 2) }}</strong>
-        <span class="block mt-1 text-xs text-slate-500">Pending + approved receipts count toward the limit for the expense date. You can edit until approved.</span>
+        <span class="block mt-1 text-xs text-slate-500">Pending + approved + signed receipts count toward the limit for the expense date. You can edit until approved.</span>
     </div>
 
     <div class="grid gap-4 md:grid-cols-2">

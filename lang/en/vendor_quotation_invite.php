@@ -23,9 +23,17 @@ return [
     'quantity' => 'Qty',
     'unit' => 'Unit',
     'unit_price' => 'Unit price',
+    'currency' => 'Currency',
+    'quantity_quoted' => 'Quantity quoted',
+    'brand' => 'Brand',
+    'model' => 'Model / part number',
+    'discount' => 'Discount',
+    'installation' => 'Installation charges',
+    'delivery_charges' => 'Delivery charges',
     'line_total' => 'Line total',
     'line_notes' => 'Notes',
     'your_prices' => 'Your prices',
+    'optional_if_any' => '(if any)',
 
     'terms_heading' => 'Terms & conditions',
     'contact_heading' => 'Your contact details',
@@ -41,5 +49,6 @@ return [
 
     'errors' => [
         'price_required' => 'Please enter a unit price for at least one item.',
+        'no_negative' => 'Negative values are not allowed.',
     ],
 ];

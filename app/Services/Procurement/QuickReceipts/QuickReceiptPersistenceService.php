@@ -60,7 +60,7 @@ class QuickReceiptPersistenceService
     {
         if ($receipt->isLocked()) {
             throw ValidationException::withMessages([
-                'status' => 'Approved receipts are locked and cannot be edited.',
+                'status' => 'Approved or signed receipts are locked and cannot be edited.',
             ]);
         }
 
@@ -139,11 +139,30 @@ class QuickReceiptPersistenceService
         return $receipt->fresh(['user', 'approver', 'category']);
     }
 
+    public function sign(QuickReceipt $receipt, UploadedFile $attachment): QuickReceipt
+    {
+        if (! $receipt->isSignable()) {
+            throw ValidationException::withMessages([
+                'status' => 'Only approved receipts can be marked as signed.',
+            ]);
+        }
+
+        return DB::transaction(function () use ($receipt, $attachment) {
+            $this->attachments->store($receipt, $attachment);
+
+            $receipt->forceFill([
+                'status' => QuickReceiptStatus::Signed,
+            ])->save();
+
+            return $receipt->fresh(['user', 'approver', 'category']);
+        });
+    }
+
     public function delete(QuickReceipt $receipt): void
     {
         if ($receipt->isLocked()) {
             throw ValidationException::withMessages([
-                'status' => 'Approved receipts are locked and cannot be deleted.',
+                'status' => 'Approved or signed receipts are locked and cannot be deleted.',
             ]);
         }
 

@@ -121,6 +121,11 @@ class QuickReceipt extends Model
         return ($this->status ?? null) === QuickReceiptStatus::Approved;
     }
 
+    public function isSigned(): bool
+    {
+        return ($this->status ?? null) === QuickReceiptStatus::Signed;
+    }
+
     public function isLocked(): bool
     {
         return ($this->status ?? QuickReceiptStatus::Draft)->isLocked();
@@ -134,6 +139,11 @@ class QuickReceipt extends Model
     public function isPrintable(): bool
     {
         return ($this->status ?? QuickReceiptStatus::Draft)->isPrintable();
+    }
+
+    public function isSignable(): bool
+    {
+        return ($this->status ?? QuickReceiptStatus::Draft)->isSignable();
     }
 
     public function formatAmount(): string

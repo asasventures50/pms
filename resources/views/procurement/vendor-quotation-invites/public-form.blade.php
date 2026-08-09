@@ -125,15 +125,47 @@
                                         <span class="font-semibold">{{ number_format((float) $line->quantity, 3) }}</span>
                                         {{ $line->unit }}
                                     </p>
+                                    @if ($quoted?->quantity_quoted !== null)
+                                        <p class="mt-1 text-xs text-slate-600">
+                                            {{ __('vendor_quotation_invite.quantity_quoted') }}:
+                                            <span class="font-semibold">{{ number_format((float) $quoted->quantity_quoted, 3) }}</span>
+                                        </p>
+                                    @endif
+                                    @if ($quoted?->brand || $quoted?->model)
+                                        <p class="mt-1 text-xs text-slate-600">
+                                            @if ($quoted?->brand)
+                                                {{ __('vendor_quotation_invite.brand') }}: <span class="font-medium text-slate-800">{{ $quoted->brand }}</span>
+                                            @endif
+                                            @if ($quoted?->brand && $quoted?->model) · @endif
+                                            @if ($quoted?->model)
+                                                {{ __('vendor_quotation_invite.model') }}: <span class="font-medium text-slate-800">{{ $quoted->model }}</span>
+                                            @endif
+                                        </p>
+                                    @endif
                                 </div>
                                 <div class="text-end">
                                     <p class="text-xs text-slate-500">{{ __('vendor_quotation_invite.unit_price') }}</p>
                                     <p class="font-mono text-base font-semibold text-slate-900">
                                         {{ $quoted?->unit_price !== null ? number_format((float) $quoted->unit_price, 2) : '—' }}
+                                        @if ($quoted?->currency)
+                                            <span class="text-sm font-medium text-slate-600">{{ $quoted->currency }}</span>
+                                        @endif
                                     </p>
+                                    @if ($quoted && (float) ($quoted->discount ?? 0) > 0)
+                                        <p class="mt-1 text-xs text-slate-500">{{ __('vendor_quotation_invite.discount') }}</p>
+                                        <p class="font-mono text-sm text-slate-800">{{ number_format((float) $quoted->discount, 2) }}</p>
+                                    @endif
+                                    @if ($quoted && (float) ($quoted->installation ?? 0) > 0)
+                                        <p class="mt-1 text-xs text-slate-500">{{ __('vendor_quotation_invite.installation') }}</p>
+                                        <p class="font-mono text-sm text-slate-800">{{ number_format((float) $quoted->installation, 2) }}</p>
+                                    @endif
+                                    @if ($quoted && (float) ($quoted->delivery_charges ?? 0) > 0)
+                                        <p class="mt-1 text-xs text-slate-500">{{ __('vendor_quotation_invite.delivery_charges') }}</p>
+                                        <p class="font-mono text-sm text-slate-800">{{ number_format((float) $quoted->delivery_charges, 2) }}</p>
+                                    @endif
                                     <p class="mt-1 text-xs text-slate-500">{{ __('vendor_quotation_invite.line_total') }}</p>
                                     <p class="font-mono text-sm text-slate-800">
-                                        {{ $quoted ? number_format((float) $quoted->total_price, 2) : '—' }}
+                                        {{ $quoted ? number_format((float) $quoted->total_price + (float) ($quoted->tax ?? 0) + (float) ($quoted->delivery_charges ?? 0) + (float) ($quoted->installation ?? 0), 2) : '—' }}
                                     </p>
                                 </div>
                             </div>
@@ -165,9 +197,16 @@
                     <div class="mt-4 space-y-4" id="vendor-quote-lines">
                         @foreach ($rfq->items as $index => $line)
                             @php
-                                $oldUnit = old('items.'.$index.'.unit_price');
-                                $oldRemarks = old('items.'.$index.'.remarks');
                                 $qty = (float) $line->quantity;
+                                $oldUnit = old('items.'.$index.'.unit_price');
+                                $oldCurrency = old('items.'.$index.'.currency');
+                                $oldQtyQuoted = old('items.'.$index.'.quantity_quoted', number_format($qty, 3, '.', ''));
+                                $oldBrand = old('items.'.$index.'.brand');
+                                $oldModel = old('items.'.$index.'.model');
+                                $oldDiscount = old('items.'.$index.'.discount');
+                                $oldInstallation = old('items.'.$index.'.installation');
+                                $oldDelivery = old('items.'.$index.'.delivery_charges');
+                                $oldRemarks = old('items.'.$index.'.remarks');
                             @endphp
                             <div class="rounded-xl border border-slate-200 bg-slate-50 p-4" data-qty="{{ $qty }}">
                                 <input type="hidden" name="items[{{ $index }}][rfq_item_id]" value="{{ $line->id }}">
@@ -183,7 +222,54 @@
                                 <div class="grid gap-3 sm:grid-cols-2">
                                     <label class="block">
                                         <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">
-                                            {{ __('vendor_quotation_invite.unit_price') }}
+                                            {{ __('vendor_quotation_invite.quantity_quoted') }}
+                                        </span>
+                                        <input type="number"
+                                               name="items[{{ $index }}][quantity_quoted]"
+                                               value="{{ $oldQtyQuoted }}"
+                                               min="0"
+                                               step="0.001"
+                                               inputmode="decimal"
+                                               class="js-qty-quoted w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 shadow-sm focus:border-[#e65100] focus:outline-none focus:ring-2 focus:ring-[#e65100]/30"
+                                               placeholder="{{ number_format($qty, 3, '.', '') }}">
+                                    </label>
+                                    <label class="block">
+                                        <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                            {{ __('vendor_quotation_invite.currency') }}
+                                            <span class="font-normal normal-case text-slate-400">{{ __('vendor_quotation_invite.optional_if_any') }}</span>
+                                        </span>
+                                        <input type="text"
+                                               name="items[{{ $index }}][currency]"
+                                               value="{{ $oldCurrency }}"
+                                               maxlength="10"
+                                               class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-[#e65100] focus:outline-none focus:ring-2 focus:ring-[#e65100]/30"
+                                               placeholder="USD">
+                                    </label>
+                                    <label class="block">
+                                        <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                            {{ __('vendor_quotation_invite.brand') }}
+                                            <span class="font-normal normal-case text-slate-400">{{ __('vendor_quotation_invite.optional_if_any') }}</span>
+                                        </span>
+                                        <input type="text"
+                                               name="items[{{ $index }}][brand]"
+                                               value="{{ $oldBrand }}"
+                                               maxlength="255"
+                                               class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-[#e65100] focus:outline-none focus:ring-2 focus:ring-[#e65100]/30">
+                                    </label>
+                                    <label class="block">
+                                        <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                            {{ __('vendor_quotation_invite.model') }}
+                                            <span class="font-normal normal-case text-slate-400">{{ __('vendor_quotation_invite.optional_if_any') }}</span>
+                                        </span>
+                                        <input type="text"
+                                               name="items[{{ $index }}][model]"
+                                               value="{{ $oldModel }}"
+                                               maxlength="255"
+                                               class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-[#e65100] focus:outline-none focus:ring-2 focus:ring-[#e65100]/30">
+                                    </label>
+                                    <label class="block">
+                                        <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                            {{ __('vendor_quotation_invite.unit_price') }} <span class="text-rose-600">*</span>
                                         </span>
                                         <input type="number"
                                                name="items[{{ $index }}][unit_price]"
@@ -194,7 +280,46 @@
                                                class="js-unit-price w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 shadow-sm focus:border-[#e65100] focus:outline-none focus:ring-2 focus:ring-[#e65100]/30"
                                                placeholder="0.00">
                                     </label>
-                                    <div>
+                                    <label class="block">
+                                        <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                            {{ __('vendor_quotation_invite.discount') }}
+                                            <span class="font-normal normal-case text-slate-400">{{ __('vendor_quotation_invite.optional_if_any') }}</span>
+                                        </span>
+                                        <input type="number"
+                                               name="items[{{ $index }}][discount]"
+                                               value="{{ $oldDiscount }}"
+                                               min="0"
+                                               step="0.01"
+                                               inputmode="decimal"
+                                               class="js-discount w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 shadow-sm focus:border-[#e65100] focus:outline-none focus:ring-2 focus:ring-[#e65100]/30">
+                                    </label>
+                                    <label class="block">
+                                        <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                            {{ __('vendor_quotation_invite.installation') }}
+                                            <span class="font-normal normal-case text-slate-400">{{ __('vendor_quotation_invite.optional_if_any') }}</span>
+                                        </span>
+                                        <input type="number"
+                                               name="items[{{ $index }}][installation]"
+                                               value="{{ $oldInstallation }}"
+                                               min="0"
+                                               step="0.01"
+                                               inputmode="decimal"
+                                               class="js-installation w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 shadow-sm focus:border-[#e65100] focus:outline-none focus:ring-2 focus:ring-[#e65100]/30">
+                                    </label>
+                                    <label class="block">
+                                        <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                            {{ __('vendor_quotation_invite.delivery_charges') }}
+                                            <span class="font-normal normal-case text-slate-400">{{ __('vendor_quotation_invite.optional_if_any') }}</span>
+                                        </span>
+                                        <input type="number"
+                                               name="items[{{ $index }}][delivery_charges]"
+                                               value="{{ $oldDelivery }}"
+                                               min="0"
+                                               step="0.01"
+                                               inputmode="decimal"
+                                               class="js-delivery w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 shadow-sm focus:border-[#e65100] focus:outline-none focus:ring-2 focus:ring-[#e65100]/30">
+                                    </label>
+                                    <div class="sm:col-span-2">
                                         <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">
                                             {{ __('vendor_quotation_invite.line_total') }}
                                         </span>
@@ -206,6 +331,7 @@
                                 <label class="mt-3 block">
                                     <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">
                                         {{ __('vendor_quotation_invite.line_notes') }}
+                                        <span class="font-normal normal-case text-slate-400">{{ __('vendor_quotation_invite.optional_if_any') }}</span>
                                     </span>
                                     <input type="text"
                                            name="items[{{ $index }}][remarks]"
@@ -225,6 +351,11 @@
 
                 <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
                     <h2 class="text-base font-semibold text-slate-900">{{ __('vendor_quotation_invite.contact_heading') }}</h2>
+                    @php
+                        $defaultRepName = old('vendor_rep_name', $vendor?->primary_contact_name);
+                        $defaultRepEmail = old('vendor_rep_email', $vendor?->primary_contact_email ?: $vendor?->email);
+                        $defaultRepPhone = old('vendor_rep_phone', $vendor?->primary_contact_phone ?: $vendor?->phone);
+                    @endphp
                     <div class="mt-4 grid gap-4 sm:grid-cols-2">
                         <label class="block sm:col-span-2">
                             <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">
@@ -232,7 +363,7 @@
                             </span>
                             <input type="text"
                                    name="vendor_rep_name"
-                                   value="{{ old('vendor_rep_name') }}"
+                                   value="{{ $defaultRepName }}"
                                    required
                                    maxlength="255"
                                    class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 shadow-sm focus:border-[#e65100] focus:outline-none focus:ring-2 focus:ring-[#e65100]/30">
@@ -240,26 +371,29 @@
                         <label class="block">
                             <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">
                                 {{ __('vendor_quotation_invite.rep_email') }}
+                                <span class="font-normal normal-case text-slate-400">{{ __('vendor_quotation_invite.optional_if_any') }}</span>
                             </span>
                             <input type="email"
                                    name="vendor_rep_email"
-                                   value="{{ old('vendor_rep_email', $vendor?->email) }}"
+                                   value="{{ $defaultRepEmail }}"
                                    maxlength="255"
                                    class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 shadow-sm focus:border-[#e65100] focus:outline-none focus:ring-2 focus:ring-[#e65100]/30">
                         </label>
                         <label class="block">
                             <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">
                                 {{ __('vendor_quotation_invite.rep_phone') }}
+                                <span class="font-normal normal-case text-slate-400">{{ __('vendor_quotation_invite.optional_if_any') }}</span>
                             </span>
                             <input type="text"
                                    name="vendor_rep_phone"
-                                   value="{{ old('vendor_rep_phone', $vendor?->phone) }}"
+                                   value="{{ $defaultRepPhone }}"
                                    maxlength="50"
                                    class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 shadow-sm focus:border-[#e65100] focus:outline-none focus:ring-2 focus:ring-[#e65100]/30">
                         </label>
                         <label class="block sm:col-span-2">
                             <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">
                                 {{ __('vendor_quotation_invite.notes') }}
+                                <span class="font-normal normal-case text-slate-400">{{ __('vendor_quotation_invite.optional_if_any') }}</span>
                             </span>
                             <textarea name="notes"
                                       rows="3"
@@ -273,14 +407,13 @@
                             <input type="file"
                                    name="attachment"
                                    accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx"
-                                   class="block w-full text-sm text-slate-700 file:me-3 file:rounded-lg file:border-0 file:bg-slate-900 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white">
+                                   class="admin-form-file">
                             <span class="mt-1 block text-xs text-slate-500">{{ __('vendor_quotation_invite.attachment_hint') }}</span>
                         </label>
                     </div>
                 </section>
 
-                <button type="submit"
-                        class="inline-flex w-full items-center justify-center rounded-xl bg-[#e65100] px-5 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-[#d84300] focus:outline-none focus:ring-2 focus:ring-[#e65100]/40 focus:ring-offset-2 sm:w-auto">
+                <button type="submit" class="public-form-submit-btn">
                     {{ __('vendor_quotation_invite.submit') }}
                 </button>
             </form>
@@ -296,18 +429,56 @@
                 const grandEl = document.getElementById('vendor-quote-grand-total');
                 if (!root || !grandEl) return;
 
+                const numericClasses = [
+                    'js-unit-price',
+                    'js-qty-quoted',
+                    'js-discount',
+                    'js-installation',
+                    'js-delivery',
+                ];
+
                 function formatMoney(value) {
                     return (Math.round(value * 100) / 100).toFixed(2);
+                }
+
+                function nonNegative(value) {
+                    const n = parseFloat(value);
+                    if (isNaN(n) || n < 0) return 0;
+                    return n;
+                }
+
+                function clampInput(input) {
+                    if (!input || input.value === '' || input.value === null) return;
+                    const n = parseFloat(input.value);
+                    if (isNaN(n) || n < 0) {
+                        input.value = '0';
+                    }
+                }
+
+                function readNonNegative(input, fallback) {
+                    if (!input || input.value === '') return fallback;
+                    return nonNegative(input.value);
                 }
 
                 function recalc() {
                     let grand = 0;
                     root.querySelectorAll('[data-qty]').forEach(function (card) {
-                        const qty = parseFloat(card.getAttribute('data-qty') || '0') || 0;
-                        const input = card.querySelector('.js-unit-price');
+                        const requestedQty = nonNegative(card.getAttribute('data-qty') || '0');
+                        const qtyInput = card.querySelector('.js-qty-quoted');
+                        const unitInput = card.querySelector('.js-unit-price');
+                        const discountInput = card.querySelector('.js-discount');
+                        const installationInput = card.querySelector('.js-installation');
+                        const deliveryInput = card.querySelector('.js-delivery');
                         const totalEl = card.querySelector('.js-line-total');
-                        const unit = parseFloat(input && input.value ? input.value : '0') || 0;
-                        const line = qty * unit;
+
+                        const qtyQuoted = readNonNegative(qtyInput, requestedQty);
+                        const unit = readNonNegative(unitInput, 0);
+                        const discount = readNonNegative(discountInput, 0);
+                        const installation = readNonNegative(installationInput, 0);
+                        const delivery = readNonNegative(deliveryInput, 0);
+
+                        const subtotal = Math.max(0, (qtyQuoted * unit) - discount);
+                        const line = subtotal + installation + delivery;
                         grand += line;
                         if (totalEl) totalEl.textContent = formatMoney(line);
                     });
@@ -315,10 +486,24 @@
                 }
 
                 root.addEventListener('input', function (event) {
-                    if (event.target && event.target.classList.contains('js-unit-price')) {
-                        recalc();
-                    }
+                    if (!event.target) return;
+                    const isNumeric = numericClasses.some(function (cls) {
+                        return event.target.classList.contains(cls);
+                    });
+                    if (! isNumeric) return;
+                    clampInput(event.target);
+                    recalc();
                 });
+
+                root.addEventListener('blur', function (event) {
+                    if (!event.target) return;
+                    const isNumeric = numericClasses.some(function (cls) {
+                        return event.target.classList.contains(cls);
+                    });
+                    if (! isNumeric) return;
+                    clampInput(event.target);
+                    recalc();
+                }, true);
 
                 recalc();
             })();

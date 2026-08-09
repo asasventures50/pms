@@ -7,6 +7,7 @@ enum QuickReceiptStatus: string
     case Draft = 'draft';
     case PendingApproval = 'pending_approval';
     case Approved = 'approved';
+    case Signed = 'signed';
     case Rejected = 'rejected';
 
     /**
@@ -19,6 +20,7 @@ enum QuickReceiptStatus: string
         return [
             self::PendingApproval,
             self::Approved,
+            self::Signed,
         ];
     }
 
@@ -36,14 +38,15 @@ enum QuickReceiptStatus: string
             self::Draft => 'Draft',
             self::PendingApproval => 'Pending approval',
             self::Approved => 'Approved',
+            self::Signed => 'Signed',
             self::Rejected => 'Rejected',
         };
     }
 
-    /** Locked forever once approved — no edit and no delete. */
+    /** Locked forever once approved or signed — no edit and no delete. */
     public function isLocked(): bool
     {
-        return $this === self::Approved;
+        return $this === self::Approved || $this === self::Signed;
     }
 
     /** Editable until approved (pending, rejected, or leftover draft). */
@@ -52,7 +55,13 @@ enum QuickReceiptStatus: string
         return ! $this->isLocked();
     }
 
+    /** Approved receipts await the signed scan; signed receipts stay printable. */
     public function isPrintable(): bool
+    {
+        return $this === self::Approved || $this === self::Signed;
+    }
+
+    public function isSignable(): bool
     {
         return $this === self::Approved;
     }

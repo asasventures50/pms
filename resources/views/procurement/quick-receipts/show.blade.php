@@ -43,7 +43,11 @@
                     </button>
                 </form>
             @endif
-            @if ($receipt->isLocked())
+            @if ($receipt->status === QuickReceiptStatus::Signed)
+                <span class="inline-flex items-center rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs font-medium text-sky-900">
+                    Locked — signed receipts cannot be edited or deleted
+                </span>
+            @elseif ($receipt->isLocked())
                 <span class="inline-flex items-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-800">
                     Locked — approved receipts cannot be edited or deleted
                 </span>
@@ -78,6 +82,50 @@
                         </form>
                     </div>
                 </div>
+            </section>
+        @endif
+
+        @if ($canSign)
+            <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h2 class="text-lg font-semibold text-slate-900">Upload signed document</h2>
+                <p class="mt-1 text-sm text-slate-600">
+                    Print the approved receipt, sign it, then choose the signed scan and click <strong>Save signed document</strong>.
+                </p>
+                @if ($receipt->hasAttachment())
+                    <p class="mt-2 text-sm text-slate-600">
+                        Current file:
+                        <a href="{{ $receipt->attachmentUrl() }}" target="_blank" rel="noopener"
+                           class="font-medium text-slate-800 underline">
+                            {{ $receipt->attachment_original_name ?: 'View file' }}
+                        </a>
+                        (new upload replaces it)
+                    </p>
+                @endif
+
+                <form action="{{ route('quick-receipts.sign', $receipt) }}" method="post" enctype="multipart/form-data" class="mt-5">
+                    @csrf
+                    <span class="block text-xs font-medium uppercase tracking-wide text-slate-500">
+                        Attachment <span class="text-red-600">*</span>
+                    </span>
+                    <div class="mt-2 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+                        <input type="file" id="signed-attachment" name="attachment" required
+                               accept=".jpg,.jpeg,.png,.webp,.pdf,image/*,application/pdf"
+                               class="sr-only @error('attachment') ring-1 ring-red-500 @enderror"
+                               data-qr-signed-attachment-input>
+                        <label for="signed-attachment"
+                               class="inline-flex w-fit cursor-pointer items-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50">
+                            Choose file
+                        </label>
+                        <span class="text-sm text-slate-500" data-qr-signed-attachment-name>No file chosen</span>
+                        <button type="submit"
+                                class="inline-flex w-fit items-center justify-center rounded-lg bg-slate-900 px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800 sm:ms-auto"
+                                onclick="return confirm('Save signed document and mark {{ $receipt->code }} as Signed?');">
+                            Save signed document
+                        </button>
+                    </div>
+                    <p class="mt-2 text-xs text-slate-500">JPG, PNG, WEBP, or PDF — max 10 MB.</p>
+                    @error('attachment')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                </form>
             </section>
         @endif
 
@@ -136,12 +184,12 @@
                 </div>
                 <div>
                     <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Daily limit context</dt>
-                    <dd class="mt-1 text-slate-900">Limit {{ number_format($dailyLimit, 2) }} · other pending/approved on this date: {{ number_format($spentOnDate, 2) }}</dd>
+                    <dd class="mt-1 text-slate-900">Limit {{ number_format($dailyLimit, 2) }} · other pending/approved/signed on this date: {{ number_format($spentOnDate, 2) }}</dd>
                 </div>
             </dl>
         </section>
 
-        @if ($receipt->status === QuickReceiptStatus::Approved || $receipt->status === QuickReceiptStatus::Rejected)
+        @if (in_array($receipt->status, [QuickReceiptStatus::Approved, QuickReceiptStatus::Signed, QuickReceiptStatus::Rejected], true))
             <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
                 <h2 class="text-lg font-semibold text-slate-900">Decision history</h2>
                 <dl class="mt-4 grid gap-4 sm:grid-cols-2 text-sm">
@@ -156,8 +204,28 @@
                 </dl>
                 @if ($receipt->status === QuickReceiptStatus::Rejected && $canUpdate)
                     <p class="mt-4 text-sm text-slate-600">Rejected — edit the receipt to resubmit for approval.</p>
+                @elseif ($receipt->status === QuickReceiptStatus::Approved && ($canSign ?? false))
+                    <p class="mt-4 text-sm text-slate-600">Approved — upload the signed document above to finish.</p>
+                @elseif ($receipt->status === QuickReceiptStatus::Signed)
+                    <p class="mt-4 text-sm text-slate-600">Signed document is on file. Receipt is complete.</p>
                 @endif
             </section>
         @endif
     </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const input = document.querySelector('[data-qr-signed-attachment-input]');
+    const nameEl = document.querySelector('[data-qr-signed-attachment-name]');
+    input?.addEventListener('change', function () {
+        if (!nameEl) return;
+        const file = input.files?.[0];
+        nameEl.textContent = file ? file.name : 'No file chosen';
+        nameEl.classList.toggle('text-slate-800', !!file);
+        nameEl.classList.toggle('text-slate-500', !file);
+    });
+});
+</script>
+@endpush

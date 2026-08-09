@@ -230,6 +230,10 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('permission:quick-receipts.approve')
         ->name('quick-receipts.reject');
 
+    Route::post('quick-receipts/{quick_receipt}/sign', [QuickReceiptController::class, 'sign'])
+        ->middleware('permission:quick-receipts.create|quick-receipts.update')
+        ->name('quick-receipts.sign');
+
     Route::resource('quick-receipts', QuickReceiptController::class)
         ->middlewareFor(['index', 'show'], 'permission:quick-receipts.view|quick-receipts.view-own|quick-receipts.approve')
         ->middlewareFor(['create', 'store'], 'permission:quick-receipts.create')

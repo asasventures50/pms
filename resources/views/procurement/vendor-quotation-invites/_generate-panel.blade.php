@@ -82,7 +82,7 @@
 
             <div class="flex items-end">
                 <button type="submit"
-                        class="inline-flex w-full items-center justify-center rounded-lg bg-sky-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-800">
+                        class="inline-flex w-full items-center justify-center rounded-lg border-2 border-sky-600 bg-sky-400 px-4 py-2.5 text-sm font-bold text-slate-900 shadow hover:bg-sky-300">
                     Generate link
                 </button>
             </div>
