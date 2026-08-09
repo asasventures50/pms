@@ -19,7 +19,7 @@ return new class extends Migration
 
             $table->id();
             $table->string('name');
-            $table->string('iso_code', 2)->unique();
+            $table->string('iso_code', 8)->nullable()->unique();
             $table->string('flag_emoji', 16)->nullable();
             $table->timestamps();
         });
