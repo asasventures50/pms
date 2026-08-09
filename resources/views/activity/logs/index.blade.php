@@ -17,7 +17,7 @@
             <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600">Audit trail</p>
             <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-900">Activity Log</h1>
             <p class="mt-2 text-sm leading-relaxed text-slate-700">
-                Monitor sign-ins and changes across vendors, categories, procurement requests, purchase orders, and RFQs.
+                Monitor who did what — sign-ins and header-level actions on invoices, PRs, POs, vendors, and more.
             </p>
             @if ($filtersActive)
                 <p class="mt-3 inline-flex rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-medium text-slate-800">

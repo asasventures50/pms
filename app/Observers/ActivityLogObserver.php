@@ -21,9 +21,6 @@ class ActivityLogObserver
         $this->logger->logModelEvent(
             model: $model,
             event: 'create',
-            changes: [
-                'new' => $model->activityLogSnapshot(),
-            ],
         );
     }
 
@@ -34,28 +31,18 @@ class ActivityLogObserver
         }
 
         $changed = array_keys($model->getChanges());
-        $excluded = $model->activityLogExcludedAttributes();
+        $excluded = method_exists($model, 'activityLogExcludedAttributes')
+            ? $model->activityLogExcludedAttributes()
+            : [];
         $changed = array_values(array_diff($changed, $excluded));
 
         if ($changed === []) {
             return;
         }
 
-        $old = [];
-        $new = [];
-
-        foreach ($changed as $attribute) {
-            $old[$attribute] = $model->normalizeActivityLogValue($model->getOriginal($attribute));
-            $new[$attribute] = $model->normalizeActivityLogValue($model->getAttribute($attribute));
-        }
-
         $this->logger->logModelEvent(
             model: $model,
             event: 'update',
-            changes: [
-                'old' => $old,
-                'new' => $new,
-            ],
         );
     }
 
@@ -68,9 +55,6 @@ class ActivityLogObserver
         $this->logger->logModelEvent(
             model: $model,
             event: 'delete',
-            changes: [
-                'old' => $model->activityLogSnapshot(),
-            ],
         );
     }
 
@@ -83,9 +67,6 @@ class ActivityLogObserver
         $this->logger->logModelEvent(
             model: $model,
             event: 'restore',
-            changes: [
-                'new' => $model->activityLogSnapshot(),
-            ],
         );
     }
 

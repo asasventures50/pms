@@ -2,6 +2,7 @@
 
 namespace App\Models\Geo;
 
+use App\Models\Concerns\LogsActivity;
 use App\Models\Procurement\Vendors\VendorLocation;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -10,7 +11,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Country extends Model
 {
-    use SoftDeletes;
+    use LogsActivity, SoftDeletes;
+
+    protected static string $activityLogKey = 'country';
 
     protected $fillable = [
         'name_ar',

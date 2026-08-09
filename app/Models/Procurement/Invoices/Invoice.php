@@ -2,6 +2,7 @@
 
 namespace App\Models\Procurement\Invoices;
 
+use App\Models\Concerns\LogsActivity;
 use App\Models\Procurement\PurchaseOrders\PurchaseOrder;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -11,6 +12,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Invoice extends Model
 {
+    use LogsActivity;
+
+    protected static string $activityLogKey = 'invoice';
+
     public const SOURCE_PURCHASE_ORDER = 'purchase_order';
 
     public const SOURCE_MANUAL = 'manual';

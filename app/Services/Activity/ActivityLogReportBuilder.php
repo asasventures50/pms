@@ -12,11 +12,21 @@ class ActivityLogReportBuilder
      */
     private const ENTITY_LABELS = [
         'vendor' => ['singular' => 'vendor', 'plural' => 'vendors'],
+        'category' => ['singular' => 'category', 'plural' => 'categories'],
+        'subcategory' => ['singular' => 'subcategory', 'plural' => 'subcategories'],
         'po' => ['singular' => 'purchase order', 'plural' => 'purchase orders'],
         'rfq' => ['singular' => 'RFQ', 'plural' => 'RFQs'],
+        'rfq_general_term' => ['singular' => 'RFQ general term', 'plural' => 'RFQ general terms'],
         'vendor_quotation' => ['singular' => 'vendor quotation', 'plural' => 'vendor quotations'],
         'procurement_request' => ['singular' => 'procurement request (P.R.)', 'plural' => 'procurement requests (P.R.)'],
         'pr' => ['singular' => 'procurement request (P.R.)', 'plural' => 'procurement requests (P.R.)'],
+        'invoice' => ['singular' => 'invoice', 'plural' => 'invoices'],
+        'schedule_of_work' => ['singular' => 'schedule of work', 'plural' => 'schedules of work'],
+        'project' => ['singular' => 'project', 'plural' => 'projects'],
+        'zone' => ['singular' => 'zone', 'plural' => 'zones'],
+        'country' => ['singular' => 'country', 'plural' => 'countries'],
+        'city' => ['singular' => 'city', 'plural' => 'cities'],
+        'quick_receipt' => ['singular' => 'quick receipt', 'plural' => 'quick receipts'],
     ];
 
     /**

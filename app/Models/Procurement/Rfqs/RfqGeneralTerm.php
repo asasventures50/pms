@@ -2,12 +2,17 @@
 
 namespace App\Models\Procurement\Rfqs;
 
+use App\Models\Concerns\LogsActivity;
 use App\Support\Procurement\ProcurementScopeType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class RfqGeneralTerm extends Model
 {
+    use LogsActivity;
+
+    protected static string $activityLogKey = 'rfq_general_term';
+
     protected $table = 'rfq_general_terms';
 
     /**

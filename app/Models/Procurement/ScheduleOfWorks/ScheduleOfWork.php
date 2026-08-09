@@ -4,6 +4,7 @@ namespace App\Models\Procurement\ScheduleOfWorks;
 
 use App\Enums\Procurement\Rfqs\RfqTermsLocale;
 use App\Enums\Procurement\ScheduleOfWorks\ScheduleOfWorkScope;
+use App\Models\Concerns\LogsActivity;
 use App\Services\Procurement\ScheduleOfWorks\ScheduleOfWorkPrSectionsNormalizer;
 use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
 use App\Models\Procurement\Vendors\Vendor;
@@ -14,6 +15,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ScheduleOfWork extends Model
 {
+    use LogsActivity;
+
+    protected static string $activityLogKey = 'schedule_of_work';
+
     protected $table = 'schedule_of_works';
 
     /**

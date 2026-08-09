@@ -149,7 +149,7 @@ class QuickReceipt extends Model
         $code = trim((string) ($this->code ?? ''));
 
         if ($code !== '') {
-            return "quick receipt {$code}";
+            return $code;
         }
 
         return parent::activityLogLabel();

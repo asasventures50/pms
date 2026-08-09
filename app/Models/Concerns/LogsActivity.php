@@ -23,20 +23,48 @@ trait LogsActivity
 
     public function activityLogDescription(string $event): string
     {
+        $entity = $this->activityLogEntityName();
         $label = $this->activityLogLabel();
 
         return match ($event) {
-            'create' => "Created {$label}",
-            'update' => "Updated {$label}",
-            'delete' => "Deleted {$label}",
-            'restore' => "Restored {$label}",
-            default => ucfirst($event)." {$label}",
+            'create' => "Created {$entity} {$label}",
+            'update' => "Updated {$entity} {$label}",
+            'delete' => "Deleted {$entity} {$label}",
+            'restore' => "Restored {$entity} {$label}",
+            default => ucfirst($event)." {$entity} {$label}",
+        };
+    }
+
+    public function activityLogEntityName(): string
+    {
+        return match ($this->activityLogKey()) {
+            'pr' => 'P.R.',
+            'po' => 'P.O.',
+            'rfq' => 'RFQ',
+            default => str_replace('_', ' ', $this->activityLogKey()),
         };
     }
 
     public function activityLogLabel(): string
     {
-        foreach (['po_number', 'rfq_number', 'quotation_number', 'vendor_code', 'request_number', 'name', 'title'] as $attribute) {
+        foreach ([
+            'po_number',
+            'rfq_number',
+            'quotation_number',
+            'invoice_number',
+            'document_number',
+            'vendor_code',
+            'request_number',
+            'iso_code',
+            'code',
+            'name',
+            'name_en',
+            'title',
+            'file_name',
+            'item_name',
+            'item',
+            'description',
+        ] as $attribute) {
             if (! empty($this->{$attribute})) {
                 return (string) $this->{$attribute};
             }
@@ -53,6 +81,7 @@ trait LogsActivity
         return [
             'password',
             'remember_token',
+            'signature',
             'procurement_signature',
             'finance_signature',
             'ceo_signature',
