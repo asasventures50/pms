@@ -11,7 +11,7 @@ use App\Support\Procurement\ProcurementCheckboxGroup;
 class ProcurementRequestPrintLabels
 {
     private const EN = [
-        'document_title' => 'Procurement Request',
+        'document_title' => 'Request for Technical or Financial Offer',
         'department' => 'Procurement Department',
         'request_information' => 'Request information',
         'pr_number' => 'P.R. number:',
@@ -56,7 +56,7 @@ class ProcurementRequestPrintLabels
     ];
 
     private const AR = [
-        'document_title' => 'طلب شراء',
+        'document_title' => 'طلب عرض فني أو مالي',
         'department' => 'قسم المشتريات',
         'request_information' => 'معلومات الطلب',
         'pr_number' => 'رقم طلب الشراء:',
