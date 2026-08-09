@@ -94,6 +94,11 @@ class Rfq extends Model
         return $this->hasMany(VendorQuotation::class)->latest();
     }
 
+    public function vendorQuotationInvites(): HasMany
+    {
+        return $this->hasMany(RfqVendorQuotationInvite::class)->latest();
+    }
+
     public function selectedVendorQuotation(): BelongsTo
     {
         return $this->belongsTo(VendorQuotation::class, 'selected_vendor_quotation_id');

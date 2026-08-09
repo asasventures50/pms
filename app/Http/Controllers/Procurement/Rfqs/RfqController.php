@@ -16,6 +16,7 @@ use App\Services\Procurement\Rfqs\RfqGeneralTermsService;
 use App\Services\Procurement\Rfqs\RfqPayloadResolver;
 use App\Services\Procurement\Rfqs\RfqHeaderNormalizer;
 use App\Services\Procurement\Rfqs\RfqPersistenceService;
+use App\Services\Procurement\Vendors\VendorSelectOptions;
 use App\Support\Procurement\RfqTerms;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -102,6 +103,7 @@ class RfqController extends Controller
             'items.procurementRequestItem.documents',
             'vendorQuotations.vendor',
             'selectedVendorQuotation',
+            'vendorQuotationInvites.vendor',
         ]);
 
         return view('procurement.rfqs.show', [
@@ -109,6 +111,7 @@ class RfqController extends Controller
             'buyerCompany' => BuyerCompany::forDisplay($rfq),
             'terms' => $this->resolvedTermsForRfq($rfq),
             'paymentTerms' => $this->termsService->normalizeTexts($rfq->payment_terms),
+            'vendorSelectOptions' => VendorSelectOptions::all(),
         ]);
     }
 

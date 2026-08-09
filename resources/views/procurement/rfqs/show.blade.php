@@ -24,6 +24,11 @@
         </div>
     </div>
 
+    @include('procurement.vendor-quotation-invites._generate-panel', [
+        'rfq' => $rfq,
+        'vendorSelectOptions' => $vendorSelectOptions ?? [],
+    ])
+
     <section id="vendor-quotations" class="mx-auto mb-6 max-w-4xl scroll-mt-6 rounded-xl border-2 border-emerald-300 bg-emerald-50 p-4 shadow-sm print:hidden">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>

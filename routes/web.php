@@ -22,9 +22,11 @@ use App\Http\Controllers\Procurement\Projects\ProjectQuickStoreController;
 use App\Http\Controllers\Procurement\Projects\ZoneQuickStoreController;
 use App\Http\Controllers\Procurement\PurchaseOrders\PurchaseOrderController;
 use App\Http\Controllers\Procurement\QuickReceipts\QuickReceiptController;
+use App\Http\Controllers\Procurement\Rfqs\PublicVendorQuotationController;
 use App\Http\Controllers\Procurement\Rfqs\RfqController;
 use App\Http\Controllers\Procurement\Rfqs\RfqGeneralTermController;
 use App\Http\Controllers\Procurement\Rfqs\RfqQuotationComparisonController;
+use App\Http\Controllers\Procurement\Rfqs\RfqVendorQuotationInviteController;
 use App\Http\Controllers\Procurement\ScheduleOfWorks\ScheduleOfWorkController;
 use App\Http\Controllers\Procurement\VendorQuotations\VendorQuotationController;
 use App\Http\Controllers\Procurement\Vendors\VendorRegistrationController;
@@ -43,6 +45,13 @@ Route::middleware('public-form-locale')->group(function () {
 
     Route::get('vendor-registration/thanks', [VendorRegistrationController::class, 'thanks'])
         ->name('vendor-registration.thanks');
+
+    Route::get('vendor-quotation/{invite:token}', [PublicVendorQuotationController::class, 'show'])
+        ->name('vendor-quotation-invite.show');
+
+    Route::post('vendor-quotation/{invite:token}', [PublicVendorQuotationController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('vendor-quotation-invite.store');
 });
 
 require __DIR__.'/auth.php';
@@ -253,6 +262,10 @@ Route::middleware(['auth'])->group(function () {
         ->middlewareFor(['index', 'show'], 'permission:rfqs.view')
         ->middlewareFor(['create', 'store'], 'permission:rfqs.create')
         ->middlewareFor(['edit', 'update', 'destroy'], 'permission:rfqs.update');
+
+    Route::post('rfqs/{rfq}/vendor-quotation-invites', [RfqVendorQuotationInviteController::class, 'store'])
+        ->middleware('permission:vendor-quotations.create|rfqs.update')
+        ->name('rfqs.vendor-quotation-invites.store');
 
     Route::get('rfqs/{rfq}/comparison', [RfqQuotationComparisonController::class, 'show'])
         ->name('rfqs.comparison.show');
