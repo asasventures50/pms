@@ -196,10 +196,10 @@ Route::middleware(['auth'])->group(function () {
         ->name('vendors.import');
 
     Route::resource('vendors', VendorWebController::class)
-        ->except(['destroy'])
         ->middlewareFor(['index', 'show'], 'permission:vendors.view')
         ->middlewareFor(['create', 'store'], 'permission:vendors.create')
-        ->middlewareFor(['edit', 'update'], 'permission:vendors.update');
+        ->middlewareFor(['edit', 'update'], 'permission:vendors.update')
+        ->middlewareFor('destroy', 'permission:vendors.delete');
 
     Route::get('purchase-orders/{purchase_order}/print', [PurchaseOrderController::class, 'print'])
         ->middleware('permission:purchase-orders.view|purchase-orders.view-own')

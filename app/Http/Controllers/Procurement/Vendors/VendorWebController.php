@@ -345,6 +345,18 @@ class VendorWebController extends Controller
             ->with('success', 'Vendor updated successfully.');
     }
 
+    public function destroy(Request $request, Vendor $vendor): RedirectResponse
+    {
+        // SoftDeletes only — sets deleted_at; related POs/RFQs/quotations keep their vendor_id.
+        $vendor->delete();
+
+        $listReturnUrl = $this->resolveVendorListReturnUrl($request);
+
+        return redirect()
+            ->to($listReturnUrl ?? route('vendors.index'))
+            ->with('success', 'Vendor deleted successfully.');
+    }
+
     private function resolveVendorListReturnUrl(Request $request): ?string
     {
         $return = trim((string) ($request->query('return') ?? $request->input('return') ?? ''));

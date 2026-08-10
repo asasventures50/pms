@@ -22,6 +22,7 @@ final class PermissionCatalog
             'vendors.view' => ['label' => 'View vendors', 'group' => 'Vendors'],
             'vendors.create' => ['label' => 'Create vendors', 'group' => 'Vendors'],
             'vendors.update' => ['label' => 'Update vendors', 'group' => 'Vendors'],
+            'vendors.delete' => ['label' => 'Delete vendors', 'group' => 'Vendors'],
 
             'categories.view' => ['label' => 'View categories', 'group' => 'Categories'],
             'categories.create' => ['label' => 'Create categories', 'group' => 'Categories'],

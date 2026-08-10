@@ -419,6 +419,15 @@
                             <a href="{{ route('vendors.show', ['vendor' => $vendor, 'return' => $vendorListReturn]) }}" class="text-sm font-medium text-slate-700 hover:text-slate-900">View</a>
                             <span class="mx-1 text-slate-300">|</span>
                             <a href="{{ route('vendors.edit', ['vendor' => $vendor, 'return' => $vendorListReturn]) }}" class="text-sm font-medium text-slate-700 hover:text-slate-900">Edit</a>
+                            @if (auth()->user()->hasPermission('vendors.delete'))
+                                <span class="mx-1 text-slate-300">|</span>
+                                <form action="{{ route('vendors.destroy', $vendor) }}" method="post" class="inline" onsubmit="return confirm('Delete this vendor? The record will be hidden (soft delete); related documents keep their link.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <input type="hidden" name="return" value="{{ $vendorListReturn }}">
+                                    <button type="submit" class="font-medium text-red-700 hover:text-red-900">Delete</button>
+                                </form>
+                            @endif
                         </td>
                     </tr>
                 @empty

@@ -22,6 +22,20 @@
         <div class="flex flex-wrap gap-3">
             <a href="{{ route('vendors.edit', array_filter(['vendor' => $vendor, 'return' => $listReturnUrl])) }}"
                class="inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover">Edit</a>
+            @if (auth()->user()->hasPermission('vendors.delete'))
+                <form action="{{ route('vendors.destroy', $vendor) }}" method="post" class="inline"
+                      onsubmit="return confirm('Delete this vendor? The record will be hidden (soft delete); related documents keep their link.');">
+                    @csrf
+                    @method('DELETE')
+                    @if ($listReturnUrl)
+                        <input type="hidden" name="return" value="{{ $listReturnUrl }}">
+                    @endif
+                    <button type="submit"
+                            class="inline-flex items-center justify-center rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50">
+                        Delete
+                    </button>
+                </form>
+            @endif
             <a href="{{ $listReturnUrl ?? route('vendors.index') }}"
                class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">Back to list</a>
         </div>
