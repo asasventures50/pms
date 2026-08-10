@@ -24,7 +24,9 @@ class VendorsExport implements FromCollection, ShouldAutoSize, WithHeadings, Wit
     {
         $rows = collect();
 
-        $this->query->chunkById(200, function ($vendors) use ($rows) {
+        // reorder('id') is required: list query uses latest(), and chunkById +
+        // created_at ordering skips most rows (e.g. ~400 of 893).
+        $this->query->reorder('id')->chunkById(200, function ($vendors) use ($rows) {
             foreach ($vendors as $vendor) {
                 $rows->push($this->mapVendor($vendor));
             }
