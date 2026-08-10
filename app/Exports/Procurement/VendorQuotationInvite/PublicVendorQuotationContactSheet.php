@@ -33,7 +33,11 @@ class PublicVendorQuotationContactSheet implements FromCollection, WithColumnWid
      */
     public function headings(): array
     {
-        return ['key', 'label', 'value'];
+        return [
+            'key',
+            (string) __('vendor_quotation_invite.excel.contact_headers.label'),
+            (string) __('vendor_quotation_invite.excel.contact_headers.value'),
+        ];
     }
 
     public function collection(): Collection
@@ -68,8 +72,8 @@ class PublicVendorQuotationContactSheet implements FromCollection, WithColumnWid
     {
         return [
             'A' => 22,
-            'B' => 28,
-            'C' => 40,
+            'B' => 36,
+            'C' => 42,
         ];
     }
 
@@ -84,6 +88,7 @@ class PublicVendorQuotationContactSheet implements FromCollection, WithColumnWid
                 'alignment' => [
                     'horizontal' => Alignment::HORIZONTAL_CENTER,
                     'vertical' => Alignment::VERTICAL_CENTER,
+                    'wrapText' => true,
                 ],
             ],
         ];
@@ -97,6 +102,7 @@ class PublicVendorQuotationContactSheet implements FromCollection, WithColumnWid
         return [
             AfterSheet::class => function (AfterSheet $event): void {
                 $sheet = $event->sheet->getDelegate();
+                $sheet->getRowDimension(1)->setRowHeight(30);
                 $sheet->getStyle('A1:B5')->getFill()->applyFromArray([
                     'fillType' => Fill::FILL_SOLID,
                     'startColor' => ['rgb' => 'E2E8F0'],
@@ -105,7 +111,7 @@ class PublicVendorQuotationContactSheet implements FromCollection, WithColumnWid
                     'fillType' => Fill::FILL_SOLID,
                     'startColor' => ['rgb' => 'FEF3C7'],
                 ]);
-                $sheet->getStyle('A2:C5')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+                $sheet->getStyle('A2:C5')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER)->setWrapText(true);
                 $sheet->freezePane('A2');
             },
         ];

@@ -52,6 +52,9 @@ class PublicVendorQuotationExcelParserTest extends TestCase
         ] as $required) {
             $this->assertContains($required, $headings);
         }
+
+        $this->assertContains('line_total', PublicVendorQuotationExcelSchema::itemKeys());
+        $this->assertSame(count(PublicVendorQuotationExcelSchema::itemKeys()), count(PublicVendorQuotationExcelSchema::itemDisplayHeadings()));
     }
 
     /**

@@ -70,8 +70,29 @@ class PublicVendorQuotationExcelParser
             ]);
         }
 
-        $headingRow = array_shift($rows);
-        $headingMap = $this->mapItemHeadings(is_array($headingRow) ? $headingRow : []);
+        $headingMap = null;
+        $headerRowIndex = null;
+
+        foreach ($rows as $index => $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            $candidate = $this->mapItemHeadings($row);
+            if (isset($candidate['rfq_item_id'], $candidate['unit_price'], $candidate['remarks'])) {
+                $headingMap = $candidate;
+                $headerRowIndex = $index;
+                break;
+            }
+        }
+
+        if ($headingMap === null || $headerRowIndex === null) {
+            throw ValidationException::withMessages([
+                'excel_file' => __('vendor_quotation_invite.excel.errors.bad_headers', [
+                    'column' => 'rfq_item_id',
+                ]),
+            ]);
+        }
 
         foreach (PublicVendorQuotationExcelSchema::itemHeadings() as $required) {
             if (! array_key_exists($required, $headingMap)) {
@@ -85,22 +106,26 @@ class PublicVendorQuotationExcelParser
 
         $items = [];
         $seenIds = [];
-        $excelRowNumber = 1;
 
-        foreach ($rows as $row) {
-            $excelRowNumber++;
+        foreach ($rows as $index => $row) {
+            if ($index <= $headerRowIndex) {
+                continue;
+            }
+
+            $excelRowNumber = $index + 1;
 
             if (! is_array($row) || $this->rowIsEmpty($row)) {
                 continue;
             }
 
-            $rfqItemId = $this->cellInt($row[$headingMap['rfq_item_id']] ?? null);
+            $rawId = $row[$headingMap['rfq_item_id']] ?? null;
+            if ($rawId === null || $rawId === '') {
+                continue;
+            }
+
+            $rfqItemId = $this->cellInt($rawId);
             if ($rfqItemId === null) {
-                throw ValidationException::withMessages([
-                    'excel_file' => __('vendor_quotation_invite.excel.errors.row_missing_id', [
-                        'row' => $excelRowNumber,
-                    ]),
-                ]);
+                continue;
             }
 
             if (isset($seenIds[$rfqItemId])) {
@@ -199,10 +224,18 @@ class PublicVendorQuotationExcelParser
                 if ($normalized === 'key') {
                     $keyIndex = (int) $index;
                 }
-                if ($normalized === 'value') {
+                if (in_array($normalized, ['value', 'enter_here', 'your_answer', 'ادخل_هنا', 'أدخل_هنا'], true)
+                    || str_contains($normalized, 'enter')
+                    || str_contains($normalized, 'value')
+                    || str_contains($normalized, 'answer')) {
                     $valueIndex = (int) $index;
                 }
             }
+        }
+
+        // Prefer the yellow "answer" column: if headers are localized, column C (index 2) is the value.
+        if ($valueIndex === 0 && is_array($headingRow) && count($headingRow) >= 3) {
+            $valueIndex = 2;
         }
 
         $contact = [
