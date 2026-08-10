@@ -49,9 +49,17 @@ Route::middleware('public-form-locale')->group(function () {
     Route::get('vendor-quotation/{invite:token}', [PublicVendorQuotationController::class, 'show'])
         ->name('vendor-quotation-invite.show');
 
+    Route::get('vendor-quotation/{invite:token}/excel-template', [PublicVendorQuotationController::class, 'downloadExcel'])
+        ->middleware('throttle:20,1')
+        ->name('vendor-quotation-invite.excel-template');
+
     Route::post('vendor-quotation/{invite:token}', [PublicVendorQuotationController::class, 'store'])
         ->middleware('throttle:10,1')
         ->name('vendor-quotation-invite.store');
+
+    Route::post('vendor-quotation/{invite:token}/excel', [PublicVendorQuotationController::class, 'storeExcel'])
+        ->middleware('throttle:10,1')
+        ->name('vendor-quotation-invite.excel-store');
 });
 
 require __DIR__.'/auth.php';

@@ -24,6 +24,7 @@
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700{{ $isRtl ? '|noto-sans-arabic:400,500,600,700' : '' }}" rel="stylesheet" />
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <style>[x-cloak]{display:none!important}</style>
     @stack('styles')
 </head>
 <body class="public-form-page min-h-screen font-sans text-slate-900 antialiased">

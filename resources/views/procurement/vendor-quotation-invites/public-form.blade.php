@@ -187,6 +187,98 @@
                 @endif
             </section>
         @else
+            @php
+                $activeEntryTab = in_array(($entryTab ?? 'online'), ['online', 'excel'], true)
+                    ? ($entryTab ?? 'online')
+                    : 'online';
+            @endphp
+
+            <div class="mb-6" x-data="{ tab: @js($activeEntryTab) }">
+                <div class="mb-3 text-center sm:text-start">
+                    <p class="text-sm font-semibold text-slate-900">{{ __('vendor_quotation_invite.entry_choose_title') }}</p>
+                    <p class="mt-1 text-sm text-slate-600">{{ __('vendor_quotation_invite.entry_choose_hint') }}</p>
+                </div>
+
+                <div class="flex flex-row gap-3">
+                    <button type="button"
+                            @click="tab = 'online'"
+                            :aria-pressed="tab === 'online'"
+                            :class="tab === 'online'
+                                ? 'border-[#e65100] bg-[color-mix(in_oklab,#ff9800_12%,white)] text-slate-900 ring-2 ring-[#e65100]/25'
+                                : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'"
+                            class="flex min-h-[4.5rem] flex-1 flex-col items-center justify-center gap-1 rounded-2xl border-2 px-3 py-3 text-center transition">
+                        <span class="text-sm font-bold leading-tight">{{ __('vendor_quotation_invite.entry_online') }}</span>
+                        <span class="text-xs font-medium leading-snug text-slate-500">{{ __('vendor_quotation_invite.entry_online_hint') }}</span>
+                    </button>
+
+                    <button type="button"
+                            @click="tab = 'excel'"
+                            :aria-pressed="tab === 'excel'"
+                            :class="tab === 'excel'
+                                ? 'border-emerald-600 bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-600/30'
+                                : 'border-emerald-300 bg-emerald-50 text-emerald-900 hover:border-emerald-400 hover:bg-emerald-100'"
+                            class="flex min-h-[4.5rem] flex-1 flex-col items-center justify-center gap-1 rounded-2xl border-2 px-3 py-3 text-center transition">
+                        <span class="text-sm font-bold leading-tight">{{ __('vendor_quotation_invite.entry_excel') }}</span>
+                        <span class="text-xs font-medium leading-snug"
+                              :class="tab === 'excel' ? 'text-emerald-50' : 'text-emerald-800/80'">
+                            {{ __('vendor_quotation_invite.entry_excel_hint') }}
+                        </span>
+                    </button>
+                </div>
+
+                <div x-show="tab === 'excel'" x-cloak class="mt-4 space-y-4">
+                    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                        <h2 class="text-base font-semibold text-slate-900">{{ __('vendor_quotation_invite.excel.heading') }}</h2>
+                        <p class="mt-1 text-sm text-slate-600">{{ __('vendor_quotation_invite.excel.subtitle') }}</p>
+
+                        <ol class="mt-4 list-decimal space-y-1.5 text-sm text-slate-700 {{ $isRtl ? 'pr-5' : 'pl-5' }}">
+                            @foreach (__('vendor_quotation_invite.excel.steps') as $step)
+                                <li>{{ $step }}</li>
+                            @endforeach
+                        </ol>
+
+                        <a href="{{ route('vendor-quotation-invite.excel-template', $invite) }}"
+                           class="mt-5 inline-flex w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50 sm:w-auto">
+                            {{ __('vendor_quotation_invite.excel.download') }}
+                        </a>
+                    </section>
+
+                    <form method="POST"
+                          action="{{ route('vendor-quotation-invite.excel-store', $invite) }}"
+                          enctype="multipart/form-data"
+                          class="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                        @csrf
+
+                        <label class="block">
+                            <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                {{ __('vendor_quotation_invite.excel.upload_label') }} <span class="text-rose-600">*</span>
+                            </span>
+                            <input type="file"
+                                   name="excel_file"
+                                   accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+                                   required
+                                   class="admin-form-file">
+                            <span class="mt-1 block text-xs text-slate-500">{{ __('vendor_quotation_invite.excel.upload_hint') }}</span>
+                        </label>
+
+                        <label class="block">
+                            <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                {{ __('vendor_quotation_invite.attachment') }}
+                            </span>
+                            <input type="file"
+                                   name="attachment"
+                                   accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx"
+                                   class="admin-form-file">
+                            <span class="mt-1 block text-xs text-slate-500">{{ __('vendor_quotation_invite.attachment_hint') }}</span>
+                        </label>
+
+                        <button type="submit" class="public-form-submit-btn">
+                            {{ __('vendor_quotation_invite.excel.submit') }}
+                        </button>
+                    </form>
+                </div>
+
+                <div x-show="tab === 'online'" x-cloak class="mt-4">
             <form method="POST" action="{{ route('vendor-quotation-invite.store', $invite) }}" enctype="multipart/form-data" class="space-y-6">
                 @csrf
 
@@ -417,6 +509,8 @@
                     {{ __('vendor_quotation_invite.submit') }}
                 </button>
             </form>
+                </div>
+            </div>
         @endif
     </div>
 @endsection
