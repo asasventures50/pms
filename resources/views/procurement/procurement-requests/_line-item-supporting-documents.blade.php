@@ -7,7 +7,7 @@
     <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h4 class="text-sm font-semibold text-slate-900">Supporting documents</h4>
-            <p class="mt-1 text-xs text-slate-500">Upload a file or add a link · max 200 MB per file</p>
+            <p class="mt-1 text-xs text-slate-500">Upload a file or add a link · max 500 MB per file</p>
         </div>
         <div class="flex flex-wrap gap-2 print:hidden">
             <button type="button" data-pr-item-add-supporting-file
