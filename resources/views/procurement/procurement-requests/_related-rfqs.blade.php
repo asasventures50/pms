@@ -21,7 +21,7 @@
                     <div class="flex flex-wrap gap-2">
                         @if (auth()->user()->canViewQuotationComparison($relatedRfq) && $relatedRfq->vendor_quotations_count > 0)
                             <a href="{{ route('rfqs.comparison.show', $relatedRfq) }}"
-                               class="inline-flex items-center rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800">
+                               class="inline-flex items-center rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-white hover:bg-brand-hover">
                                 Compare &amp; choose
                             </a>
                         @endif

@@ -32,7 +32,7 @@
 
         <div class="flex flex-wrap items-center gap-3">
             <button type="submit"
-                    class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-slate-800">
+                    class="inline-flex items-center justify-center rounded-lg bg-brand px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-brand-hover">
                 Update Vendor
             </button>
             <a href="{{ route('vendors.show', $vendor) }}"

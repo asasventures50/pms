@@ -68,27 +68,50 @@
     .admin-form-file {
         color-scheme: light;
         @apply mt-1 block w-full cursor-pointer rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm;
-        @apply file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-slate-800;
+        @apply file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-brand file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-brand-hover;
     }
 
     .procurement-add-line-bar button {
-        @apply inline-flex min-h-[2.75rem] cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-slate-500 bg-slate-600 px-8 py-2.5 text-base font-semibold text-white shadow-md;
-        @apply transition-colors hover:border-slate-600 hover:bg-slate-700 active:bg-slate-800;
+        @apply inline-flex min-h-[2.75rem] cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-brand px-8 py-2.5 text-base font-semibold text-white shadow-md;
+        @apply bg-brand transition-colors hover:border-brand-hover hover:bg-brand-hover active:bg-brand-hover;
+    }
+
+    .admin-btn-primary {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-colors;
+        @apply hover:bg-brand-hover focus:outline-none focus:ring-2 focus:ring-brand/30 focus:ring-offset-1;
+    }
+
+    .admin-btn-secondary {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg border border-brand/25 bg-white px-5 py-2.5 text-sm font-medium text-brand shadow-sm transition-colors;
+        @apply hover:border-brand/40 hover:bg-brand-soft focus:outline-none focus:ring-2 focus:ring-brand/20 focus:ring-offset-1;
+    }
+
+    .admin-card {
+        @apply rounded-xl border border-slate-200/90 bg-white p-6 shadow-card;
+    }
+
+    .admin-nav-link {
+        @apply inline-flex items-center gap-1.5 border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 transition-colors;
+        @apply hover:border-brand/30 hover:text-brand;
+    }
+
+    .admin-nav-link-active {
+        @apply inline-flex items-center gap-1.5 border-b-2 border-brand px-2 pb-1 font-semibold text-brand;
     }
 
     /**
-     * Public vendor registration — ASAS Ventures brand (images/po/logo.png).
+     * Public forms — neutral soft black / white.
      */
     .public-form-page {
-        --activation-primary: #e65100;
-        --activation-accent: #ff9800;
-        --activation-primary-hover: #d84315;
-        --activation-text: #212121;
+        --activation-primary: #1e293b;
+        --activation-accent: #64748b;
+        --activation-primary-hover: #0f172a;
+        --activation-text: #0f172a;
         font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
         background:
-            radial-gradient(1200px 600px at 20% 0%, color-mix(in oklab, var(--activation-accent) 16%, white) 0%, transparent 60%),
-            radial-gradient(900px 600px at 85% 5%, color-mix(in oklab, var(--activation-primary) 10%, white) 0%, transparent 65%),
-            #fffaf5;
+            radial-gradient(1200px 600px at 20% 0%, color-mix(in oklab, #94a3b8 10%, white) 0%, transparent 60%),
+            radial-gradient(900px 600px at 85% 5%, color-mix(in oklab, #64748b 6%, white) 0%, transparent 65%),
+            #f8fafc;
     }
 
     .public-form-header {

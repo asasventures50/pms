@@ -11,7 +11,7 @@
         <div class="flex flex-wrap gap-2">
             @if (auth()->user()->hasPermission('rfq-terms.manage'))
                 <a href="{{ route('rfq-terms.create') }}"
-                   class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800">
+                   class="inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-hover">
                     Add term
                 </a>
             @endif
@@ -59,7 +59,7 @@
             </div>
         </div>
         <div class="flex flex-wrap items-center gap-3">
-            <button type="submit" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">Apply</button>
+            <button type="submit" class="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover">Apply</button>
             <a href="{{ route('rfq-terms.print', array_filter([
                 'scope_type' => request('scope_type'),
                 'q' => request('q'),

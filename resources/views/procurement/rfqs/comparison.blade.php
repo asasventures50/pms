@@ -279,7 +279,7 @@
                                             @csrf
                                             <input type="hidden" name="vendor_quotation_id" value="{{ $quotation->id }}">
                                             <button type="submit"
-                                                    class="rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800">
+                                                    class="rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-white hover:bg-brand-hover">
                                                 Select this quote
                                             </button>
                                         </form>

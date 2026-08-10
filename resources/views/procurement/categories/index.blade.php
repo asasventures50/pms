@@ -10,7 +10,7 @@
         </div>
         <div class="flex flex-wrap gap-2">
             <a href="{{ route('categories.create') }}"
-               class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800">
+               class="inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-hover">
                 Add Category
             </a>
             <a href="{{ route('categories.export') }}"
@@ -45,7 +45,7 @@
             </div>
         </div>
         <div class="flex flex-wrap items-center gap-3">
-            <button type="submit" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">Apply</button>
+            <button type="submit" class="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover">Apply</button>
             <a href="{{ route('categories.index') }}" class="text-sm font-medium text-slate-600 hover:text-slate-900">Reset</a>
         </div>
     </form>

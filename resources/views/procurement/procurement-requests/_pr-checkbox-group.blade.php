@@ -22,7 +22,7 @@
                 $value = is_object($option) ? $option->value : $option['value'];
                 $optionLabel = is_object($option) ? $option->label() : $option['label'];
             @endphp
-            <label class="inline-flex cursor-pointer select-none items-center rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 has-[:checked]:border-slate-900 has-[:checked]:bg-slate-900 has-[:checked]:text-white has-[:checked]:shadow-md">
+            <label class="inline-flex cursor-pointer select-none items-center rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 has-[:checked]:border-slate-900 has-[:checked]:bg-brand has-[:checked]:text-white has-[:checked]:shadow-md">
                 <input type="checkbox"
                        name="{{ $name }}[]"
                        value="{{ $value }}"

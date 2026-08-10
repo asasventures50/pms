@@ -10,7 +10,7 @@
 
     <div class="mx-auto max-w-3xl">
         <div class="mb-6 text-center sm:text-start">
-            <p class="text-sm font-medium uppercase tracking-wide text-[#e65100]">{{ __('vendor_quotation_invite.vendor') }}</p>
+            <p class="text-sm font-medium uppercase tracking-wide text-[#1e293b]">{{ __('vendor_quotation_invite.vendor') }}</p>
             <h1 class="mt-1 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
                 {{ __('vendor_quotation_invite.page_heading') }}
             </h1>
@@ -204,7 +204,7 @@
                             @click="tab = 'online'"
                             :aria-pressed="tab === 'online'"
                             :class="tab === 'online'
-                                ? 'border-[#e65100] bg-[color-mix(in_oklab,#ff9800_12%,white)] text-slate-900 ring-2 ring-[#e65100]/25'
+                                ? 'border-[#1e293b] bg-[color-mix(in_oklab,#64748b_12%,white)] text-slate-900 ring-2 ring-[#1e293b]/25'
                                 : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'"
                             class="flex min-h-[4.5rem] flex-1 flex-col items-center justify-center gap-1 rounded-2xl border-2 px-3 py-3 text-center transition">
                         <span class="text-sm font-bold leading-tight">{{ __('vendor_quotation_invite.entry_online') }}</span>
@@ -322,7 +322,7 @@
                                                min="0"
                                                step="0.001"
                                                inputmode="decimal"
-                                               class="js-qty-quoted w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 shadow-sm focus:border-[#e65100] focus:outline-none focus:ring-2 focus:ring-[#e65100]/30"
+                                               class="js-qty-quoted w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 shadow-sm focus:border-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1e293b]/30"
                                                placeholder="{{ number_format($qty, 3, '.', '') }}">
                                     </label>
                                     <label class="block">
@@ -334,7 +334,7 @@
                                                name="items[{{ $index }}][currency]"
                                                value="{{ $oldCurrency }}"
                                                maxlength="10"
-                                               class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-[#e65100] focus:outline-none focus:ring-2 focus:ring-[#e65100]/30"
+                                               class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1e293b]/30"
                                                placeholder="USD">
                                     </label>
                                     <label class="block">
@@ -346,7 +346,7 @@
                                                name="items[{{ $index }}][brand]"
                                                value="{{ $oldBrand }}"
                                                maxlength="255"
-                                               class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-[#e65100] focus:outline-none focus:ring-2 focus:ring-[#e65100]/30">
+                                               class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1e293b]/30">
                                     </label>
                                     <label class="block">
                                         <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">
@@ -357,7 +357,7 @@
                                                name="items[{{ $index }}][model]"
                                                value="{{ $oldModel }}"
                                                maxlength="255"
-                                               class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-[#e65100] focus:outline-none focus:ring-2 focus:ring-[#e65100]/30">
+                                               class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1e293b]/30">
                                     </label>
                                     <label class="block">
                                         <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">
@@ -369,7 +369,7 @@
                                                min="0"
                                                step="0.01"
                                                inputmode="decimal"
-                                               class="js-unit-price w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 shadow-sm focus:border-[#e65100] focus:outline-none focus:ring-2 focus:ring-[#e65100]/30"
+                                               class="js-unit-price w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 shadow-sm focus:border-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1e293b]/30"
                                                placeholder="0.00">
                                     </label>
                                     <label class="block">
@@ -383,7 +383,7 @@
                                                min="0"
                                                step="0.01"
                                                inputmode="decimal"
-                                               class="js-discount w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 shadow-sm focus:border-[#e65100] focus:outline-none focus:ring-2 focus:ring-[#e65100]/30">
+                                               class="js-discount w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 shadow-sm focus:border-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1e293b]/30">
                                     </label>
                                     <label class="block">
                                         <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">
@@ -396,7 +396,7 @@
                                                min="0"
                                                step="0.01"
                                                inputmode="decimal"
-                                               class="js-installation w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 shadow-sm focus:border-[#e65100] focus:outline-none focus:ring-2 focus:ring-[#e65100]/30">
+                                               class="js-installation w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 shadow-sm focus:border-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1e293b]/30">
                                     </label>
                                     <label class="block">
                                         <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">
@@ -409,7 +409,7 @@
                                                min="0"
                                                step="0.01"
                                                inputmode="decimal"
-                                               class="js-delivery w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 shadow-sm focus:border-[#e65100] focus:outline-none focus:ring-2 focus:ring-[#e65100]/30">
+                                               class="js-delivery w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 shadow-sm focus:border-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1e293b]/30">
                                     </label>
                                     <div class="sm:col-span-2">
                                         <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">
@@ -429,7 +429,7 @@
                                            name="items[{{ $index }}][remarks]"
                                            value="{{ $oldRemarks }}"
                                            maxlength="2000"
-                                           class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-[#e65100] focus:outline-none focus:ring-2 focus:ring-[#e65100]/30">
+                                           class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1e293b]/30">
                                 </label>
                             </div>
                         @endforeach
@@ -458,7 +458,7 @@
                                    value="{{ $defaultRepName }}"
                                    required
                                    maxlength="255"
-                                   class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 shadow-sm focus:border-[#e65100] focus:outline-none focus:ring-2 focus:ring-[#e65100]/30">
+                                   class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 shadow-sm focus:border-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1e293b]/30">
                         </label>
                         <label class="block">
                             <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">
@@ -469,7 +469,7 @@
                                    name="vendor_rep_email"
                                    value="{{ $defaultRepEmail }}"
                                    maxlength="255"
-                                   class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 shadow-sm focus:border-[#e65100] focus:outline-none focus:ring-2 focus:ring-[#e65100]/30">
+                                   class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 shadow-sm focus:border-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1e293b]/30">
                         </label>
                         <label class="block">
                             <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">
@@ -480,7 +480,7 @@
                                    name="vendor_rep_phone"
                                    value="{{ $defaultRepPhone }}"
                                    maxlength="50"
-                                   class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 shadow-sm focus:border-[#e65100] focus:outline-none focus:ring-2 focus:ring-[#e65100]/30">
+                                   class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 shadow-sm focus:border-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1e293b]/30">
                         </label>
                         <label class="block sm:col-span-2">
                             <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">
@@ -490,7 +490,7 @@
                             <textarea name="notes"
                                       rows="3"
                                       maxlength="5000"
-                                      class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-[#e65100] focus:outline-none focus:ring-2 focus:ring-[#e65100]/30">{{ old('notes') }}</textarea>
+                                      class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1e293b]/30">{{ old('notes') }}</textarea>
                         </label>
                         <label class="block sm:col-span-2">
                             <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">

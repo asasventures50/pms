@@ -14,7 +14,7 @@
         @csrf
         @include('procurement.rfq-terms._form', ['term' => $term])
         <div class="flex flex-wrap gap-3">
-            <button type="submit" class="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-800">Save</button>
+            <button type="submit" class="rounded-lg bg-brand px-5 py-2.5 text-sm font-medium text-white hover:bg-brand-hover">Save</button>
             <a href="{{ route('rfq-terms.index') }}" class="rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-800 hover:bg-slate-50">Cancel</a>
         </div>
     </form>

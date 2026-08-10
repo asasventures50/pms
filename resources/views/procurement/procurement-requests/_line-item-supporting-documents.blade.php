@@ -51,7 +51,7 @@
             <div class="pr-supporting-file-row flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-2">
                 <input type="file" data-pr-supporting-file
                        accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp,.zip,.rar,.dwg,.dxf,.step,.stp,.iges,.igs,.stl"
-                       class="block max-w-full text-sm text-slate-700 file:mr-3 file:rounded-md file:border-0 file:bg-slate-900 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white hover:file:bg-slate-800">
+                       class="block max-w-full text-sm text-slate-700 file:mr-3 file:rounded-md file:border-0 file:bg-brand file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white hover:file:bg-brand-hover">
                 <span class="pr-supporting-file-name min-w-0 flex-1 truncate text-sm text-slate-600"></span>
                 <button type="button"
                         class="pr-remove-supporting-attachment shrink-0 text-sm font-medium text-red-700 hover:text-red-900">

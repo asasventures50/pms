@@ -49,7 +49,7 @@
                                 <a href="{{ route('vendors.show', $link->vendor) }}"
                                    class="text-base font-semibold text-slate-900 hover:underline">{{ $link->vendor->name }}</a>
                                 @if ($link->is_primary)
-                                    <span class="inline-flex rounded-full bg-slate-900 px-2 py-0.5 text-xs font-medium text-white">Primary</span>
+                                    <span class="inline-flex rounded-full bg-brand px-2 py-0.5 text-xs font-medium text-white">Primary</span>
                                 @endif
                             </div>
                             <p class="mt-1 font-mono text-xs text-slate-500">{{ $link->vendor->vendor_code }}</p>
@@ -113,7 +113,7 @@
                             @endif
 
                             <button type="submit"
-                                    class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">
+                                    class="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover">
                                 Reassign vendor
                             </button>
                         </form>

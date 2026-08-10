@@ -24,7 +24,7 @@
 
         <div class="flex flex-wrap items-center gap-3">
             <button type="submit"
-                    class="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-slate-800">
+                    class="rounded-lg bg-brand px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-brand-hover">
                 Save Project
             </button>
             <a href="{{ route('projects.index') }}"

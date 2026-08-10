@@ -1,4 +1,4 @@
-﻿@php
+@php
     $lineItems = $lineItems ?? [];
     $projects = $projects ?? collect();
 @endphp

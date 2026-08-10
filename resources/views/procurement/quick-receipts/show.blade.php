@@ -22,7 +22,7 @@
         <div class="flex flex-wrap gap-3">
             @if ($canUpdate)
                 <a href="{{ route('quick-receipts.edit', $receipt) }}"
-                   class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">
+                   class="inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover">
                     Edit
                 </a>
             @endif
@@ -118,7 +118,7 @@
                         </label>
                         <span class="text-sm text-slate-500" data-qr-signed-attachment-name>No file chosen</span>
                         <button type="submit"
-                                class="inline-flex w-fit items-center justify-center rounded-lg bg-slate-900 px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800 sm:ms-auto"
+                                class="inline-flex w-fit items-center justify-center rounded-lg bg-brand px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-hover sm:ms-auto"
                                 onclick="return confirm('Save signed document and mark {{ $receipt->code }} as Signed?');">
                             Save signed document
                         </button>

@@ -12,7 +12,7 @@
             <a href="{{ route('dashboard') }}" class="text-sm font-medium text-slate-600 hover:text-slate-900">Dashboard</a>
             @if (auth()->user()->hasPermission('quick-receipts.create'))
                 <a href="{{ route('quick-receipts.create') }}"
-                   class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800">
+                   class="inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-hover">
                     New Receipt
                 </a>
             @endif
@@ -36,7 +36,7 @@
                     @endforeach
                 </select>
             </div>
-            <button type="submit" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">Apply</button>
+            <button type="submit" class="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover">Apply</button>
             @if (request()->hasAny(['q', 'status']))
                 <a href="{{ route('quick-receipts.index') }}" class="text-sm font-medium text-slate-600 hover:text-slate-900">Clear</a>
             @endif

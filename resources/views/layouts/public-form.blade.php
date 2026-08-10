@@ -15,7 +15,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="theme-color" content="#E65100">
+    <meta name="theme-color" content="#1e293b">
 
     <title>@yield('title', 'PMS') — ASAS Ventures</title>
     @include('partials.favicon')
@@ -33,7 +33,7 @@
             <img src="{{ asset('images/po/logo.png') }}" alt="ASAS Ventures" class="public-form-logo h-auto w-auto max-h-20">
             @unless ($hideLocaleToggle)
                 <a href="{{ $switchLocaleUrl($nextLocale) }}"
-                   class="public-form-lang-toggle absolute end-4 top-1/2 z-10 inline-flex h-9 -translate-y-1/2 items-center gap-2 rounded-full border border-[color-mix(in_oklab,#e65100_22%,#e2e8f0)] bg-white px-3 text-[#e65100] shadow-sm transition duration-200 hover:border-[color-mix(in_oklab,#e65100_40%,#e2e8f0)] hover:bg-[color-mix(in_oklab,#ff9800_10%,white)] hover:shadow-md sm:end-6 lg:end-8"
+                   class="public-form-lang-toggle absolute end-4 top-1/2 z-10 inline-flex h-9 -translate-y-1/2 items-center gap-2 rounded-full border border-[color-mix(in_oklab,#1e293b_22%,#e2e8f0)] bg-white px-3 text-[#1e293b] shadow-sm transition duration-200 hover:border-[color-mix(in_oklab,#1e293b_40%,#e2e8f0)] hover:bg-[color-mix(in_oklab,#64748b_10%,white)] hover:shadow-md sm:end-6 lg:end-8"
                    title="{{ $switchLabel }}"
                    aria-label="{{ $switchLabel }}">
                     <svg class="size-[18px] shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
@@ -41,7 +41,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.6 9h16.8M3.6 15h16.8" />
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.2 2.4 3.4 5.5 3.4 9s-1.2 6.6-3.4 9c-2.2-2.4-3.4-5.5-3.4-9s1.2-6.6 3.4-9Z" />
                     </svg>
-                    <span class="h-4 w-px shrink-0 bg-[color-mix(in_oklab,#e65100_22%,#e2e8f0)]" aria-hidden="true"></span>
+                    <span class="h-4 w-px shrink-0 bg-[color-mix(in_oklab,#1e293b_22%,#e2e8f0)]" aria-hidden="true"></span>
                     <span class="min-w-[1.25rem] text-center text-[11px] font-bold leading-none tracking-wide" dir="auto">{{ $nextLocaleShort }}</span>
                 </a>
             @endunless

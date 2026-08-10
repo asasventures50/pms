@@ -14,7 +14,7 @@
         @include('procurement.schedule-of-works._form')
         <div class="flex flex-wrap gap-3">
             <button type="submit"
-                    class="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-slate-800">
+                    class="rounded-lg bg-brand px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-brand-hover">
                 Create &amp; Print
             </button>
             <a href="{{ route('schedule-of-works.index') }}"

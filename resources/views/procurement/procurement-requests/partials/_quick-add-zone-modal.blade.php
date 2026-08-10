@@ -26,7 +26,7 @@
                         Cancel
                     </button>
                     <button type="button" id="pr-add-zone-save"
-                            class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800">
+                            class="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-hover">
                         Save
                     </button>
                 </div>

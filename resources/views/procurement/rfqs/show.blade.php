@@ -17,7 +17,7 @@
         </div>
         <div class="flex flex-wrap gap-3">
             @if (auth()->user()->hasPermission('rfqs.update'))
-                <a href="{{ route('rfqs.edit', $rfq) }}" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">Edit</a>
+                <a href="{{ route('rfqs.edit', $rfq) }}" class="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover">Edit</a>
             @endif
             <a href="{{ route('rfqs.index') }}" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">Back</a>
             <button type="button" onclick="window.print()" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50">Print</button>
@@ -61,7 +61,7 @@
         @if ($canViewComparison && $rfq->vendorQuotations->count() > 0)
             <div class="mt-4 flex flex-wrap items-center gap-3 border-t border-emerald-200 pt-4">
                 <a href="{{ route('rfqs.comparison.show', $rfq) }}"
-                   class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">
+                   class="inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover">
                     Compare quotations
                 </a>
                 @if ($rfq->selectedVendorQuotation)

@@ -12,95 +12,105 @@
     <div class="min-h-full">
         <header class="border-b border-slate-200 bg-white print:hidden">
             <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
-                <nav class="flex flex-wrap items-center gap-4 text-sm" aria-label="Main">
+                <nav class="flex flex-wrap items-center gap-3 text-sm sm:gap-4" aria-label="Main">
+                    {{-- Lean top nav: ops shortcuts only. Master data & admin live on the dashboard. --}}
                     @if (request()->routeIs('dashboard'))
-                        <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Dashboard</span>
+                        <span class="admin-nav-link-active" aria-current="page">
+                            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>
+                            </svg>
+                            Dashboard
+                        </span>
                     @else
-                        <a href="{{ route('dashboard') }}"
-                           class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
+                        <a href="{{ route('dashboard') }}" class="admin-nav-link">
+                            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>
+                            </svg>
                             Dashboard
                         </a>
                     @endif
-                    @if (auth()->user()->hasPermission('vendors.view'))
-                        @if (request()->routeIs('vendors.index'))
-                            <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Vendors</span>
+                    @if (auth()->user()->hasPermission('procurement-requests.view'))
+                        @if (request()->routeIs('procurement-requests.*'))
+                            <span class="admin-nav-link-active" aria-current="page">
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+                                </svg>
+                                PR
+                            </span>
                         @else
-                            <a href="{{ route('vendors.index') }}"
-                               class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
-                                Vendors
-                            </a>
-                        @endif
-                    @endif
-                    @if (auth()->user()->hasPermission('categories.view'))
-                        @if (request()->routeIs('categories.index'))
-                            <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Categories</span>
-                        @else
-                            <a href="{{ route('categories.index') }}"
-                               class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
-                                Categories
+                            <a href="{{ route('procurement-requests.index') }}" class="admin-nav-link">
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+                                </svg>
+                                PR
                             </a>
                         @endif
                     @endif
                     @if (auth()->user()->hasPermission('rfqs.view') || auth()->user()->hasPermission('rfq-terms.view'))
-                        @if (request()->routeIs('rfqs.index'))
-                            <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">RFQs</span>
+                        @if (request()->routeIs('rfqs.*'))
+                            <span class="admin-nav-link-active" aria-current="page">
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"/>
+                                </svg>
+                                RFQs
+                            </span>
                         @else
-                            <a href="{{ route('rfqs.index') }}"
-                               class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
+                            <a href="{{ route('rfqs.index') }}" class="admin-nav-link">
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"/>
+                                </svg>
                                 RFQs
                             </a>
                         @endif
                     @endif
-                    @if (auth()->user()->hasPermission('locations.view'))
-                        @if (request()->routeIs('locations.index'))
-                            <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Locations</span>
+                    @if (auth()->user()->hasPermission('vendors.view'))
+                        @if (request()->routeIs('vendors.*'))
+                            <span class="admin-nav-link-active" aria-current="page">
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64M12 6.75V3m0 3.75A2.25 2.25 0 0114.25 9h1.5A2.25 2.25 0 0118 6.75V3m-6 3.75A2.25 2.25 0 009.75 9h-1.5A2.25 2.25 0 016 6.75V3"/>
+                                </svg>
+                                Vendors
+                            </span>
                         @else
-                            <a href="{{ route(\Illuminate\Support\Facades\Route::has('locations.index') ? 'locations.index' : (\Illuminate\Support\Facades\Route::has('countries.index') ? 'countries.index' : 'dashboard')) }}"
-                               class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
-                                Locations
-                            </a>
-                        @endif
-                    @endif
-                    @if (auth()->user()->hasPermission('users.view'))
-                        @if (request()->routeIs('users.index'))
-                            <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Users</span>
-                        @else
-                            <a href="{{ route('users.index') }}"
-                               class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
-                                Users
-                            </a>
-                        @endif
-                    @endif
-                    @if (auth()->user()->hasPermission('roles.view'))
-                        @if (request()->routeIs('roles.index'))
-                            <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Roles</span>
-                        @else
-                            <a href="{{ route('roles.index') }}"
-                               class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
-                                Roles
+                            <a href="{{ route('vendors.index') }}" class="admin-nav-link">
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64M12 6.75V3m0 3.75A2.25 2.25 0 0114.25 9h1.5A2.25 2.25 0 0118 6.75V3m-6 3.75A2.25 2.25 0 009.75 9h-1.5A2.25 2.25 0 016 6.75V3"/>
+                                </svg>
+                                Vendors
                             </a>
                         @endif
                     @endif
                     @if (auth()->user()->hasPermission('activity-logs.view'))
-                        @if (request()->routeIs('activity-logs.index'))
-                            <span class="inline-block cursor-default border-b-2 border-black px-2 pb-1 font-semibold text-slate-900" aria-current="page">Activity Log</span>
+                        @if (request()->routeIs('activity-logs.*'))
+                            <span class="admin-nav-link-active" aria-current="page">
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Activity
+                            </span>
                         @else
-                            <a href="{{ route('activity-logs.index') }}"
-                               class="inline-block border-b-2 border-transparent px-2 pb-1 font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900">
-                                Activity Log
+                            <a href="{{ route('activity-logs.index') }}" class="admin-nav-link">
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Activity
                             </a>
                         @endif
                     @endif
                 </nav>
-                <div class="flex shrink-0 items-center gap-3">
+                <div class="flex shrink-0 items-center gap-2">
                     <span class="hidden max-w-[12rem] truncate text-xs text-slate-500 sm:inline" title="{{ auth()->user()->name }}">{{ auth()->user()->name }}</span>
                     <form id="admin-logout-form" method="POST" action="{{ route('logout') }}" class="hidden">
                         @csrf
                     </form>
                     <button type="button"
                             id="admin-logout-open"
-                            class="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-600 shadow-sm transition hover:border-red-300 hover:bg-red-100 hover:text-red-700">
-                        Logout
+                            class="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-red-600/80"
+                            title="Logout">
+                        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/>
+                        </svg>
+                        <span class="hidden sm:inline">Logout</span>
                     </button>
                 </div>
             </div>

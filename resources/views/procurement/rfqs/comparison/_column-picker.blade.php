@@ -11,7 +11,7 @@
             <div class="flex flex-wrap gap-2">
                 <button type="button"
                         id="comparison-apply-btn"
-                        class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">
+                        class="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover">
                     Compare quotations
                 </button>
                 <button type="button"

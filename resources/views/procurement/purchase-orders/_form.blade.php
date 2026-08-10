@@ -283,7 +283,7 @@
                     Cancel
                 </button>
                 <button type="button" id="po-pr-import-confirm"
-                        class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                        class="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
                         disabled>
                     Import selected
                 </button>

@@ -12,7 +12,7 @@
             <a href="{{ route('dashboard') }}" class="text-sm font-medium text-slate-600 hover:text-slate-900">Dashboard</a>
             @if (auth()->user()->hasPermission('purchase-orders.create'))
                 <a href="{{ route('purchase-orders.create') }}"
-                   class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800">
+                   class="inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-hover">
                     Add Purchase Order
                 </a>
             @endif
@@ -47,7 +47,7 @@
             </div>
         </div>
         <div class="flex flex-wrap items-center gap-3">
-            <button type="submit" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">Apply</button>
+            <button type="submit" class="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover">Apply</button>
             <a href="{{ route('purchase-orders.index') }}" class="text-sm font-medium text-slate-600 hover:text-slate-900">Reset</a>
         </div>
     </form>
