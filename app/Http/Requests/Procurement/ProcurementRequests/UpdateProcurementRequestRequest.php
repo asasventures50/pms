@@ -127,7 +127,12 @@ class UpdateProcurementRequestRequest extends FormRequest
             'approvals.*.signature' => ['nullable', 'string', 'max:255'],
             'approvals.*.signed_at' => ['nullable', 'date'],
             'supporting_document_rows' => ['nullable', 'array'],
-            'supporting_document_rows.*.file' => ['nullable', 'file', 'max:512000', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp,zip,rar'],
+            'supporting_document_rows.*.file' => [
+                'nullable',
+                'file',
+                'max:512000',
+                'extensions:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp,zip,rar,dwg,dxf,step,stp,iges,igs,stl',
+            ],
             'supporting_document_rows.*.document_type' => ['nullable', 'string', 'max:255'],
             'supporting_document_rows.*.file_description' => ['nullable', 'string', 'max:2000'],
             'supporting_document_rows.*.url' => ['nullable', 'string', 'url', 'max:2000'],

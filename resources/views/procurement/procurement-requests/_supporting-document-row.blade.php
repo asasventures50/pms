@@ -14,7 +14,7 @@
     <div class="sm:col-span-3">
         <label class="block text-xs text-slate-500">File</label>
         <input type="file" name="supporting_document_rows[{{ $index }}][file]" data-name="file"
-               accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp,.zip,.rar"
+               accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp,.zip,.rar,.dwg,.dxf,.step,.stp,.iges,.igs,.stl"
                class="mt-1 block w-full text-sm text-slate-700 file:mr-2 file:rounded-md file:border-0 file:bg-slate-900 file:px-2 file:py-1 file:text-xs file:text-white">
     </div>
     <div class="sm:col-span-3">
