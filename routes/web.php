@@ -187,6 +187,10 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('permission:vendors.view')
         ->name('vendors.export');
 
+    Route::get('/vendors/duplicates', [VendorWebController::class, 'duplicates'])
+        ->middleware('permission:vendors.view')
+        ->name('vendors.duplicates');
+
     Route::get('/vendors/import', [VendorWebController::class, 'importForm'])
         ->middleware('permission:vendors.create')
         ->name('vendors.import.form');

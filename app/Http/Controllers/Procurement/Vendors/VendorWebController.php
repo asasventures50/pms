@@ -14,6 +14,7 @@ use App\Models\Procurement\Vendors\Category;
 use App\Models\Procurement\Vendors\Subcategory;
 use App\Models\Procurement\Vendors\Vendor;
 use App\Services\Procurement\Vendors\VendorCodeGenerator;
+use App\Services\Procurement\Vendors\VendorDuplicateFinder;
 use App\Services\Procurement\Vendors\VendorListQuery;
 use App\Services\Procurement\Vendors\VendorPayloadResolver;
 use App\Services\Procurement\Vendors\VendorPersistenceService;
@@ -29,7 +30,8 @@ class VendorWebController extends Controller
 {
     public function __construct(
         protected VendorPersistenceService $persistence,
-        protected VendorListQuery $listQuery
+        protected VendorListQuery $listQuery,
+        protected VendorDuplicateFinder $duplicateFinder
     ) {}
 
     public function index(Request $request): View
@@ -144,6 +146,25 @@ class VendorWebController extends Controller
             new VendorsExport($this->listQuery->filtered($request)),
             $filename
         );
+    }
+
+    public function duplicates(Request $request): View
+    {
+        $matchType = (string) $request->query('by', VendorDuplicateFinder::MATCH_PHONE);
+        $groups = $this->duplicateFinder->groups($matchType);
+        $vendorCount = collect($groups)->sum(fn (array $g) => $g['vendors']->count());
+
+        return view('procurement.vendors.duplicates', [
+            'matchType' => in_array($matchType, [
+                VendorDuplicateFinder::MATCH_PHONE,
+                VendorDuplicateFinder::MATCH_EMAIL,
+                VendorDuplicateFinder::MATCH_NAME,
+            ], true) ? $matchType : VendorDuplicateFinder::MATCH_PHONE,
+            'groups' => $groups,
+            'groupCount' => count($groups),
+            'vendorCount' => $vendorCount,
+            'canDelete' => $request->user()?->hasPermission('vendors.delete') ?? false,
+        ]);
     }
 
     public function importForm(): View
@@ -365,7 +386,12 @@ class VendorWebController extends Controller
         }
 
         $path = parse_url($return, PHP_URL_PATH);
-        if ($path !== parse_url(route('vendors.index'), PHP_URL_PATH)) {
+        $allowed = [
+            parse_url(route('vendors.index'), PHP_URL_PATH),
+            parse_url(route('vendors.duplicates'), PHP_URL_PATH),
+        ];
+
+        if (! in_array($path, $allowed, true)) {
             return null;
         }
 
