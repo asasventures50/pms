@@ -228,12 +228,211 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
 
-        function addRow() {
+        function addRow(options) {
+            const scrollIntoView = ! options || options.scrollIntoView !== false;
             const row = template.content.firstElementChild.cloneNode(true);
             linesBody.appendChild(row);
             bindRow(row);
             reindexRows();
-            row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            if (scrollIntoView) {
+                row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+            return row;
+        }
+
+        function setRowPrItem(row, prItemId) {
+            const select = row.querySelector('.rfq-pr-item-select');
+            if (! select) {
+                return;
+            }
+            fillSelectOptions(select, row, prItemId);
+            select.value = String(prItemId);
+            applyPrItem(row);
+        }
+
+        function firstEmptyRow() {
+            return Array.from(linesBody.querySelectorAll('.rfq-line-row')).find(function (row) {
+                const value = row.querySelector('.rfq-pr-item-select')?.value;
+                return ! value;
+            }) || null;
+        }
+
+        function addRowsForPrItemIds(ids) {
+            const uniqueIds = [];
+            const seen = {};
+            (ids || []).forEach(function (id) {
+                const key = String(id);
+                if (! key || seen[key] || ! optionById(key) || selectedPrItemIds().includes(key)) {
+                    return;
+                }
+                seen[key] = true;
+                uniqueIds.push(key);
+            });
+
+            if (uniqueIds.length === 0) {
+                return;
+            }
+
+            uniqueIds.forEach(function (id, index) {
+                let row = null;
+                if (index === 0) {
+                    row = firstEmptyRow();
+                }
+                if (! row) {
+                    row = addRow({ scrollIntoView: false });
+                }
+                setRowPrItem(row, id);
+            });
+
+            reindexRows();
+            const lastRow = linesBody.querySelector('.rfq-line-row:last-child');
+            lastRow?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        const bulkModal = document.getElementById('rfq-bulk-picker-modal');
+        const bulkOpenBtn = document.getElementById('rfq-open-bulk-picker');
+        const bulkBody = document.getElementById('rfq-bulk-picker-body');
+        const bulkEmpty = document.getElementById('rfq-bulk-picker-empty');
+        const bulkTable = document.getElementById('rfq-bulk-picker-table');
+        const bulkSelectAll = document.getElementById('rfq-bulk-picker-select-all');
+        const bulkFilter = document.getElementById('rfq-bulk-picker-filter');
+        const bulkConfirm = document.getElementById('rfq-bulk-picker-confirm');
+        const bulkCount = document.getElementById('rfq-bulk-picker-count');
+
+        function closeBulkPicker() {
+            if (! bulkModal) {
+                return;
+            }
+            bulkModal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        function updateBulkPickerSelectionState() {
+            if (! bulkBody) {
+                return;
+            }
+
+            const visibleBoxes = Array.from(bulkBody.querySelectorAll('tr:not(.hidden) input[type="checkbox"][data-rfq-bulk-id]'));
+            const checkedVisible = visibleBoxes.filter(function (cb) { return cb.checked; });
+            const anyChecked = bulkBody.querySelectorAll('input[type="checkbox"][data-rfq-bulk-id]:checked').length;
+
+            if (bulkSelectAll) {
+                bulkSelectAll.checked = visibleBoxes.length > 0 && checkedVisible.length === visibleBoxes.length;
+                bulkSelectAll.indeterminate = checkedVisible.length > 0 && checkedVisible.length < visibleBoxes.length;
+            }
+
+            if (bulkConfirm) {
+                bulkConfirm.disabled = anyChecked === 0;
+            }
+
+            if (bulkCount) {
+                bulkCount.textContent = anyChecked + ' selected';
+            }
+        }
+
+        function applyBulkPickerFilter() {
+            if (! bulkBody) {
+                return;
+            }
+
+            const query = (bulkFilter?.value || '').trim().toLowerCase();
+            let visibleCount = 0;
+
+            bulkBody.querySelectorAll('tr[data-rfq-bulk-row]').forEach(function (tr) {
+                const haystack = (tr.getAttribute('data-search') || '').toLowerCase();
+                const match = query === '' || haystack.includes(query);
+                tr.classList.toggle('hidden', ! match);
+                if (match) {
+                    visibleCount += 1;
+                }
+            });
+
+            if (bulkEmpty && bulkTable) {
+                const hasAnyRows = bulkBody.querySelectorAll('tr[data-rfq-bulk-row]').length > 0;
+                bulkEmpty.classList.toggle('hidden', hasAnyRows && visibleCount > 0);
+                bulkEmpty.textContent = hasAnyRows
+                    ? 'No PR items match this filter.'
+                    : 'No available PR items left to add.';
+                bulkTable.classList.toggle('hidden', ! hasAnyRows || visibleCount === 0);
+            }
+
+            updateBulkPickerSelectionState();
+        }
+
+        function renderBulkPickerRows() {
+            if (! bulkBody) {
+                return;
+            }
+
+            const taken = selectedPrItemIds();
+            bulkBody.innerHTML = '';
+
+            prOptions.forEach(function (opt) {
+                const id = String(opt.id);
+                if (taken.includes(id)) {
+                    return;
+                }
+
+                const tr = document.createElement('tr');
+                tr.setAttribute('data-rfq-bulk-row', '1');
+                tr.setAttribute('data-search', [
+                    opt.pr_number,
+                    opt.item,
+                    opt.project,
+                    opt.zone,
+                    opt.category,
+                    opt.subcategory,
+                    opt.description,
+                    opt.label,
+                ].filter(Boolean).join(' '));
+
+                const checkTd = document.createElement('td');
+                checkTd.className = 'py-2 pr-2 align-top';
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'rounded border-slate-300';
+                checkbox.setAttribute('data-rfq-bulk-id', id);
+                checkbox.addEventListener('change', updateBulkPickerSelectionState);
+                checkTd.appendChild(checkbox);
+                tr.appendChild(checkTd);
+
+                [
+                    [opt.pr_number || '—', 'py-2 pr-3 align-top font-mono text-slate-800'],
+                    [opt.item || '—', 'py-2 pr-3 align-top font-mono text-slate-800'],
+                    [opt.project || '—', 'py-2 pr-3 align-top text-slate-700'],
+                    [opt.description || '—', 'py-2 align-top text-slate-700'],
+                ].forEach(function (pair, colIndex) {
+                    const td = document.createElement('td');
+                    td.className = pair[1];
+                    td.textContent = pair[0];
+                    if (colIndex === 3) {
+                        td.setAttribute('dir', 'auto');
+                    }
+                    tr.appendChild(td);
+                });
+
+                bulkBody.appendChild(tr);
+            });
+
+            if (bulkFilter) {
+                bulkFilter.value = '';
+            }
+            if (bulkSelectAll) {
+                bulkSelectAll.checked = false;
+                bulkSelectAll.indeterminate = false;
+            }
+
+            applyBulkPickerFilter();
+        }
+
+        function openBulkPicker() {
+            if (! bulkModal) {
+                return;
+            }
+            renderBulkPickerRows();
+            bulkModal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+            bulkFilter?.focus();
         }
 
         linesBody.querySelectorAll('.rfq-line-row').forEach(function (row) {
@@ -242,7 +441,38 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         reindexRows();
 
-        addBtn?.addEventListener('click', addRow);
+        addBtn?.addEventListener('click', function () {
+            addRow();
+        });
+
+        bulkOpenBtn?.addEventListener('click', openBulkPicker);
+
+        document.querySelectorAll('[data-rfq-bulk-picker-dismiss]').forEach(function (el) {
+            el.addEventListener('click', closeBulkPicker);
+        });
+
+        bulkSelectAll?.addEventListener('change', function () {
+            const checked = bulkSelectAll.checked;
+            bulkBody?.querySelectorAll('tr:not(.hidden) input[type="checkbox"][data-rfq-bulk-id]').forEach(function (cb) {
+                cb.checked = checked;
+            });
+            updateBulkPickerSelectionState();
+        });
+
+        bulkFilter?.addEventListener('input', applyBulkPickerFilter);
+
+        bulkConfirm?.addEventListener('click', function () {
+            const ids = Array.from(bulkBody?.querySelectorAll('input[type="checkbox"][data-rfq-bulk-id]:checked') || [])
+                .map(function (cb) { return cb.getAttribute('data-rfq-bulk-id'); });
+            addRowsForPrItemIds(ids);
+            closeBulkPicker();
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && bulkModal && ! bulkModal.classList.contains('hidden')) {
+                closeBulkPicker();
+            }
+        });
     }
 
     const generalTermsList = document.getElementById('rfq-general-terms-list');
