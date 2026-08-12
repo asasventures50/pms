@@ -51,6 +51,21 @@
             page-break-inside: auto;
         }
 
+        .po-scope-of-work__entry {
+            break-inside: avoid-page;
+            page-break-inside: avoid;
+        }
+
+        .po-scope-of-work__entry .po-field-label {
+            break-after: avoid-page;
+            page-break-after: avoid;
+        }
+
+        .po-scope-of-work__entry .po-field-value {
+            break-inside: avoid-page;
+            page-break-inside: avoid;
+        }
+
         .po-section-title {
             break-after: avoid-page;
             page-break-after: avoid;
@@ -365,17 +380,12 @@
 
     .po-items-table col.col-item,
     .po-items-table .col-item {
-        width: 12%;
+        width: 14%;
     }
 
     .po-items-table col.col-desc,
     .po-items-table .col-desc {
-        width: 32%;
-    }
-
-    .po-items-table col.col-scope,
-    .po-items-table .col-scope {
-        width: 16%;
+        width: 46%;
     }
 
     .po-items-table col.col-qty,
@@ -390,12 +400,27 @@
 
     .po-items-table col.col-price,
     .po-items-table .col-price {
-        width: 10%;
+        width: 12%;
     }
 
     .po-items-table col.col-total,
     .po-items-table .col-total {
         width: 12%;
+    }
+
+    .po-scope-of-work {
+        margin-top: 4px;
+        margin-bottom: 14px;
+    }
+
+    .po-scope-of-work__entry {
+        box-sizing: border-box;
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .po-scope-of-work__entry:last-child {
+        margin-bottom: 0;
     }
 
     .po-items-table .po-thead-meta th {
