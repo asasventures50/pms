@@ -14,6 +14,7 @@ use App\Http\Controllers\LandingController;
 use App\Http\Controllers\Procurement\Catalog\CategoryQuickStoreController;
 use App\Http\Controllers\Procurement\Catalog\SubcategoryQuickStoreController;
 use App\Http\Controllers\Procurement\Categories\CategoryController;
+use App\Http\Controllers\Procurement\Categories\CategoryRebuildImportController;
 use App\Http\Controllers\Procurement\Invoices\InvoiceController;
 use App\Http\Controllers\Procurement\ProcurementRequests\ProcurementRequestController;
 use App\Http\Controllers\Procurement\ProcurementRequests\ProcurementRequestFlowController;
@@ -108,6 +109,22 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/categories/import', [CategoryController::class, 'import'])
         ->middleware('permission:categories.import')
         ->name('categories.import');
+
+    Route::post('/categories/import/rebuild/preview', [CategoryRebuildImportController::class, 'preview'])
+        ->middleware('permission:categories.import')
+        ->name('categories.import.rebuild.preview');
+
+    Route::get('/categories/import/rebuild', [CategoryRebuildImportController::class, 'show'])
+        ->middleware('permission:categories.import')
+        ->name('categories.import.rebuild');
+
+    Route::post('/categories/import/rebuild', [CategoryRebuildImportController::class, 'apply'])
+        ->middleware('permission:categories.import')
+        ->name('categories.import.rebuild.apply');
+
+    Route::delete('/categories/import/rebuild', [CategoryRebuildImportController::class, 'cancel'])
+        ->middleware('permission:categories.import')
+        ->name('categories.import.rebuild.cancel');
 
     Route::get('/categories/subcategories/{subcategory}/move-preview', [CategoryController::class, 'movePreview'])
         ->middleware('permission:categories.update')
