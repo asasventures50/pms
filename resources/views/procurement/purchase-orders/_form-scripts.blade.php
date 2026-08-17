@@ -829,6 +829,56 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function paymentTermRowHasContent(row) {
+        const milestone = (row.querySelector('.po-payment-term-milestone')?.value || '').trim();
+        const notes = (row.querySelector('.po-payment-term-notes')?.value || '').trim();
+        const percentage = (row.querySelector('.po-payment-term-percentage')?.value || '').trim();
+        const amount = (row.querySelector('.po-payment-term-amount')?.value || '').trim();
+
+        return milestone !== '' || notes !== '' || percentage !== '' || amount !== '';
+    }
+
+    function validatePaymentTermNames() {
+        if (!paymentTermsBody) {
+            return true;
+        }
+
+        let valid = true;
+        const seen = {};
+        const hint = document.getElementById('po-payment-term-name-error');
+
+        paymentTermsBody.querySelectorAll('.po-payment-term-row').forEach(function (row) {
+            const input = row.querySelector('.po-payment-term-milestone');
+            if (!input) {
+                return;
+            }
+            input.classList.remove('border-red-500');
+            if (!paymentTermRowHasContent(row)) {
+                return;
+            }
+            const name = (input.value || '').trim();
+            if (name === '') {
+                input.classList.add('border-red-500');
+                valid = false;
+                return;
+            }
+            const key = name.toLowerCase();
+            if (seen[key]) {
+                input.classList.add('border-red-500');
+                seen[key].classList.add('border-red-500');
+                valid = false;
+            } else {
+                seen[key] = input;
+            }
+        });
+
+        if (hint) {
+            hint.classList.toggle('hidden', valid);
+        }
+
+        return valid;
+    }
+
     function bindPaymentTermRow(row) {
         const milestone = row.querySelector('.po-payment-term-milestone');
         const notesInput = row.querySelector('.po-payment-term-notes');
@@ -839,16 +889,19 @@ document.addEventListener('DOMContentLoaded', function () {
             applyBilingualDirection(field);
             field.addEventListener('input', function () {
                 applyBilingualDirection(field);
+                validatePaymentTermNames();
             });
         });
 
         row.querySelector('.po-payment-term-percentage')?.addEventListener('input', function () {
             syncPaymentTermRow(row, 'percentage');
             updatePaymentTermTotals();
+            validatePaymentTermNames();
         });
         row.querySelector('.po-payment-term-amount')?.addEventListener('input', function () {
             syncPaymentTermRow(row, 'amount');
             updatePaymentTermTotals();
+            validatePaymentTermNames();
         });
         row.querySelector('.po-payment-term-select')?.addEventListener('change', updatePaymentTermSelectState);
 
@@ -870,11 +923,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     notesInput.value = '';
                 }
                 updatePaymentTermTotals();
+                validatePaymentTermNames();
                 return;
             }
             row.remove();
             reindexPaymentTermRows();
             updatePaymentTermTotals();
+            validatePaymentTermNames();
         });
     }
 
@@ -1047,6 +1102,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     paymentTermsBody?.querySelectorAll('.po-payment-term-row').forEach(bindPaymentTermRow);
     updatePaymentTermTotals();
+
+    paymentTermsBody?.closest('form')?.addEventListener('submit', function (event) {
+        if (!validatePaymentTermNames()) {
+            event.preventDefault();
+            document.getElementById('po-payment-terms-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
 
     document.getElementById('po-create-selected-invoices')?.addEventListener('click', function () {
         const ids = selectedPaymentTermIds();

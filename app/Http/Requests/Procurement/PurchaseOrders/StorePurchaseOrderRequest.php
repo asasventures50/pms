@@ -5,6 +5,7 @@ namespace App\Http\Requests\Procurement\PurchaseOrders;
 use App\Enums\Procurement\PurchaseOrders\PaymentStatus;
 use App\Enums\Procurement\PurchaseOrders\PurchaseOrderStatus;
 use App\Enums\Procurement\Rfqs\RfqTermsLocale;
+use App\Http\Requests\Procurement\PurchaseOrders\Concerns\ValidatesPurchaseOrderPaymentTermRows;
 use App\Http\Requests\Procurement\PurchaseOrders\Concerns\ValidatesPurchaseOrderVendorFields;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -12,6 +13,7 @@ use Illuminate\Validation\Rule;
 class StorePurchaseOrderRequest extends FormRequest
 {
     use ValidatesPurchaseOrderVendorFields;
+    use ValidatesPurchaseOrderPaymentTermRows;
     public function authorize(): bool
     {
         return $this->user()?->hasPermission('purchase-orders.create') ?? false;

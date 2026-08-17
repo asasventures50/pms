@@ -22,8 +22,11 @@
         <input type="text" @unless($locked) name="payment_term_rows[{{ $index }}][milestone]" @endunless
                value="{{ $row['milestone'] ?? '' }}"
                data-name="milestone"
-               class="po-bilingual-text po-payment-term-milestone admin-filter-control w-full min-w-[12rem]"
+               class="po-bilingual-text po-payment-term-milestone admin-filter-control w-full min-w-[12rem] @error('payment_term_rows.'.$index.'.milestone') border-red-500 @enderror"
                @disabled($locked)>
+        @error('payment_term_rows.'.$index.'.milestone')
+            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+        @enderror
     </td>
     <td class="px-2 py-2">
         @if ($locked)

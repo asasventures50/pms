@@ -35,7 +35,7 @@
         </label>
     </div>
     <p class="mt-0.5 text-xs text-slate-500">
-        Imported from the linked P.R. when you import lines. Enter a percentage to fill the amount from the P.O. total, or enter an amount to fill the percentage. Uncheck to omit from the printed P.O.
+        Imported from the linked P.R. when you import lines. Each payment term name is required and must be unique in this table. Enter a percentage to fill the amount from the P.O. total, or enter an amount to fill the percentage. Uncheck to omit from the printed P.O.
     </p>
 
     <div class="mt-3 overflow-x-auto">
@@ -43,7 +43,7 @@
             <thead class="text-xs font-semibold uppercase tracking-wide text-slate-500">
             <tr>
                 <th class="px-2 py-2 print:hidden w-8"></th>
-                <th class="px-2 py-2">Payment term</th>
+                <th class="px-2 py-2">Payment term <span class="text-red-600">*</span></th>
                 <th class="px-2 py-2">Percentage (%)</th>
                 <th class="px-2 py-2">Amount</th>
                 <th class="px-2 py-2">Note</th>
@@ -75,6 +75,10 @@
             </tfoot>
         </table>
     </div>
+    <p id="po-payment-term-name-error"
+       class="mt-2 text-sm text-red-600 @if (! collect($errors->keys())->contains(fn ($key) => preg_match('/^payment_term_rows\.\d+\.milestone$/', $key))) hidden @endif">
+        Each payment term is required and must be unique in this table.
+    </p>
 
     <div class="mt-2 flex flex-wrap items-center gap-2">
         <button type="button" id="po-add-payment-term"
