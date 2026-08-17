@@ -10,6 +10,7 @@ use App\Models\Procurement\ProcurementRequests\ProcurementRequest;
 use App\Models\Procurement\Vendors\Vendor;
 use App\Models\User;
 use App\Services\Procurement\PurchaseOrders\VendorPurchaseOrderSnapshot;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -153,6 +154,11 @@ class PurchaseOrder extends Model
         return $this->hasMany(PurchaseOrderItem::class)->orderBy('sort_order');
     }
 
+    public function paymentTermRows(): HasMany
+    {
+        return $this->hasMany(PurchaseOrderPaymentTerm::class)->orderBy('sort_order')->orderBy('id');
+    }
+
     public function invoices(): BelongsToMany
     {
         return $this->belongsToMany(Invoice::class, 'invoice_purchase_orders')
@@ -176,6 +182,35 @@ class PurchaseOrder extends Model
         $currency = $this->displayCurrency();
 
         return $currency ? "{$formatted} {$currency}" : $formatted;
+    }
+
+    /**
+     * @return Collection<int, PurchaseOrderPaymentTerm>
+     */
+    public function printablePaymentTermRows(): Collection
+    {
+        $this->loadMissing('paymentTermRows');
+
+        return $this->paymentTermRows
+            ->filter(function (PurchaseOrderPaymentTerm $row) {
+                return trim((string) $row->milestone) !== ''
+                    || $row->percentage !== null
+                    || $row->amount !== null;
+            })
+            ->values();
+    }
+
+    public function shouldPrintPaymentTerms(): bool
+    {
+        if (! $this->show_payment_terms) {
+            return false;
+        }
+
+        if ($this->printablePaymentTermRows()->isNotEmpty()) {
+            return true;
+        }
+
+        return trim((string) ($this->payment_terms ?? '')) !== '';
     }
 
     /**

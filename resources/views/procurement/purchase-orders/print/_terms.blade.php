@@ -5,8 +5,9 @@
 
     $termsLocale = $termsLocale ?? $printLabels->locale();
     $termsRtl = $termsLocale === 'ar';
+    $structuredTerms = $purchaseOrder->printablePaymentTermRows();
     $paymentTermsText = trim((string) ($purchaseOrder->payment_terms ?? ''));
-    $showPaymentTerms = $purchaseOrder->show_payment_terms && $paymentTermsText !== '';
+    $showPaymentTerms = $purchaseOrder->show_payment_terms && ($structuredTerms->isNotEmpty() || $paymentTermsText !== '');
     $paymentTermsRtl = $paymentTermsText !== '' && TextDirection::isRtl($paymentTermsText);
     $notesText = trim((string) ($purchaseOrder->notes ?? ''));
     $notesRtl = $notesText !== '' && TextDirection::isRtl($notesText);
@@ -34,10 +35,36 @@
 @endif
 
 @if ($showPaymentTerms)
-    <div class="po-field-block">
+    @if ($structuredTerms->isNotEmpty())
         <div class="po-field-label">{{ $printLabels->t('payment_terms') }}</div>
-        <div class="po-field-value" @if ($paymentTermsRtl) dir="rtl" lang="ar" @endif>{{ $paymentTermsText }}</div>
-    </div>
+        <table class="po-items-table pr-items-table pr-compact-table">
+            <thead>
+            <tr>
+                <th>{{ $printLabels->t('payment_term_condition') }}</th>
+                <th>{{ $printLabels->t('payment_term_percent') }}</th>
+                <th>{{ $printLabels->t('payment_term_amount') }}</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach ($structuredTerms as $term)
+                @php
+                    $milestone = trim((string) $term->milestone);
+                    $milestoneRtl = $milestone !== '' && TextDirection::isRtl($milestone);
+                @endphp
+                <tr>
+                    <td @if ($milestoneRtl) dir="rtl" lang="ar" @endif>{{ $milestone !== '' ? $milestone : $printLabels->t('em_dash') }}</td>
+                    <td>{{ $term->percentage !== null ? rtrim(rtrim(number_format((float) $term->percentage, 2), '0'), '.').'%' : $printLabels->t('em_dash') }}</td>
+                    <td>{{ $term->amount !== null ? $purchaseOrder->formatMoneyAmount($term->amount) : $printLabels->t('em_dash') }}</td>
+                </tr>
+            @endforeach
+            </tbody>
+        </table>
+    @else
+        <div class="po-field-block">
+            <div class="po-field-label">{{ $printLabels->t('payment_terms') }}</div>
+            <div class="po-field-value" @if ($paymentTermsRtl) dir="rtl" lang="ar" @endif>{{ $paymentTermsText }}</div>
+        </div>
+    @endif
 @endif
 
 @include('procurement.purchase-orders.print._commercial-terms', ['purchaseOrder' => $purchaseOrder])

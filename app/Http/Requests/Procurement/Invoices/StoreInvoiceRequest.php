@@ -4,6 +4,7 @@ namespace App\Http\Requests\Procurement\Invoices;
 
 use App\Models\Procurement\Invoices\Invoice;
 use App\Models\Procurement\PurchaseOrders\PurchaseOrderItem;
+use App\Models\Procurement\PurchaseOrders\PurchaseOrderPaymentTerm;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -20,14 +21,28 @@ class StoreInvoiceRequest extends FormRequest
         return $this->input('source') === Invoice::SOURCE_MANUAL;
     }
 
+    public function isPaymentTermSource(): bool
+    {
+        return $this->input('source') === Invoice::SOURCE_PO_PAYMENT_TERM;
+    }
+
     /**
      * @return array<string, mixed>
      */
     public function rules(): array
     {
         return [
-            'source' => ['required', 'string', Rule::in([Invoice::SOURCE_PURCHASE_ORDER, Invoice::SOURCE_MANUAL])],
-            'purchase_order_ids' => ['required_if:source,'.Invoice::SOURCE_PURCHASE_ORDER, 'array', 'min:1'],
+            'source' => ['required', 'string', Rule::in([
+                Invoice::SOURCE_PURCHASE_ORDER,
+                Invoice::SOURCE_PO_PAYMENT_TERM,
+                Invoice::SOURCE_MANUAL,
+            ])],
+            'purchase_order_ids' => [
+                'required_if:source,'.Invoice::SOURCE_PURCHASE_ORDER,
+                'required_if:source,'.Invoice::SOURCE_PO_PAYMENT_TERM,
+                'array',
+                'min:1',
+            ],
             'purchase_order_ids.*' => ['integer', 'distinct', 'exists:purchase_orders,id'],
             'manual_po_number' => ['nullable', 'string', 'max:500'],
             'manual_vendor_name' => ['nullable', 'string', 'max:255'],
@@ -36,8 +51,18 @@ class StoreInvoiceRequest extends FormRequest
             'project_manager_name' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'array'],
             'notes.*' => ['nullable', 'string', 'max:2000'],
-            'purchase_order_item_ids' => ['required_if:source,'.Invoice::SOURCE_PURCHASE_ORDER, 'array', 'min:1'],
+            'purchase_order_item_ids' => [
+                Rule::requiredIf(fn () => $this->input('source') === Invoice::SOURCE_PURCHASE_ORDER),
+                'array',
+                'min:1',
+            ],
             'purchase_order_item_ids.*' => ['integer', 'distinct'],
+            'po_payment_term_ids' => [
+                'required_if:source,'.Invoice::SOURCE_PO_PAYMENT_TERM,
+                'nullable',
+                'array',
+            ],
+            'po_payment_term_ids.*' => ['integer', 'distinct', 'exists:purchase_order_payment_terms,id'],
             'purchase_order_item_zones' => ['nullable', 'array'],
             'purchase_order_item_zones.*' => ['nullable', 'string', 'max:255'],
             'purchase_order_item_margins' => ['nullable', 'array'],
@@ -73,6 +98,47 @@ class StoreInvoiceRequest extends FormRequest
             }
 
             if ($this->isManualSource()) {
+                return;
+            }
+
+            if ($this->isPaymentTermSource()) {
+                $termIds = collect($this->input('po_payment_term_ids', []))
+                    ->map(fn ($id) => (int) $id)
+                    ->filter()
+                    ->unique()
+                    ->values();
+                $purchaseOrderIds = collect($this->input('purchase_order_ids', []))
+                    ->map(fn ($id) => (int) $id)
+                    ->unique()
+                    ->values();
+
+                if ($termIds->isEmpty()) {
+                    $validator->errors()->add('po_payment_term_ids', 'Select at least one payment term.');
+
+                    return;
+                }
+
+                $terms = PurchaseOrderPaymentTerm::query()
+                    ->whereIn('id', $termIds)
+                    ->get();
+
+                if ($terms->count() !== $termIds->count()) {
+                    $validator->errors()->add('po_payment_term_ids', 'One or more payment terms were not found.');
+
+                    return;
+                }
+
+                if ($terms->contains(fn ($term) => $term->invoice_id !== null)) {
+                    $validator->errors()->add('po_payment_term_ids', 'A selected payment term is already linked to an invoice.');
+
+                    return;
+                }
+
+                $termPoIds = $terms->pluck('purchase_order_id')->unique()->values();
+                if ($termPoIds->count() !== 1 || $purchaseOrderIds->diff($termPoIds)->isNotEmpty() || $termPoIds->diff($purchaseOrderIds)->isNotEmpty()) {
+                    $validator->errors()->add('po_payment_term_ids', 'Payment terms must belong to the selected purchase order.');
+                }
+
                 return;
             }
 

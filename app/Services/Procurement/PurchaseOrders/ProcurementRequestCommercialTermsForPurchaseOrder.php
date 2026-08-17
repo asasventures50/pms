@@ -11,6 +11,7 @@ class ProcurementRequestCommercialTermsForPurchaseOrder
     /**
      * @return array{
      *     payment_terms: string,
+     *     payment_term_rows: list<array{milestone: string, percentage: float|string|null, amount: float|null}>,
      *     retentions: list<array{retention_percent: float|string|null, release_period: string|null}>,
      *     after_sale_service_applicable: bool|null,
      *     warranty_years: float|string|null,
@@ -40,18 +41,49 @@ class ProcurementRequestCommercialTermsForPurchaseOrder
             || ($warrantyYears !== null && $warrantyYears !== '')
             || $warrantyCoverage !== '';
 
+        $paymentTermRows = $this->paymentTermRows($procurementRequest);
         $paymentTerms = $this->formatPaymentTerms($procurementRequest);
 
         return [
             'payment_terms' => $paymentTerms,
+            'payment_term_rows' => $paymentTermRows,
             'retentions' => $retentions,
             'after_sale_service_applicable' => $procurementRequest->after_sale_service_applicable,
             'warranty_years' => ($warrantyYears === null || $warrantyYears === '') ? null : $warrantyYears,
             'warranty_coverage' => $warrantyCoverage !== '' ? $warrantyCoverage : null,
-            'has_payment_terms' => $paymentTerms !== '',
+            'has_payment_terms' => $paymentTermRows !== [] || $paymentTerms !== '',
             'has_retention' => $this->hasRetentionRows($retentions),
             'has_maintenance' => $hasMaintenance,
         ];
+    }
+
+    /**
+     * @return list<array{milestone: string, percentage: float|string|null, amount: null}>
+     */
+    public function paymentTermRows(ProcurementRequest $procurementRequest): array
+    {
+        $procurementRequest->loadMissing('paymentTerms');
+
+        return $procurementRequest->paymentTerms
+            ->sortBy(['sort_order', 'id'])
+            ->values()
+            ->map(function (ProcurementRequestPaymentTerm $row) {
+                $milestone = $this->formatPaymentTermLine($row);
+                $percentage = $row->percentage;
+
+                if ($milestone === '' && ($percentage === null || $percentage === '')) {
+                    return null;
+                }
+
+                return [
+                    'milestone' => $milestone,
+                    'percentage' => ($percentage === null || $percentage === '') ? null : $percentage,
+                    'amount' => null,
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
     }
 
     public function formatPaymentTerms(ProcurementRequest $procurementRequest): string

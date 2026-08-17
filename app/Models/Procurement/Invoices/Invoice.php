@@ -4,11 +4,13 @@ namespace App\Models\Procurement\Invoices;
 
 use App\Models\Concerns\LogsActivity;
 use App\Models\Procurement\PurchaseOrders\PurchaseOrder;
+use App\Models\Procurement\PurchaseOrders\PurchaseOrderPaymentTerm;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class Invoice extends Model
 {
@@ -17,6 +19,8 @@ class Invoice extends Model
     protected static string $activityLogKey = 'invoice';
 
     public const SOURCE_PURCHASE_ORDER = 'purchase_order';
+
+    public const SOURCE_PO_PAYMENT_TERM = 'po_payment_term';
 
     public const SOURCE_MANUAL = 'manual';
 
@@ -79,6 +83,11 @@ class Invoice extends Model
         return $this->hasMany(InvoiceItem::class)->orderBy('sort_order')->orderBy('line_number');
     }
 
+    public function purchaseOrderPaymentTerms(): HasMany
+    {
+        return $this->hasMany(PurchaseOrderPaymentTerm::class);
+    }
+
     public function isManual(): bool
     {
         return $this->source === self::SOURCE_MANUAL;
@@ -86,7 +95,30 @@ class Invoice extends Model
 
     public function isFromPurchaseOrder(): bool
     {
-        return $this->source === self::SOURCE_PURCHASE_ORDER;
+        return in_array($this->source, [self::SOURCE_PURCHASE_ORDER, self::SOURCE_PO_PAYMENT_TERM], true);
+    }
+
+    public function isFromPaymentTerm(): bool
+    {
+        return $this->source === self::SOURCE_PO_PAYMENT_TERM;
+    }
+
+    public function hasSignedDocument(): bool
+    {
+        return trim((string) ($this->signed_document_path ?? '')) !== '';
+    }
+
+    public function signedDocumentUrl(): ?string
+    {
+        if (! $this->hasSignedDocument()) {
+            return null;
+        }
+
+        try {
+            return Storage::disk('s3')->url($this->signed_document_path);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     public function displayCurrency(): ?string
@@ -111,6 +143,69 @@ class Invoice extends Model
     public function linesSubtotal(): float
     {
         return round((float) $this->items->sum('line_total'), 2);
+    }
+
+    /**
+     * @return array{
+     *     po_total: float,
+     *     this_payment: float,
+     *     previously_paid: float,
+     *     remaining: float,
+     *     this_label: string
+     * }|null
+     */
+    public function paymentProgress(): ?array
+    {
+        if (! $this->isFromPaymentTerm()) {
+            return null;
+        }
+
+        $this->loadMissing(['purchaseOrders.paymentTermRows', 'purchaseOrderPaymentTerms']);
+
+        $purchaseOrder = $this->purchaseOrders->first();
+        if ($purchaseOrder === null) {
+            return null;
+        }
+
+        $poTotal = round((float) ($purchaseOrder->total_price ?? 0), 2);
+        $thisPayment = 0.0;
+        $previouslyPaid = 0.0;
+        $labels = [];
+
+        foreach ($purchaseOrder->paymentTermRows as $term) {
+            $amount = $term->resolvedAmount($poTotal);
+
+            if ((int) $term->invoice_id === (int) $this->id) {
+                $thisPayment += $amount;
+                $label = trim((string) $term->milestone);
+                $pct = $term->percentageLabel();
+                if ($label !== '' && $pct !== null) {
+                    $labels[] = $label.' ('.$pct.')';
+                } elseif ($label !== '') {
+                    $labels[] = $label;
+                } elseif ($pct !== null) {
+                    $labels[] = $pct;
+                }
+            } elseif ($term->invoice_id !== null) {
+                $previouslyPaid += $amount;
+            }
+        }
+
+        $thisPayment = round($thisPayment, 2);
+        if ($thisPayment <= 0) {
+            $thisPayment = round((float) ($this->total_price ?? 0), 2);
+        }
+
+        $previouslyPaid = round($previouslyPaid, 2);
+        $remaining = round(max(0, $poTotal - $previouslyPaid - $thisPayment), 2);
+
+        return [
+            'po_total' => $poTotal,
+            'this_payment' => $thisPayment,
+            'previously_paid' => $previouslyPaid,
+            'remaining' => $remaining,
+            'this_label' => $labels !== [] ? implode(' / ', $labels) : 'هذه الدفعة',
+        ];
     }
 
     public function feesSubtotal(): float

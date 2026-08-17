@@ -71,10 +71,43 @@
             <td class="inv-cell-money">{{ number_format($fee['amount'], 2) }}</td>
         </tr>
     @endforeach
-    <tr class="inv-totals-grand">
-        <td colspan="6" class="inv-fee-label">المجموع الكلي</td>
-        <td class="inv-cell-money inv-grand-total-amount">{{ $invoice->formatMoneyAmount($invoice->total_price) }}</td>
-    </tr>
+    @php
+        $paymentProgress = $invoice->paymentProgress();
+        $linesSubtotal = $invoice->linesSubtotal();
+    @endphp
+    @if ($paymentProgress)
+        <tr>
+            <td colspan="6" class="inv-fee-label">إجمالي البنود</td>
+            <td class="inv-cell-money">{{ number_format($linesSubtotal, 2) }}</td>
+        </tr>
+        <tr>
+            <td colspan="6" class="inv-fee-label">إجمالي أمر الشراء</td>
+            <td class="inv-cell-money">{{ $invoice->formatMoneyAmount($paymentProgress['po_total']) }}</td>
+        </tr>
+        @if ($paymentProgress['previously_paid'] > 0)
+            <tr>
+                <td colspan="6" class="inv-fee-label">المسدد سابقاً</td>
+                <td class="inv-cell-money">{{ $invoice->formatMoneyAmount($paymentProgress['previously_paid']) }}</td>
+            </tr>
+        @endif
+        <tr>
+            <td colspan="6" class="inv-fee-label">هذه الدفعة — {{ $paymentProgress['this_label'] }}</td>
+            <td class="inv-cell-money">{{ $invoice->formatMoneyAmount($paymentProgress['this_payment']) }}</td>
+        </tr>
+        <tr>
+            <td colspan="6" class="inv-fee-label">المتبقي</td>
+            <td class="inv-cell-money">{{ $invoice->formatMoneyAmount($paymentProgress['remaining']) }}</td>
+        </tr>
+        <tr class="inv-totals-grand">
+            <td colspan="6" class="inv-fee-label">المطلوب بهذه الفاتورة</td>
+            <td class="inv-cell-money inv-grand-total-amount">{{ $invoice->formatMoneyAmount($paymentProgress['this_payment']) }}</td>
+        </tr>
+    @else
+        <tr class="inv-totals-grand">
+            <td colspan="6" class="inv-fee-label">المجموع الكلي</td>
+            <td class="inv-cell-money inv-grand-total-amount">{{ $invoice->formatMoneyAmount($invoice->total_price) }}</td>
+        </tr>
+    @endif
     </tbody>
 </table>
 </div>

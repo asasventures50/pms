@@ -72,11 +72,17 @@
                 </div>
                 <div>
                     <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Source</dt>
-                    <dd class="mt-1 text-slate-900">{{ $invoice->isManual() ? 'Manual' : 'Purchase order' }}</dd>
+                    <dd class="mt-1 text-slate-900">{{ $invoice->isManual() ? 'Manual' : ($invoice->isFromPaymentTerm() ? 'P.O. payment term' : 'Purchase order') }}</dd>
                 </div>
                 <div>
                     <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Created by</dt>
                     <dd class="mt-1 text-slate-900">{{ $invoice->creator?->name ?? '—' }}</dd>
+                </div>
+                <div class="sm:col-span-2">
+                    <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Signed invoice</dt>
+                    <dd class="mt-2">
+                        @include('procurement.invoices._signed-document', ['invoice' => $invoice])
+                    </dd>
                 </div>
             </dl>
         </section>
@@ -135,6 +141,30 @@
                 </table>
             </div>
         </section>
+
+        @if (($paymentProgress = $invoice->paymentProgress()) !== null)
+            <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h2 class="text-lg font-semibold text-slate-900">Payment</h2>
+                <dl class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 text-sm">
+                    <div>
+                        <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">P.O. total</dt>
+                        <dd class="mt-1 font-medium text-slate-900">{{ $invoice->formatMoneyAmount($paymentProgress['po_total']) }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">This payment</dt>
+                        <dd class="mt-1 font-medium text-slate-900">{{ $paymentProgress['this_label'] }} — {{ $invoice->formatMoneyAmount($paymentProgress['this_payment']) }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Previously paid</dt>
+                        <dd class="mt-1 font-medium text-slate-900">{{ $invoice->formatMoneyAmount($paymentProgress['previously_paid']) }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Remaining</dt>
+                        <dd class="mt-1 font-semibold text-slate-900">{{ $invoice->formatMoneyAmount($paymentProgress['remaining']) }}</dd>
+                    </div>
+                </dl>
+            </section>
+        @endif
 
         @if (($notes = $invoice->displayNotes()) !== [])
             <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">

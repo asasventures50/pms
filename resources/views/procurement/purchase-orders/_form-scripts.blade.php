@@ -56,7 +56,6 @@ document.addEventListener('DOMContentLoaded', function () {
         'vendor_whatsapp',
         'vendor_primary_contact_position',
         'vendor_classification',
-        'payment_terms',
         'currency_code',
     ];
 
@@ -192,6 +191,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (totalPriceEl) {
             totalPriceEl.textContent = formatMoney(totalPrice);
+        }
+
+        if (typeof window.poRecalcPaymentTermsFromTotal === 'function') {
+            window.poRecalcPaymentTermsFromTotal(totalPrice);
         }
     }
 
@@ -668,7 +671,8 @@ document.addEventListener('DOMContentLoaded', function () {
         importBtn.disabled = !procurementRequestSelect.value;
     }
 
-    const paymentTermsInput = document.getElementById('payment_terms');
+    const paymentTermsBody = document.getElementById('po-payment-terms-body');
+    const paymentTermTemplate = document.getElementById('po-payment-term-template');
     const showPaymentTermsInput = document.getElementById('show_payment_terms');
     const showRetentionInput = document.getElementById('show_retention');
     const showMaintenanceInput = document.getElementById('show_maintenance');
@@ -731,6 +735,227 @@ document.addEventListener('DOMContentLoaded', function () {
         reindexRetentionRows();
     }
 
+    let currentPoTotal = 0;
+
+    function roundMoney(value) {
+        return Math.round((parseFloat(value) || 0) * 100) / 100;
+    }
+
+    function reindexPaymentTermRows() {
+        if (!paymentTermsBody) {
+            return;
+        }
+        paymentTermsBody.querySelectorAll('.po-payment-term-row').forEach(function (row, index) {
+            row.querySelectorAll('[data-name]').forEach(function (input) {
+                const field = input.getAttribute('data-name');
+                input.setAttribute('name', 'payment_term_rows[' + index + '][' + field + ']');
+            });
+        });
+        updatePaymentTermSelectState();
+    }
+
+    function paymentTermNamedInput(row, field) {
+        return row.querySelector('input[data-name="' + field + '"]:not([disabled])')
+            || row.querySelector('input[data-name="' + field + '"]');
+    }
+
+    function updatePaymentTermTotals() {
+        let pctTotal = 0;
+        let amtTotal = 0;
+        let hasPct = false;
+        paymentTermsBody?.querySelectorAll('.po-payment-term-row').forEach(function (row) {
+            const pctEl = row.querySelector('.po-payment-term-percentage');
+            const amtEl = row.querySelector('.po-payment-term-amount');
+            const pct = pctEl && pctEl.value !== '' ? parseFloat(pctEl.value) : null;
+            const amt = amtEl && amtEl.value !== '' ? parseFloat(amtEl.value) : null;
+            if (pct !== null && !isNaN(pct)) {
+                pctTotal += pct;
+                hasPct = true;
+            }
+            if (amt !== null && !isNaN(amt)) {
+                amtTotal += amt;
+            }
+        });
+
+        const pctEl = document.getElementById('po-payment-terms-pct-total');
+        const amtEl = document.getElementById('po-payment-terms-amt-total');
+        const badge = document.getElementById('po-payment-terms-pct-badge');
+        if (pctEl) {
+            pctEl.textContent = (Math.round(pctTotal * 100) / 100).toString();
+        }
+        if (amtEl) {
+            amtEl.textContent = formatMoney(amtTotal);
+        }
+        if (badge) {
+            if (! hasPct) {
+                badge.classList.add('hidden');
+            } else {
+                badge.classList.remove('hidden');
+                const ok = Math.abs(pctTotal - 100) < 0.05;
+                badge.textContent = ok ? '100%' : '≠ 100%';
+                badge.className = 'ml-2 rounded-full px-2 py-0.5 text-xs font-medium ' + (ok
+                    ? 'bg-emerald-100 text-emerald-800'
+                    : 'bg-amber-100 text-amber-800');
+            }
+        }
+    }
+
+    function syncPaymentTermRow(row, source) {
+        if (row.getAttribute('data-invoiced') === '1') {
+            return;
+        }
+        const pctInput = row.querySelector('.po-payment-term-percentage');
+        const amtInput = row.querySelector('.po-payment-term-amount');
+        if (!pctInput || !amtInput) {
+            return;
+        }
+        const pctRaw = pctInput.value;
+        const amtRaw = amtInput.value;
+        const pct = pctRaw === '' ? null : parseFloat(pctRaw);
+        const amt = amtRaw === '' ? null : parseFloat(amtRaw);
+
+        if (source === 'percentage' && pct !== null && !isNaN(pct)) {
+            amtInput.value = formatMoney(roundMoney((pct / 100) * currentPoTotal));
+        } else if (source === 'amount' && amt !== null && !isNaN(amt)) {
+            pctInput.value = currentPoTotal > 0
+                ? (Math.round((amt / currentPoTotal) * 10000) / 100).toFixed(2)
+                : '0';
+        } else if (source === 'total') {
+            if (pctRaw !== '' && !isNaN(pct)) {
+                amtInput.value = formatMoney(roundMoney((pct / 100) * currentPoTotal));
+            } else if (amtRaw !== '' && !isNaN(amt) && currentPoTotal > 0) {
+                pctInput.value = (Math.round((amt / currentPoTotal) * 10000) / 100).toFixed(2);
+            }
+        }
+    }
+
+    function bindPaymentTermRow(row) {
+        const milestone = row.querySelector('.po-payment-term-milestone');
+        const notesInput = row.querySelector('.po-payment-term-notes');
+        [milestone, notesInput].forEach(function (field) {
+            if (!field) {
+                return;
+            }
+            applyBilingualDirection(field);
+            field.addEventListener('input', function () {
+                applyBilingualDirection(field);
+            });
+        });
+
+        row.querySelector('.po-payment-term-percentage')?.addEventListener('input', function () {
+            syncPaymentTermRow(row, 'percentage');
+            updatePaymentTermTotals();
+        });
+        row.querySelector('.po-payment-term-amount')?.addEventListener('input', function () {
+            syncPaymentTermRow(row, 'amount');
+            updatePaymentTermTotals();
+        });
+        row.querySelector('.po-payment-term-select')?.addEventListener('change', updatePaymentTermSelectState);
+
+        row.querySelector('.po-remove-payment-term')?.addEventListener('click', function () {
+            if (row.getAttribute('data-invoiced') === '1') {
+                return;
+            }
+            const rows = paymentTermsBody?.querySelectorAll('.po-payment-term-row') || [];
+            if (rows.length <= 1) {
+                row.querySelector('.po-payment-term-milestone').value = '';
+                row.querySelector('.po-payment-term-percentage').value = '';
+                row.querySelector('.po-payment-term-amount').value = '';
+                const idInput = paymentTermNamedInput(row, 'id');
+                if (idInput) {
+                    idInput.value = '';
+                }
+                const notesInput = row.querySelector('.po-payment-term-notes');
+                if (notesInput) {
+                    notesInput.value = '';
+                }
+                updatePaymentTermTotals();
+                return;
+            }
+            row.remove();
+            reindexPaymentTermRows();
+            updatePaymentTermTotals();
+        });
+    }
+
+    function replacePaymentTermRows(rows) {
+        if (!paymentTermsBody || !paymentTermTemplate) {
+            return;
+        }
+
+        const invoicedRows = [];
+        paymentTermsBody.querySelectorAll('.po-payment-term-row[data-invoiced="1"]').forEach(function (row) {
+            invoicedRows.push(row);
+        });
+
+        paymentTermsBody.innerHTML = '';
+        invoicedRows.forEach(function (row) {
+            paymentTermsBody.appendChild(row);
+        });
+        const sourceRows = Array.isArray(rows) && rows.length > 0
+            ? rows
+            : [{ milestone: '', percentage: '', amount: '' }];
+
+        sourceRows.forEach(function (rowData) {
+            const clone = paymentTermTemplate.content.cloneNode(true);
+            const row = clone.querySelector('tr');
+            if (!row) {
+                return;
+            }
+            const idInput = paymentTermNamedInput(row, 'id');
+            if (idInput) {
+                idInput.value = '';
+            }
+            row.querySelector('.po-payment-term-milestone').value = rowData.milestone ?? '';
+            row.querySelector('.po-payment-term-percentage').value = rowData.percentage ?? '';
+            row.querySelector('.po-payment-term-amount').value = rowData.amount ?? '';
+            const notesInput = row.querySelector('.po-payment-term-notes');
+            if (notesInput) {
+                notesInput.value = rowData.notes ?? '';
+            }
+            paymentTermsBody.appendChild(row);
+            bindPaymentTermRow(row);
+            syncPaymentTermRow(row, 'percentage');
+        });
+
+        reindexPaymentTermRows();
+        updatePaymentTermTotals();
+    }
+
+    function selectedPaymentTermIds() {
+        const ids = [];
+        paymentTermsBody?.querySelectorAll('.po-payment-term-row').forEach(function (row) {
+            if (row.getAttribute('data-invoiced') === '1') {
+                return;
+            }
+            const checkbox = row.querySelector('.po-payment-term-select');
+            if (!checkbox || !checkbox.checked) {
+                return;
+            }
+            const id = paymentTermNamedInput(row, 'id')?.value;
+            if (id) {
+                ids.push(id);
+            }
+        });
+        return ids;
+    }
+
+    function updatePaymentTermSelectState() {
+        const btn = document.getElementById('po-create-selected-invoices');
+        if (!btn) {
+            return;
+        }
+        btn.disabled = selectedPaymentTermIds().length < 2;
+    }
+
+    window.poRecalcPaymentTermsFromTotal = function (total) {
+        currentPoTotal = parseFloat(total) || 0;
+        paymentTermsBody?.querySelectorAll('.po-payment-term-row').forEach(function (row) {
+            syncPaymentTermRow(row, 'total');
+        });
+        updatePaymentTermTotals();
+    };
+
     function setYesNoApplicable(yesInput, noInput, value) {
         if (value === true || value === 1 || value === '1') {
             if (yesInput) {
@@ -764,9 +989,8 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        if (paymentTermsInput && typeof commercialTerms.payment_terms === 'string') {
-            paymentTermsInput.value = commercialTerms.payment_terms;
-            applyBilingualDirection(paymentTermsInput);
+        if (Array.isArray(commercialTerms.payment_term_rows)) {
+            replacePaymentTermRows(commercialTerms.payment_term_rows);
         }
 
         if (showPaymentTermsInput) {
@@ -808,6 +1032,38 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     retentionBody?.querySelectorAll('.po-retention-row').forEach(bindRetentionRow);
+
+    document.getElementById('po-add-payment-term')?.addEventListener('click', function () {
+        if (!paymentTermsBody || !paymentTermTemplate) {
+            return;
+        }
+        const clone = paymentTermTemplate.content.cloneNode(true);
+        const row = clone.querySelector('tr');
+        paymentTermsBody.appendChild(row);
+        bindPaymentTermRow(row);
+        reindexPaymentTermRows();
+        updatePaymentTermTotals();
+    });
+
+    paymentTermsBody?.querySelectorAll('.po-payment-term-row').forEach(bindPaymentTermRow);
+    updatePaymentTermTotals();
+
+    document.getElementById('po-create-selected-invoices')?.addEventListener('click', function () {
+        const ids = selectedPaymentTermIds();
+        const section = document.getElementById('po-payment-terms-section');
+        const poId = section?.getAttribute('data-po-id');
+        const baseUrl = section?.getAttribute('data-invoice-create-url');
+        if (!baseUrl || !poId || ids.length < 2) {
+            return;
+        }
+        const params = new URLSearchParams();
+        params.set('po_id', poId);
+        params.set('source', 'po_payment_term');
+        ids.forEach(function (id) {
+            params.append('milestone_ids[]', id);
+        });
+        window.location.href = baseUrl + '?' + params.toString();
+    });
 
     async function fetchProcurementRequestLines(requestId) {
         const urlTemplate = procurementRequestSelect?.getAttribute('data-lines-url-template');

@@ -226,14 +226,87 @@
                     </div>
                 @endif
                 @php
+                    $structuredTerms = $purchaseOrder->printablePaymentTermRows();
                     $paymentTermsDisplay = trim((string) ($purchaseOrder->payment_terms ?? ''));
                     $notesDisplay = trim((string) ($purchaseOrder->notes ?? ''));
-                    $showPaymentTermsOnPo = $purchaseOrder->show_payment_terms && $paymentTermsDisplay !== '';
                 @endphp
-                @if ($showPaymentTermsOnPo)
-                    <div>
+                @if ($structuredTerms->isNotEmpty() || $paymentTermsDisplay !== '')
+                    <div class="md:col-span-2">
                         <dt class="text-xs text-slate-500">Payment terms</dt>
-                        <dd class="whitespace-pre-wrap text-slate-900 text-start" dir="auto">{{ $paymentTermsDisplay }}</dd>
+                        <dd class="mt-2">
+                            @if ($structuredTerms->isNotEmpty())
+                                @php
+                                    $canCreateInvoice = auth()->user()?->hasPermission('invoices.create') ?? false;
+                                    $uninvoicedCount = $structuredTerms->filter(fn ($term) => $term->invoice_id === null)->count();
+                                @endphp
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full text-left text-sm" id="po-view-payment-terms"
+                                           data-invoice-create-url="{{ route('invoices.create') }}"
+                                           data-po-id="{{ $purchaseOrder->id }}">
+                                        <thead class="text-xs uppercase tracking-wide text-slate-500">
+                                        <tr>
+                                            @if ($canCreateInvoice && $uninvoicedCount > 0)
+                                                <th class="px-2 py-1 w-8"></th>
+                                            @endif
+                                            <th class="px-2 py-1">Payment term</th>
+                                            <th class="px-2 py-1">Percentage (%)</th>
+                                            <th class="px-2 py-1">Amount</th>
+                                            <th class="px-2 py-1">Note</th>
+                                            <th class="px-2 py-1">Invoice</th>
+                                            <th class="px-2 py-1">Document</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-100">
+                                        @foreach ($structuredTerms as $term)
+                                            <tr>
+                                                @if ($canCreateInvoice && $uninvoicedCount > 0)
+                                                    <td class="px-2 py-1">
+                                                        @if ($term->invoice_id === null)
+                                                            <input type="checkbox" class="po-view-term-select rounded border-slate-300" value="{{ $term->id }}">
+                                                        @endif
+                                                    </td>
+                                                @endif
+                                                <td class="px-2 py-1 text-slate-900 text-start" dir="auto">{{ $term->milestone !== '' ? $term->milestone : '—' }}</td>
+                                                <td class="px-2 py-1 font-mono">{{ $term->percentage !== null ? rtrim(rtrim(number_format((float) $term->percentage, 2), '0'), '.').'%' : '—' }}</td>
+                                                <td class="px-2 py-1 font-mono">{{ $term->amount !== null ? $purchaseOrder->formatMoneyAmount($term->amount) : '—' }}</td>
+                                                <td class="px-2 py-1 text-slate-700 text-start" dir="auto">{{ trim((string) ($term->notes ?? '')) !== '' ? $term->notes : '—' }}</td>
+                                                <td class="px-2 py-1">
+                                                    @if ($term->invoice)
+                                                        <a href="{{ route('invoices.show', $term->invoice) }}" class="inline-flex items-center rounded-full bg-sky-600 px-2.5 py-1 font-mono text-xs font-medium text-white hover:bg-sky-700">{{ $term->invoice->invoice_number }}</a>
+                                                    @else
+                                                        @if ($canCreateInvoice)
+                                                            <a href="{{ route('invoices.create', ['source' => \App\Models\Procurement\Invoices\Invoice::SOURCE_PO_PAYMENT_TERM, 'po_id' => $purchaseOrder->id, 'milestone_ids' => [$term->id]]) }}" class="inline-flex items-center rounded-full bg-emerald-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-emerald-700">Create invoice</a>
+                                                        @else
+                                                            —
+                                                        @endif
+                                                    @endif
+                                                </td>
+                                                <td class="px-2 py-1">
+                                                    @if ($term->invoice)
+                                                        @include('procurement.invoices._signed-document', ['invoice' => $term->invoice])
+                                                    @else
+                                                        —
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                                @error('document')
+                                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                                @if ($canCreateInvoice && $uninvoicedCount >= 2)
+                                    <button type="button" id="po-view-create-selected-invoices"
+                                            class="mt-3 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50"
+                                            disabled>
+                                        Create invoice for selected
+                                    </button>
+                                @endif
+                            @else
+                                <span class="whitespace-pre-wrap text-slate-900 text-start" dir="auto">{{ $paymentTermsDisplay }}</span>
+                            @endif
+                        </dd>
                     </div>
                 @endif
                 @include('procurement.purchase-orders._commercial-terms-display', ['purchaseOrder' => $purchaseOrder])
@@ -282,6 +355,38 @@
             const url = baseUrl + '?locale=' + encodeURIComponent(locale) + '&with_terms=' + encodeURIComponent(withTerms);
 
             window.open(url, '_blank', 'noopener');
+        });
+
+        const createSelectedBtn = document.getElementById('po-view-create-selected-invoices');
+        const termsTable = document.getElementById('po-view-payment-terms');
+        function selectedViewTermIds() {
+            return Array.from(document.querySelectorAll('.po-view-term-select:checked')).map(function (el) {
+                return el.value;
+            });
+        }
+        function updateViewCreateSelectedState() {
+            if (!createSelectedBtn) {
+                return;
+            }
+            createSelectedBtn.disabled = selectedViewTermIds().length < 2;
+        }
+        document.querySelectorAll('.po-view-term-select').forEach(function (checkbox) {
+            checkbox.addEventListener('change', updateViewCreateSelectedState);
+        });
+        createSelectedBtn?.addEventListener('click', function () {
+            const ids = selectedViewTermIds();
+            const poId = termsTable?.getAttribute('data-po-id');
+            const baseUrl = termsTable?.getAttribute('data-invoice-create-url');
+            if (!baseUrl || !poId || ids.length < 2) {
+                return;
+            }
+            const params = new URLSearchParams();
+            params.set('source', 'po_payment_term');
+            params.set('po_id', poId);
+            ids.forEach(function (id) {
+                params.append('milestone_ids[]', id);
+            });
+            window.location.href = baseUrl + '?' + params.toString();
         });
     </script>
 @endpush

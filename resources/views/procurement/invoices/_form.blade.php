@@ -7,6 +7,7 @@
     $actualSource = old('source', $defaults['source'] ?? \App\Models\Procurement\Invoices\Invoice::SOURCE_PURCHASE_ORDER);
     $isDuplicateUi = $allowDuplicate && ($duplicateFromInvoice !== null || old('ui_source') === \App\Models\Procurement\Invoices\Invoice::SOURCE_DUPLICATE);
     $isManual = $actualSource === \App\Models\Procurement\Invoices\Invoice::SOURCE_MANUAL;
+    $isPaymentTerm = $actualSource === \App\Models\Procurement\Invoices\Invoice::SOURCE_PO_PAYMENT_TERM;
     $oldPoIds = collect(old('purchase_order_ids', $defaults['purchase_order_ids'] ?? []))->map(fn ($id) => (int) $id)->all();
     $oldItemIds = collect(old('purchase_order_item_ids', $defaults['purchase_order_item_ids'] ?? []))->map(fn ($id) => (int) $id)->all();
     $oldMergeGroups = old('merge_groups', $defaults['merge_groups'] ?? []);
@@ -37,7 +38,9 @@
         $oldManualLines = [['zone' => '', 'description' => '', 'quantity' => '', 'unit' => '', 'unit_price' => '', 'margin_percentage' => '']];
     }
     $manualProjectName = old('manual_project_name', $defaults['manual_project_name'] ?? '');
-    $showContentSections = $isManual || count($oldPoIds) > 0 || $duplicateFromInvoice !== null;
+    $showContentSections = $isManual || $isPaymentTerm || count($oldPoIds) > 0 || $duplicateFromInvoice !== null;
+    $paymentTermPreview = $paymentTermPreview ?? [];
+    $oldPaymentTermIds = collect(old('po_payment_term_ids', $defaults['po_payment_term_ids'] ?? []))->map(fn ($id) => (int) $id)->all();
     $oldNotes = collect(old('notes', $defaults['notes'] ?? []))->map(fn ($note) => (string) $note)->filter()->values()->all();
     if ($oldNotes === []) {
         $oldNotes = [''];
@@ -62,6 +65,34 @@
 @endphp
 
 <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
+    @foreach ($oldPaymentTermIds as $termId)
+        <input type="hidden" name="po_payment_term_ids[]" value="{{ $termId }}">
+    @endforeach
+    @if ($isPaymentTerm)
+        @foreach ($oldPoIds as $linkedPoId)
+            <input type="hidden" name="purchase_order_ids[]" value="{{ $linkedPoId }}">
+        @endforeach
+        <input type="hidden" name="currency_code" value="{{ $currencyCode }}">
+    @endif
+    @if ($paymentTermPreview !== [])
+        <div class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+            <p class="font-medium">Creating invoice from P.O. payment term(s)</p>
+            <ul class="mt-2 list-disc space-y-1 ps-5">
+                @foreach ($paymentTermPreview as $term)
+                    <li>
+                        {{ $term['milestone'] !== '' ? $term['milestone'] : 'Payment term' }}
+                        @if ($term['percentage'] !== null)
+                            — {{ rtrim(rtrim(number_format((float) $term['percentage'], 2), '0'), '.') }}%
+                        @endif
+                        @if ($term['amount'] !== null)
+                            — {{ number_format((float) $term['amount'], 2) }}
+                        @endif
+                    </li>
+                @endforeach
+            </ul>
+            <p class="mt-2 text-xs text-blue-800">The printed invoice will list the P.O. line items, this installment, and the remaining balance. Fill the recipient and save.</p>
+        </div>
+    @endif
     <section>
         <h2 class="text-lg font-semibold text-slate-900">مصدر الفاتورة</h2>
         <p class="mt-1 text-sm text-slate-500">اختر استيراد البنود من أمر شراء، إدخال يدوي، أو نسخ من فاتورة موجودة.</p>
@@ -76,8 +107,15 @@
                 <input type="radio" value="{{ \App\Models\Procurement\Invoices\Invoice::SOURCE_PURCHASE_ORDER }}"
                        data-invoice-source-radio
                        class="border-slate-300"
-                       @checked(! $isDuplicateUi && ! $isManual)>
+                       @checked(! $isDuplicateUi && ! $isManual && ! $isPaymentTerm)>
                 <span>من أمر شراء (P.O.)</span>
+            </label>
+            <label class="inline-flex items-center gap-2 text-sm text-slate-800">
+                <input type="radio" value="{{ \App\Models\Procurement\Invoices\Invoice::SOURCE_PO_PAYMENT_TERM }}"
+                       data-invoice-source-radio
+                       class="border-slate-300"
+                       @checked(! $isDuplicateUi && $isPaymentTerm)>
+                <span>From P.O. payment term</span>
             </label>
             <label class="inline-flex items-center gap-2 text-sm text-slate-800">
                 <input type="radio" value="{{ \App\Models\Procurement\Invoices\Invoice::SOURCE_MANUAL }}"
@@ -139,7 +177,7 @@
         </section>
     @endif
 
-    <section id="invoice-po-section" class="@if($isManual) hidden @endif">
+    <section id="invoice-po-section" class="@if($isManual || $isPaymentTerm) hidden @endif">
         <h2 class="text-lg font-semibold text-slate-900">Purchase orders</h2>
         <p class="mt-1 text-sm text-slate-500">Select one or more purchase orders. Line items from all selected P.O.s appear below.</p>
         <div class="mt-4 max-w-2xl space-y-2 rounded-lg border border-slate-200 p-4" id="invoice-po-list"
@@ -220,7 +258,7 @@
         </div>
     </section>
 
-    <section id="invoice-lines-section" class="@unless($showContentSections && !$isManual) hidden @endunless">
+    <section id="invoice-lines-section" class="@unless($showContentSections && !$isManual && !$isPaymentTerm) hidden @endunless">
         <div class="flex flex-wrap items-end justify-between gap-3">
             <h2 class="text-lg font-semibold text-slate-900">Line items</h2>
             <div class="flex flex-wrap items-end gap-3">
@@ -429,7 +467,7 @@
         @error('notes.*')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
     </section>
 
-    <section id="invoice-fees-section" class="@unless($showContentSections && !$isManual) hidden @endunless">
+    <section id="invoice-fees-section" class="@unless($showContentSections && !$isManual && !$isPaymentTerm) hidden @endunless">
         <h2 class="text-lg font-semibold text-slate-900">رسوم إضافية</h2>
         <p class="mt-1 text-sm text-slate-500">اختياري — أضف بنوداً يدوياً بنفس أعمدة جدول الفاتورة. تظهر بالطباعة مرقّمة بعد بنود P.O. وتُجمع في المجموع الكلي.</p>
         <div class="mt-4 overflow-x-auto rounded-lg border border-slate-200">

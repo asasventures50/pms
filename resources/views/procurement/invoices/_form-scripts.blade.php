@@ -39,6 +39,7 @@
         const duplicateLoadedInput = document.getElementById('invoice-duplicate-loaded');
 
         const SOURCE_PO = 'purchase_order';
+        const SOURCE_PAYMENT_TERM = 'po_payment_term';
         const SOURCE_MANUAL = 'manual';
         const SOURCE_DUPLICATE = 'duplicate';
 
@@ -114,6 +115,10 @@
             return sourceInput?.value || SOURCE_PO;
         }
 
+        function isPaymentTermMode() {
+            return actualSource() === SOURCE_PAYMENT_TERM;
+        }
+
         function isManualMode() {
             return actualSource() === SOURCE_MANUAL;
         }
@@ -159,20 +164,22 @@
             const duplicate = isDuplicateMode();
             const duplicateLoaded = duplicate && hasDuplicateLoaded();
             const manual = isManualMode();
+            const paymentTerm = isPaymentTermMode();
             const hasPoSelection = selectedPoIds().length > 0;
             const showWorkflow = !duplicate || duplicateLoaded;
 
             duplicateSection?.classList.toggle('hidden', !duplicate);
 
-            const showPoWorkflow = showWorkflow && !manual;
+            const showPoWorkflow = showWorkflow && !manual && !paymentTerm;
             const showManualWorkflow = showWorkflow && manual;
+            const showPaymentTermWorkflow = showWorkflow && paymentTerm;
 
             poSection?.classList.toggle('hidden', !showPoWorkflow);
             manualHeaderSection?.classList.toggle('hidden', !showManualWorkflow);
             manualLinesSection?.classList.toggle('hidden', !showManualWorkflow);
             linesSection?.classList.toggle('hidden', !showPoWorkflow || !hasPoSelection);
 
-            const showExtras = showManualWorkflow || (showPoWorkflow && hasPoSelection);
+            const showExtras = showManualWorkflow || showPaymentTermWorkflow || (showPoWorkflow && hasPoSelection);
             notesSection?.classList.toggle('hidden', !showExtras);
             feesSection?.classList.toggle('hidden', !showManualWorkflow && !(showPoWorkflow && hasPoSelection));
 
@@ -221,6 +228,13 @@
                     }
                     if (uiSourceInput) {
                         uiSourceInput.value = SOURCE_PO;
+                    }
+                } else if (currentSource === SOURCE_PAYMENT_TERM) {
+                    if (sourceInput) {
+                        sourceInput.value = SOURCE_PAYMENT_TERM;
+                    }
+                    if (uiSourceInput) {
+                        uiSourceInput.value = SOURCE_PAYMENT_TERM;
                     }
                 } else if (currentSource === SOURCE_MANUAL) {
                     if (sourceInput) {
@@ -1291,7 +1305,7 @@
             syncMergeGroupInputs();
         });
 
-        if ((selectedPoIds().length > 0 && !isManualMode()) || (hasDuplicateLoaded() && !isManualMode())) {
+        if ((selectedPoIds().length > 0 && !isManualMode() && !isPaymentTermMode()) || (hasDuplicateLoaded() && !isManualMode() && !isPaymentTermMode())) {
             loadSelectedPurchaseOrders();
         } else {
             renderMergeGroupsPanel();

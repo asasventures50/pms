@@ -243,6 +243,10 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('permission:invoices.create')
         ->name('invoices.export');
 
+    Route::post('invoices/{invoice}/signed-document', [InvoiceController::class, 'storeSignedDocument'])
+        ->middleware('permission:invoices.create')
+        ->name('invoices.signed-document.store');
+
     Route::resource('invoices', InvoiceController::class)
         ->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy'])
         ->middleware('permission:invoices.create');

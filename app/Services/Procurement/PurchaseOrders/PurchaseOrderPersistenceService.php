@@ -25,10 +25,16 @@ class PurchaseOrderPersistenceService
         return DB::transaction(function () use ($header, $items) {
             PurchaseOrderBuyerCompanyApplier::applyToHeader($header);
             $header = $this->applyTotals($header, $items);
+            $paymentTermRows = array_key_exists('payment_term_rows', $header) ? $header['payment_term_rows'] : null;
+            unset($header['payment_term_rows']);
+
             $purchaseOrder = PurchaseOrder::query()->create($header);
             $this->syncItems($purchaseOrder, $items);
+            if ($paymentTermRows !== null) {
+                $this->syncPaymentTerms($purchaseOrder, $paymentTermRows);
+            }
 
-            return $purchaseOrder->load(['items', 'vendor', 'creator']);
+            return $purchaseOrder->load(['items', 'vendor', 'creator', 'paymentTermRows']);
         });
     }
 
@@ -41,11 +47,17 @@ class PurchaseOrderPersistenceService
         return DB::transaction(function () use ($purchaseOrder, $header, $items) {
             PurchaseOrderBuyerCompanyApplier::applyToHeader($header);
             $header = $this->applyTotals($header, $items);
+            $paymentTermRows = array_key_exists('payment_term_rows', $header) ? $header['payment_term_rows'] : null;
+            unset($header['payment_term_rows']);
+
             $purchaseOrder->fill($header);
             $purchaseOrder->save();
             $this->syncItems($purchaseOrder, $items);
+            if ($paymentTermRows !== null) {
+                $this->syncPaymentTerms($purchaseOrder, $paymentTermRows);
+            }
 
-            return $purchaseOrder->load(['items', 'vendor', 'creator']);
+            return $purchaseOrder->load(['items', 'vendor', 'creator', 'paymentTermRows']);
         });
     }
 
@@ -101,7 +113,21 @@ class PurchaseOrderPersistenceService
 
         $header['terms'] = $this->termsService->buildTermsPayload($general, $custom);
 
+        if (array_key_exists('payment_term_rows', $header)) {
+            $paymentTermRows = PurchaseOrderPaymentTermsSynchronizer::normalize($header['payment_term_rows']);
+            $header['payment_term_rows'] = $paymentTermRows;
+            $header['payment_terms'] = PurchaseOrderPaymentTermsSynchronizer::flatten($paymentTermRows);
+        }
+
         return $header;
+    }
+
+    /**
+     * @param  list<array{id: int|null, milestone: string, percentage: float|null, amount: float|null}>  $rows
+     */
+    private function syncPaymentTerms(PurchaseOrder $purchaseOrder, array $rows): void
+    {
+        app(PurchaseOrderPaymentTermsSynchronizer::class)->sync($purchaseOrder, $rows);
     }
 
     /**

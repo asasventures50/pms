@@ -240,6 +240,7 @@ class PurchaseOrderController extends Controller
             'vendor.vendorCategories.subcategory',
             'creator',
             'items',
+            'paymentTermRows.invoice',
             'procurementRequest.headerDocuments',
             'procurementRequest.items.project',
             'procurementRequest.items.documents',
@@ -280,6 +281,7 @@ class PurchaseOrderController extends Controller
             'vendor.vendorCategories.subcategory',
             'creator',
             'items',
+            'paymentTermRows.invoice',
             'procurementRequest.headerDocuments',
             'procurementRequest.items.project',
             'procurementRequest.items.documents',
@@ -315,6 +317,7 @@ class PurchaseOrderController extends Controller
 
         $purchaseOrder->load([
             'items',
+            'paymentTermRows.invoice',
             'creator',
             'procurementRequest.headerDocuments',
             'procurementRequest.items.project',

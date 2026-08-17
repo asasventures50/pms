@@ -5,6 +5,7 @@ namespace App\Services\Procurement\Invoices;
 use App\Models\Procurement\Invoices\Invoice;
 use App\Models\Procurement\Invoices\InvoiceItem;
 use App\Models\Procurement\PurchaseOrders\PurchaseOrder;
+use App\Models\Procurement\PurchaseOrders\PurchaseOrderPaymentTerm;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -18,16 +19,19 @@ class InvoicePersistenceService
      * @param  array<string, mixed>  $header
      * @param  list<int>  $purchaseOrderIds
      * @param  list<array<string, mixed>>  $lines
+     * @param  list<int>  $paymentTermIds
      */
-    public function create(array $header, array $purchaseOrderIds, array $lines): Invoice
+    public function create(array $header, array $purchaseOrderIds, array $lines, array $paymentTermIds = []): Invoice
     {
-        return DB::transaction(function () use ($header, $purchaseOrderIds, $lines) {
+        return DB::transaction(function () use ($header, $purchaseOrderIds, $lines, $paymentTermIds) {
             $header['invoice_number'] = $header['invoice_number'] ?? $this->codeGenerator->next();
             $header['total_price'] = $this->calculateTotalPrice($header, $lines);
+            unset($header['forced_total_price']);
 
             $invoice = Invoice::query()->create($header);
             $invoice->purchaseOrders()->sync($purchaseOrderIds);
             $this->syncItems($invoice, $lines);
+            $this->linkPaymentTerms($invoice, $paymentTermIds);
 
             return $invoice->load(['items', 'purchaseOrders', 'creator']);
         });
@@ -43,6 +47,7 @@ class InvoicePersistenceService
         return DB::transaction(function () use ($invoice, $header, $purchaseOrderIds, $lines) {
             unset($header['invoice_number'], $header['created_by']);
             $header['total_price'] = $this->calculateTotalPrice($header, $lines);
+            unset($header['forced_total_price']);
 
             $invoice->update($header);
             $invoice->purchaseOrders()->sync($purchaseOrderIds);
@@ -59,6 +64,10 @@ class InvoicePersistenceService
      */
     private function calculateTotalPrice(array $header, array $lines): float
     {
+        if (array_key_exists('forced_total_price', $header) && $header['forced_total_price'] !== null) {
+            return round((float) $header['forced_total_price'], 2);
+        }
+
         $linesSubtotal = round((float) collect($lines)->sum('line_total'), 2);
         $feesSubtotal = round(
             (float) ($header['transport_fees'] ?? 0)
@@ -92,6 +101,23 @@ class InvoicePersistenceService
                 'source_purchase_order_item_ids' => $row['source_purchase_order_item_ids'] ?? null,
             ]);
         }
+    }
+
+    /**
+     * @param  list<int>  $paymentTermIds
+     */
+    private function linkPaymentTerms(Invoice $invoice, array $paymentTermIds): void
+    {
+        $ids = collect($paymentTermIds)->map(fn ($id) => (int) $id)->filter()->unique()->values()->all();
+        if ($ids === []) {
+            return;
+        }
+
+        PurchaseOrderPaymentTerm::query()
+            ->whereIn('id', $ids)
+            ->whereNull('invoice_id')
+            ->whereIn('purchase_order_id', $invoice->purchaseOrders()->pluck('purchase_orders.id'))
+            ->update(['invoice_id' => $invoice->id]);
     }
 
     /**

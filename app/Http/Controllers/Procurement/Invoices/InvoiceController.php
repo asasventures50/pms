@@ -5,15 +5,18 @@ namespace App\Http\Controllers\Procurement\Invoices;
 use App\Exports\Procurement\InvoiceExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Procurement\Invoices\StoreInvoiceRequest;
+use App\Http\Requests\Procurement\Invoices\StoreInvoiceSignedDocumentRequest;
 use App\Http\Requests\Procurement\Invoices\UpdateInvoiceRequest;
 use App\Models\Procurement\Invoices\Invoice;
 use App\Models\Procurement\PurchaseOrders\PurchaseOrder;
 use App\Models\Procurement\PurchaseOrders\PurchaseOrderItem;
+use App\Models\Procurement\PurchaseOrders\PurchaseOrderPaymentTerm;
 use App\Services\Procurement\Invoices\InvoiceCurrencyResolver;
 use App\Services\Procurement\Invoices\InvoiceLineBuilder;
 use App\Services\Procurement\Invoices\InvoiceManualPoNumberGenerator;
 use App\Services\Procurement\Invoices\InvoicePersistenceService;
 use App\Services\Procurement\Invoices\InvoiceProjectZoneResolver;
+use App\Services\Procurement\Invoices\InvoiceSignedDocumentStorage;
 use App\Services\Procurement\PurchaseOrders\ProcurementRequestLineUnitLookup;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -31,6 +34,7 @@ class InvoiceController extends Controller
         private readonly InvoicePersistenceService $persistence,
         private readonly InvoiceLineBuilder $lineBuilder,
         private readonly InvoiceManualPoNumberGenerator $manualPoNumberGenerator,
+        private readonly InvoiceSignedDocumentStorage $signedDocuments,
     ) {}
 
     public function index(Request $request): View
@@ -80,6 +84,7 @@ class InvoiceController extends Controller
 
         $invoiceDefaults = [];
         $duplicateFrom = null;
+        $paymentTermPreview = [];
 
         if ($request->filled('duplicate_from')) {
             $duplicateFrom = Invoice::query()
@@ -91,6 +96,10 @@ class InvoiceController extends Controller
             if ($duplicateFrom->isManual()) {
                 unset($invoiceDefaults['manual_po_number']);
             }
+        } elseif ($request->filled('po_id')) {
+            $fromPo = $this->defaultsFromPaymentTerms($request);
+            $invoiceDefaults = $fromPo['defaults'];
+            $paymentTermPreview = $fromPo['preview'];
         }
 
         return view('procurement.invoices.create', [
@@ -98,6 +107,7 @@ class InvoiceController extends Controller
             'existingInvoices' => $existingInvoices,
             'duplicateFrom' => $duplicateFrom,
             'invoiceDefaults' => $invoiceDefaults,
+            'paymentTermPreview' => $paymentTermPreview,
             'suggestedManualPoNumber' => $this->manualPoNumberGenerator->next(),
             'allowDuplicate' => true,
         ]);
@@ -110,7 +120,12 @@ class InvoiceController extends Controller
             return $payload;
         }
 
-        $invoice = $this->persistence->create($payload['header'], $payload['purchase_order_ids'], $payload['lines']);
+        $invoice = $this->persistence->create(
+            $payload['header'],
+            $payload['purchase_order_ids'],
+            $payload['lines'],
+            $payload['payment_term_ids'] ?? [],
+        );
 
         return redirect()
             ->route('invoices.show', $invoice)
@@ -119,7 +134,7 @@ class InvoiceController extends Controller
 
     public function show(Invoice $invoice): View
     {
-        $invoice->load(['items', 'purchaseOrders.procurementRequest', 'creator']);
+        $invoice->load(['items', 'purchaseOrders.procurementRequest', 'purchaseOrders.paymentTermRows', 'creator']);
 
         $sourcePoItemIds = $invoice->items
             ->flatMap(fn ($item) => $item->source_purchase_order_item_ids ?? [])
@@ -176,9 +191,21 @@ class InvoiceController extends Controller
             ->with('success', 'Invoice updated successfully.');
     }
 
+    public function storeSignedDocument(StoreInvoiceSignedDocumentRequest $request, Invoice $invoice): RedirectResponse
+    {
+        try {
+            $this->signedDocuments->store($invoice, $request->file('document'));
+        } catch (\RuntimeException $exception) {
+            return back()->withErrors(['document' => $exception->getMessage()]);
+        }
+
+        return back()->with('success', 'Signed invoice document uploaded.');
+    }
+
     public function destroy(Invoice $invoice): RedirectResponse
     {
         $invoiceNumber = $invoice->invoice_number;
+        $this->signedDocuments->purge($invoice);
         $invoice->delete();
 
         return redirect()
@@ -243,7 +270,7 @@ class InvoiceController extends Controller
      */
     private function printContext(Invoice $invoice): array
     {
-        $invoice->load(['items', 'purchaseOrders.procurementRequest', 'creator']);
+        $invoice->load(['items', 'purchaseOrders.procurementRequest', 'purchaseOrders.paymentTermRows', 'creator']);
 
         $sourcePoItemIds = $invoice->items
             ->flatMap(fn ($item) => $item->source_purchase_order_item_ids ?? [])
@@ -267,6 +294,54 @@ class InvoiceController extends Controller
             'poItemsById' => $poItemsById,
             'projectZoneResolver' => InvoiceProjectZoneResolver::fromPurchaseOrderItems($poItemsById->values()),
             'unitsByLineCode' => ProcurementRequestLineUnitLookup::unitsByLineCodeForPurchaseOrderItems($poItemsById->values()),
+        ];
+    }
+
+    /**
+     * @return array{defaults: array<string, mixed>, preview: list<array{id: int, milestone: string, amount: float|null, percentage: float|null}>}
+     */
+    private function defaultsFromPaymentTerms(Request $request): array
+    {
+        $poId = (int) $request->query('po_id');
+        $termIds = collect($request->query('milestone_ids', []))
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($poId < 1 || $termIds->isEmpty()) {
+            return ['defaults' => [], 'preview' => []];
+        }
+
+        $terms = PurchaseOrderPaymentTerm::query()
+            ->with('invoice')
+            ->where('purchase_order_id', $poId)
+            ->whereIn('id', $termIds)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+
+        $available = $terms->filter(fn (PurchaseOrderPaymentTerm $term) => $term->invoice_id === null)->values();
+
+        if ($available->isEmpty()) {
+            return ['defaults' => [], 'preview' => []];
+        }
+
+        $preview = $available->map(fn (PurchaseOrderPaymentTerm $term) => [
+            'id' => $term->id,
+            'milestone' => (string) $term->milestone,
+            'amount' => $term->amount !== null ? (float) $term->amount : null,
+            'percentage' => $term->percentage !== null ? (float) $term->percentage : null,
+        ])->all();
+
+        return [
+            'defaults' => [
+                'source' => Invoice::SOURCE_PO_PAYMENT_TERM,
+                'purchase_order_ids' => [$poId],
+                'po_payment_term_ids' => $available->pluck('id')->all(),
+                'currency_code' => PurchaseOrder::query()->whereKey($poId)->value('currency_code') ?: 'USD',
+            ],
+            'preview' => $preview,
         ];
     }
 
@@ -303,6 +378,10 @@ class InvoiceController extends Controller
 
         if ($request->isManualSource()) {
             return $this->resolveManualInvoicePayload($request, $validated, $invoice);
+        }
+
+        if ($request->isPaymentTermSource()) {
+            return $this->resolvePaymentTermInvoicePayload($request, $validated, $invoice);
         }
 
         return $this->resolvePurchaseOrderInvoicePayload($request, $validated, $invoice);
@@ -364,6 +443,122 @@ class InvoiceController extends Controller
             'header' => $header,
             'purchase_order_ids' => [],
             'lines' => $lines,
+            'payment_term_ids' => [],
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return array{
+     *     header: array<string, mixed>,
+     *     purchase_order_ids: list<int>,
+     *     lines: list<array<string, mixed>>,
+     *     payment_term_ids: list<int>
+     * }|RedirectResponse
+     */
+    private function resolvePaymentTermInvoicePayload(
+        StoreInvoiceRequest $request,
+        array $validated,
+        ?Invoice $invoice = null,
+    ): array|RedirectResponse {
+        $purchaseOrderIds = collect($validated['purchase_order_ids'])
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+
+        $purchaseOrders = PurchaseOrder::query()
+            ->with(['vendor', 'procurementRequest', 'items'])
+            ->whereIn('id', $purchaseOrderIds)
+            ->get()
+            ->sortBy(fn (PurchaseOrder $po) => array_search($po->id, $purchaseOrderIds, true))
+            ->values();
+
+        $termIds = collect($validated['po_payment_term_ids'] ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->unique()
+            ->values();
+
+        $terms = PurchaseOrderPaymentTerm::query()
+            ->whereIn('id', $termIds)
+            ->where(function ($query) use ($invoice) {
+                $query->whereNull('invoice_id');
+                if ($invoice !== null) {
+                    $query->orWhere('invoice_id', $invoice->id);
+                }
+            })
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+
+        if ($terms->isEmpty()) {
+            return back()->withInput()->withErrors(['po_payment_term_ids' => 'Selected payment terms could not be invoiced.']);
+        }
+
+        $primaryPurchaseOrder = $purchaseOrders->first();
+        $poTotal = round((float) ($primaryPurchaseOrder?->total_price ?? 0), 2);
+        $installmentTotal = round((float) $terms->sum(fn (PurchaseOrderPaymentTerm $term) => $term->resolvedAmount($poTotal)), 2);
+
+        $selectedItems = PurchaseOrderItem::query()
+            ->whereIn('purchase_order_id', $purchaseOrderIds)
+            ->with([
+                'purchaseOrder.procurementRequest.items.project',
+                'purchaseOrder.procurementRequest.items.zone',
+                'purchaseOrder.procurementRequest.project',
+                'purchaseOrder.procurementRequest.zone',
+            ])
+            ->orderBy('purchase_order_id')
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+
+        $lines = $this->lineBuilder->build($selectedItems, []);
+        if ($lines === []) {
+            return back()->withInput()->withErrors(['purchase_order_item_ids' => 'This purchase order has no line items to show on the invoice.']);
+        }
+
+        $projectZoneResolver = InvoiceProjectZoneResolver::fromPurchaseOrderItems($selectedItems);
+        $lines = array_map(function (array $line) use ($projectZoneResolver, $selectedItems) {
+            $sourceIds = collect($line['source_purchase_order_item_ids'] ?? [])
+                ->map(fn ($id) => (int) $id)
+                ->all();
+            $sourceItems = $selectedItems->whereIn('id', $sourceIds)->values();
+            $line['project_zone'] = self::buildStoredProjectZone($sourceItems, [], $projectZoneResolver);
+
+            return $line;
+        }, $lines);
+
+        $currencyCode = InvoiceCurrencyResolver::resolveForStore(
+            $validated['currency_code'] ?? null,
+            $primaryPurchaseOrder,
+        );
+
+        $header = InvoicePersistenceService::headerFromPurchaseOrders(
+            $purchaseOrders,
+            trim($validated['recipient_name']),
+            filled($validated['project_manager_name'] ?? null)
+                ? trim((string) $validated['project_manager_name'])
+                : null,
+            (int) $request->user()->id,
+            false,
+            $currencyCode,
+            $validated['notes'] ?? [],
+            [],
+        );
+        $header['source'] = Invoice::SOURCE_PO_PAYMENT_TERM;
+        $header['forced_total_price'] = $installmentTotal;
+
+        if ($invoice !== null) {
+            $header['created_by'] = $invoice->created_by;
+            $header['invoiced_at'] = $invoice->invoiced_at?->toDateString() ?? now()->toDateString();
+        }
+
+        return [
+            'header' => $header,
+            'purchase_order_ids' => $purchaseOrderIds,
+            'lines' => $lines,
+            'payment_term_ids' => $termIds->all(),
         ];
     }
 
@@ -393,7 +588,7 @@ class InvoiceController extends Controller
             ->sortBy(fn (PurchaseOrder $po) => array_search($po->id, $purchaseOrderIds, true))
             ->values();
 
-        $selectedIds = collect($validated['purchase_order_item_ids'])
+        $selectedIds = collect($validated['purchase_order_item_ids'] ?? [])
             ->map(fn ($id) => (int) $id)
             ->unique()
             ->values();
@@ -478,6 +673,7 @@ class InvoiceController extends Controller
             'header' => $header,
             'purchase_order_ids' => $purchaseOrderIds,
             'lines' => $lines,
+            'payment_term_ids' => [],
         ];
     }
 
@@ -585,6 +781,21 @@ class InvoiceController extends Controller
                 'recipient_name' => $invoice->recipient_name,
                 'project_manager_name' => $invoice->project_manager_name,
                 'notes' => ($notes = $invoice->displayNotes()) !== [] ? $notes : [''],
+                'currency_code' => $invoice->currency_code ?? 'USD',
+            ];
+        }
+
+        if ($invoice->isFromPaymentTerm()) {
+            $invoice->loadMissing('purchaseOrderPaymentTerms');
+            $notes = $invoice->displayNotes();
+
+            return [
+                'source' => Invoice::SOURCE_PO_PAYMENT_TERM,
+                'purchase_order_ids' => $invoice->purchaseOrders->pluck('id')->all(),
+                'po_payment_term_ids' => $invoice->purchaseOrderPaymentTerms->pluck('id')->all(),
+                'recipient_name' => $invoice->recipient_name,
+                'project_manager_name' => $invoice->project_manager_name,
+                'notes' => $notes !== [] ? $notes : [''],
                 'currency_code' => $invoice->currency_code ?? 'USD',
             ];
         }
