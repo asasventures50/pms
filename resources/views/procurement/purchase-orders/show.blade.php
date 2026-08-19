@@ -237,17 +237,11 @@
                             @if ($structuredTerms->isNotEmpty())
                                 @php
                                     $canCreateInvoice = auth()->user()?->hasPermission('invoices.create') ?? false;
-                                    $uninvoicedCount = $structuredTerms->filter(fn ($term) => $term->invoice_id === null)->count();
                                 @endphp
                                 <div class="overflow-x-auto">
-                                    <table class="min-w-full text-left text-sm" id="po-view-payment-terms"
-                                           data-invoice-create-url="{{ route('invoices.create') }}"
-                                           data-po-id="{{ $purchaseOrder->id }}">
+                                    <table class="min-w-full text-left text-sm">
                                         <thead class="text-xs uppercase tracking-wide text-slate-500">
                                         <tr>
-                                            @if ($canCreateInvoice && $uninvoicedCount > 0)
-                                                <th class="px-2 py-1 w-8"></th>
-                                            @endif
                                             <th class="px-2 py-1">Payment term</th>
                                             <th class="px-2 py-1">Percentage (%)</th>
                                             <th class="px-2 py-1">Amount</th>
@@ -259,13 +253,6 @@
                                         <tbody class="divide-y divide-slate-100">
                                         @foreach ($structuredTerms as $term)
                                             <tr>
-                                                @if ($canCreateInvoice && $uninvoicedCount > 0)
-                                                    <td class="px-2 py-1">
-                                                        @if ($term->invoice_id === null)
-                                                            <input type="checkbox" class="po-view-term-select rounded border-slate-300" value="{{ $term->id }}">
-                                                        @endif
-                                                    </td>
-                                                @endif
                                                 <td class="px-2 py-1 text-slate-900 text-start" dir="auto">{{ $term->milestone !== '' ? $term->milestone : '—' }}</td>
                                                 <td class="px-2 py-1 font-mono">{{ $term->percentage !== null ? rtrim(rtrim(number_format((float) $term->percentage, 2), '0'), '.').'%' : '—' }}</td>
                                                 <td class="px-2 py-1 font-mono">{{ $term->amount !== null ? $purchaseOrder->formatMoneyAmount($term->amount) : '—' }}</td>
@@ -296,13 +283,6 @@
                                 @error('document')
                                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
-                                @if ($canCreateInvoice && $uninvoicedCount >= 2)
-                                    <button type="button" id="po-view-create-selected-invoices"
-                                            class="mt-3 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50"
-                                            disabled>
-                                        Create invoice for selected
-                                    </button>
-                                @endif
                             @else
                                 <span class="whitespace-pre-wrap text-slate-900 text-start" dir="auto">{{ $paymentTermsDisplay }}</span>
                             @endif
@@ -355,38 +335,6 @@
             const url = baseUrl + '?locale=' + encodeURIComponent(locale) + '&with_terms=' + encodeURIComponent(withTerms);
 
             window.open(url, '_blank', 'noopener');
-        });
-
-        const createSelectedBtn = document.getElementById('po-view-create-selected-invoices');
-        const termsTable = document.getElementById('po-view-payment-terms');
-        function selectedViewTermIds() {
-            return Array.from(document.querySelectorAll('.po-view-term-select:checked')).map(function (el) {
-                return el.value;
-            });
-        }
-        function updateViewCreateSelectedState() {
-            if (!createSelectedBtn) {
-                return;
-            }
-            createSelectedBtn.disabled = selectedViewTermIds().length < 2;
-        }
-        document.querySelectorAll('.po-view-term-select').forEach(function (checkbox) {
-            checkbox.addEventListener('change', updateViewCreateSelectedState);
-        });
-        createSelectedBtn?.addEventListener('click', function () {
-            const ids = selectedViewTermIds();
-            const poId = termsTable?.getAttribute('data-po-id');
-            const baseUrl = termsTable?.getAttribute('data-invoice-create-url');
-            if (!baseUrl || !poId || ids.length < 2) {
-                return;
-            }
-            const params = new URLSearchParams();
-            params.set('source', 'po_payment_term');
-            params.set('po_id', poId);
-            ids.forEach(function (id) {
-                params.append('milestone_ids[]', id);
-            });
-            window.location.href = baseUrl + '?' + params.toString();
         });
     </script>
 @endpush

@@ -307,7 +307,8 @@ class InvoiceController extends Controller
             ->map(fn ($id) => (int) $id)
             ->filter()
             ->unique()
-            ->values();
+            ->values()
+            ->take(1);
 
         if ($poId < 1 || $termIds->isEmpty()) {
             return ['defaults' => [], 'preview' => []];

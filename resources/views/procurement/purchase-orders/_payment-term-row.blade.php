@@ -12,13 +12,8 @@
 @endphp
 
 <tr class="po-payment-term-row" @if ($locked) data-invoiced="1" @endif>
-    <td class="px-2 py-2 print:hidden">
-        @if (! $locked)
-            <input type="checkbox" class="po-payment-term-select rounded border-slate-300" @disabled(! $poExists || ! filled($row['id'] ?? ''))>
-        @endif
-        <input type="hidden" name="payment_term_rows[{{ $index }}][id]" value="{{ $row['id'] ?? '' }}" data-name="id">
-    </td>
     <td class="px-2 py-2">
+        <input type="hidden" name="payment_term_rows[{{ $index }}][id]" value="{{ $row['id'] ?? '' }}" data-name="id">
         @if ($locked)
             <input type="hidden" name="payment_term_rows[{{ $index }}][milestone]" value="{{ $row['milestone'] ?? '' }}" data-name="milestone">
         @endif

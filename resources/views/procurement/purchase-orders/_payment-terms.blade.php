@@ -24,9 +24,7 @@
     $showPaymentTerms = filter_var(old('show_payment_terms', $po?->show_payment_terms ?? true), FILTER_VALIDATE_BOOLEAN);
 @endphp
 
-<div class="md:col-span-2" id="po-payment-terms-section"
-     data-po-id="{{ $po?->id ?? '' }}"
-     data-invoice-create-url="{{ route('invoices.create') }}">
+<div class="md:col-span-2" id="po-payment-terms-section">
     <div class="flex flex-wrap items-center justify-between gap-3">
         <label class="block text-xs font-medium uppercase tracking-wide text-slate-500">Payment terms</label>
         <label class="inline-flex items-center gap-2 text-sm text-slate-700">
@@ -43,7 +41,6 @@
         <table class="min-w-full text-left text-sm">
             <thead class="text-xs font-semibold uppercase tracking-wide text-slate-500">
             <tr>
-                <th class="px-2 py-2 print:hidden w-8"></th>
                 <th class="px-2 py-2">Payment term <span class="text-red-600">*</span></th>
                 <th class="px-2 py-2">Percentage (%)</th>
                 <th class="px-2 py-2">Amount</th>
@@ -65,7 +62,6 @@
             </tbody>
             <tfoot>
             <tr class="border-t border-slate-200 text-sm">
-                <td class="px-2 py-2 print:hidden"></td>
                 <td class="px-2 py-2 font-medium text-slate-700">Total</td>
                 <td class="px-2 py-2 font-mono tabular-nums">
                     <span id="po-payment-terms-pct-total">0</span>%
@@ -87,13 +83,6 @@
                 class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-800 hover:bg-slate-50">
             Add row
         </button>
-        @if (($po?->exists ?? false) && $canCreateInvoice)
-            <button type="button" id="po-create-selected-invoices"
-                    class="rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-900 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50"
-                    disabled>
-                Create invoice for selected
-            </button>
-        @endif
     </div>
 
     <template id="po-payment-term-template">

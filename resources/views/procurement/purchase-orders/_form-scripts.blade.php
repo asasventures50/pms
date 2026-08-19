@@ -755,7 +755,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 input.setAttribute('name', 'payment_term_rows[' + index + '][' + field + ']');
             });
         });
-        updatePaymentTermSelectState();
     }
 
     function paymentTermNamedInput(row, field) {
@@ -946,7 +945,6 @@ document.addEventListener('DOMContentLoaded', function () {
         row.querySelector('.po-payment-term-currency')?.addEventListener('input', function (event) {
             event.target.value = event.target.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3);
         });
-        row.querySelector('.po-payment-term-select')?.addEventListener('change', updatePaymentTermSelectState);
 
         row.querySelector('.po-remove-payment-term')?.addEventListener('click', function () {
             if (row.getAttribute('data-invoiced') === '1') {
@@ -1020,32 +1018,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         reindexPaymentTermRows();
         updatePaymentTermTotals();
-    }
-
-    function selectedPaymentTermIds() {
-        const ids = [];
-        paymentTermsBody?.querySelectorAll('.po-payment-term-row').forEach(function (row) {
-            if (row.getAttribute('data-invoiced') === '1') {
-                return;
-            }
-            const checkbox = row.querySelector('.po-payment-term-select');
-            if (!checkbox || !checkbox.checked) {
-                return;
-            }
-            const id = paymentTermNamedInput(row, 'id')?.value;
-            if (id) {
-                ids.push(id);
-            }
-        });
-        return ids;
-    }
-
-    function updatePaymentTermSelectState() {
-        const btn = document.getElementById('po-create-selected-invoices');
-        if (!btn) {
-            return;
-        }
-        btn.disabled = selectedPaymentTermIds().length < 2;
     }
 
     window.poRecalcPaymentTermsFromTotal = function (total) {
@@ -1157,23 +1129,6 @@ document.addEventListener('DOMContentLoaded', function () {
             event.preventDefault();
             document.getElementById('po-payment-terms-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
-    });
-
-    document.getElementById('po-create-selected-invoices')?.addEventListener('click', function () {
-        const ids = selectedPaymentTermIds();
-        const section = document.getElementById('po-payment-terms-section');
-        const poId = section?.getAttribute('data-po-id');
-        const baseUrl = section?.getAttribute('data-invoice-create-url');
-        if (!baseUrl || !poId || ids.length < 2) {
-            return;
-        }
-        const params = new URLSearchParams();
-        params.set('po_id', poId);
-        params.set('source', 'po_payment_term');
-        ids.forEach(function (id) {
-            params.append('milestone_ids[]', id);
-        });
-        window.location.href = baseUrl + '?' + params.toString();
     });
 
     async function fetchProcurementRequestLines(requestId) {

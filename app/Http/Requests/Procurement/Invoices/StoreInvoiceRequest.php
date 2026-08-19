@@ -61,6 +61,7 @@ class StoreInvoiceRequest extends FormRequest
                 'required_if:source,'.Invoice::SOURCE_PO_PAYMENT_TERM,
                 'nullable',
                 'array',
+                'max:1',
             ],
             'po_payment_term_ids.*' => ['integer', 'distinct', 'exists:purchase_order_payment_terms,id'],
             'purchase_order_item_zones' => ['nullable', 'array'],
@@ -113,7 +114,13 @@ class StoreInvoiceRequest extends FormRequest
                     ->values();
 
                 if ($termIds->isEmpty()) {
-                    $validator->errors()->add('po_payment_term_ids', 'Select at least one payment term.');
+                    $validator->errors()->add('po_payment_term_ids', 'Select a payment term.');
+
+                    return;
+                }
+
+                if ($termIds->count() !== 1) {
+                    $validator->errors()->add('po_payment_term_ids', 'Each invoice must be for a single payment term.');
 
                     return;
                 }

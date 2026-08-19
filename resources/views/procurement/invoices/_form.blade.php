@@ -76,7 +76,7 @@
     @endif
     @if ($paymentTermPreview !== [])
         <div class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
-            <p class="font-medium">Creating invoice from P.O. payment term(s)</p>
+            <p class="font-medium">Creating invoice from P.O. payment term</p>
             <ul class="mt-2 list-disc space-y-1 ps-5">
                 @foreach ($paymentTermPreview as $term)
                     <li>
