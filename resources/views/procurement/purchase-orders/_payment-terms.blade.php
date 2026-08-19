@@ -31,11 +31,11 @@
         <label class="inline-flex items-center gap-2 text-sm text-slate-700">
             <input type="hidden" name="show_payment_terms" value="0">
             <input type="checkbox" name="show_payment_terms" id="show_payment_terms" value="1" @checked($showPaymentTerms)>
-            Include on purchase order
+            Show on printed P.O.
         </label>
     </div>
     <p class="mt-0.5 text-xs text-slate-500">
-        Imported from the linked P.R. when you import lines. Each payment term name is required and must be unique in this table. Enter a percentage to fill the amount from the P.O. total, or enter an amount to fill the percentage. Uncheck to omit from the printed P.O.
+        Imported from the linked P.R. when you import lines. Each payment term name is required and must be unique in this table. Enter a percentage to fill the amount from the P.O. total, or enter an amount to fill the percentage. Uncheck “Show on printed P.O.” to hide this table on the PDF; the data is still saved.
     </p>
 
     <div class="mt-3 overflow-x-auto">

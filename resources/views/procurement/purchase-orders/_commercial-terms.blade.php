@@ -15,10 +15,10 @@
         <label class="inline-flex items-center gap-2 text-sm text-slate-700">
             <input type="hidden" name="show_retention" value="0">
             <input type="checkbox" name="show_retention" id="show_retention" value="1" @checked($showRetention)>
-            Include on purchase order
+            Show on printed P.O.
         </label>
     </div>
-    <p class="mt-0.5 text-xs text-slate-500">Imported from the linked P.R. Uncheck to omit from the printed P.O.</p>
+    <p class="mt-0.5 text-xs text-slate-500">Imported from the linked P.R. Uncheck “Show on printed P.O.” to hide this section on the PDF; the data is still saved.</p>
     <div class="mt-3 overflow-x-auto">
         <table class="min-w-full text-left text-sm">
             <thead class="text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -53,10 +53,10 @@
         <label class="inline-flex items-center gap-2 text-sm text-slate-700">
             <input type="hidden" name="show_maintenance" value="0">
             <input type="checkbox" name="show_maintenance" id="show_maintenance" value="1" @checked($showMaintenance)>
-            Include on purchase order
+            Show on printed P.O.
         </label>
     </div>
-    <p class="mt-0.5 text-xs text-slate-500">Imported from the linked P.R. Uncheck to omit from the printed P.O.</p>
+    <p class="mt-0.5 text-xs text-slate-500">Imported from the linked P.R. Uncheck “Show on printed P.O.” to hide this section on the PDF; the data is still saved.</p>
     <div class="mt-4">
         <p class="text-xs font-medium uppercase tracking-wide text-slate-500">After-sale service applicable</p>
         <div class="mt-2 flex flex-wrap gap-4">
