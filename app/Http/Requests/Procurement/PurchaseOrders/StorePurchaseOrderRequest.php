@@ -60,6 +60,7 @@ class StorePurchaseOrderRequest extends FormRequest
             'payment_term_rows.*.milestone' => ['nullable', 'string', 'max:2000'],
             'payment_term_rows.*.percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'payment_term_rows.*.amount' => ['nullable', 'numeric', 'min:0'],
+            'payment_term_rows.*.currency_code' => ['nullable', 'string', 'size:3', 'alpha'],
             'payment_term_rows.*.notes' => ['nullable', 'string', 'max:5000'],
             'show_payment_terms' => ['nullable', 'boolean'],
             'retentions' => ['nullable', 'array'],

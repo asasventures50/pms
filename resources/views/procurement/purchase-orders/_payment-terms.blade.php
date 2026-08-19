@@ -9,6 +9,7 @@
                 'milestone' => $row->milestone,
                 'percentage' => $row->percentage,
                 'amount' => $row->amount,
+                'currency_code' => $row->currency_code,
                 'notes' => $row->notes,
                 'invoice_id' => $row->invoice_id,
                 'invoice' => $row->invoice
@@ -18,7 +19,7 @@
             : [];
     }
     if ($formRows === []) {
-        $formRows = [['id' => '', 'milestone' => '', 'percentage' => '', 'amount' => '', 'notes' => '']];
+        $formRows = [['id' => '', 'milestone' => '', 'percentage' => '', 'amount' => '', 'currency_code' => '', 'notes' => '']];
     }
     $showPaymentTerms = filter_var(old('show_payment_terms', $po?->show_payment_terms ?? true), FILTER_VALIDATE_BOOLEAN);
 @endphp
@@ -46,6 +47,7 @@
                 <th class="px-2 py-2">Payment term <span class="text-red-600">*</span></th>
                 <th class="px-2 py-2">Percentage (%)</th>
                 <th class="px-2 py-2">Amount</th>
+                <th class="px-2 py-2">Currency</th>
                 <th class="px-2 py-2">Note</th>
                 <th class="px-2 py-2 print:hidden">Invoice</th>
                 <th class="px-2 py-2 print:hidden"></th>
@@ -70,7 +72,7 @@
                     <span id="po-payment-terms-pct-badge" class="ml-2 hidden rounded-full px-2 py-0.5 text-xs font-medium"></span>
                 </td>
                 <td class="px-2 py-2 font-mono tabular-nums" id="po-payment-terms-amt-total">0.00</td>
-                <td class="px-2 py-2 print:hidden" colspan="3"></td>
+                <td class="px-2 py-2 print:hidden" colspan="4"></td>
             </tr>
             </tfoot>
         </table>
@@ -97,7 +99,7 @@
     <template id="po-payment-term-template">
         @include('procurement.purchase-orders._payment-term-row', [
             'index' => 0,
-            'row' => ['id' => '', 'milestone' => '', 'percentage' => '', 'amount' => '', 'notes' => ''],
+            'row' => ['id' => '', 'milestone' => '', 'percentage' => '', 'amount' => '', 'currency_code' => '', 'notes' => ''],
             'po' => $po,
             'canCreateInvoice' => $canCreateInvoice,
         ])

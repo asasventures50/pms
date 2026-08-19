@@ -327,6 +327,14 @@ class InvoiceController extends Controller
             return ['defaults' => [], 'preview' => []];
         }
 
+        $purchaseOrder = PurchaseOrder::query()->find($poId);
+        $poCurrency = $purchaseOrder?->currency_code ?: 'USD';
+        $termCurrencies = $available
+            ->map(fn (PurchaseOrderPaymentTerm $term) => $term->displayCurrency($poCurrency))
+            ->filter()
+            ->unique()
+            ->values();
+
         $preview = $available->map(fn (PurchaseOrderPaymentTerm $term) => [
             'id' => $term->id,
             'milestone' => (string) $term->milestone,
@@ -339,7 +347,7 @@ class InvoiceController extends Controller
                 'source' => Invoice::SOURCE_PO_PAYMENT_TERM,
                 'purchase_order_ids' => [$poId],
                 'po_payment_term_ids' => $available->pluck('id')->all(),
-                'currency_code' => PurchaseOrder::query()->whereKey($poId)->value('currency_code') ?: 'USD',
+                'currency_code' => $termCurrencies->count() === 1 ? $termCurrencies->first() : $poCurrency,
             ],
             'preview' => $preview,
         ];

@@ -43,6 +43,7 @@
                 <th>{{ $printLabels->t('payment_term_condition') }}</th>
                 <th>{{ $printLabels->t('payment_term_percent') }}</th>
                 <th>{{ $printLabels->t('payment_term_amount') }}</th>
+                <th>{{ $printLabels->t('payment_term_currency') }}</th>
             </tr>
             </thead>
             <tbody>
@@ -50,11 +51,13 @@
                 @php
                     $milestone = trim((string) $term->milestone);
                     $milestoneRtl = $milestone !== '' && TextDirection::isRtl($milestone);
+                    $termCurrency = $term->displayCurrency($purchaseOrder->displayCurrency());
                 @endphp
                 <tr>
                     <td @if ($milestoneRtl) dir="rtl" lang="ar" @endif>{{ $milestone !== '' ? $milestone : $printLabels->t('em_dash') }}</td>
                     <td>{{ $term->percentage !== null ? rtrim(rtrim(number_format((float) $term->percentage, 2), '0'), '.').'%' : $printLabels->t('em_dash') }}</td>
-                    <td>{{ $term->amount !== null ? $purchaseOrder->formatMoneyAmount($term->amount) : $printLabels->t('em_dash') }}</td>
+                    <td>{{ $term->amount !== null ? number_format((float) $term->amount, 2) : $printLabels->t('em_dash') }}</td>
+                    <td>{{ $termCurrency !== null && $termCurrency !== '' ? $termCurrency : $printLabels->t('em_dash') }}</td>
                 </tr>
             @endforeach
             </tbody>

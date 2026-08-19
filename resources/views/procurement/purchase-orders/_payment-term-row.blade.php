@@ -1,11 +1,14 @@
 @php
-    $row = $row ?? ['id' => '', 'milestone' => '', 'percentage' => '', 'amount' => '', 'notes' => ''];
+    $row = $row ?? ['id' => '', 'milestone' => '', 'percentage' => '', 'amount' => '', 'currency_code' => '', 'notes' => ''];
     $invoice = $row['invoice'] ?? null;
     $invoiceId = $invoice['id'] ?? ($row['invoice_id'] ?? null);
     $invoiceNumber = $invoice['invoice_number'] ?? ($row['invoice_number'] ?? '');
     $locked = filled($invoiceId);
     $poExists = ($po ?? null)?->exists ?? false;
     $canCreateInvoice = $canCreateInvoice ?? false;
+    $poCurrency = strtoupper(trim((string) old('currency_code', $po?->currency_code ?? auth()->user()?->defaultCurrencyCode() ?? '')));
+    $rowCurrency = strtoupper(trim((string) ($row['currency_code'] ?? '')));
+    $currencyValue = $rowCurrency !== '' ? $rowCurrency : $poCurrency;
 @endphp
 
 <tr class="po-payment-term-row" @if ($locked) data-invoiced="1" @endif>
@@ -46,6 +49,17 @@
                value="{{ $row['amount'] ?? '' }}"
                data-name="amount" min="0" step="0.01"
                class="po-payment-term-amount admin-filter-control w-32 text-right font-mono"
+               @disabled($locked)>
+    </td>
+    <td class="px-2 py-2">
+        @if ($locked)
+            <input type="hidden" name="payment_term_rows[{{ $index }}][currency_code]" value="{{ $currencyValue }}" data-name="currency_code">
+        @endif
+        <input type="text" @unless($locked) name="payment_term_rows[{{ $index }}][currency_code]" @endunless
+               value="{{ $currencyValue }}"
+               data-name="currency_code" maxlength="3"
+               class="po-payment-term-currency admin-filter-control w-20 uppercase text-center font-mono"
+               autocomplete="off"
                @disabled($locked)>
     </td>
     <td class="px-2 py-2">

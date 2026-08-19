@@ -6,6 +6,24 @@ use Illuminate\Validation\Validator;
 
 trait ValidatesPurchaseOrderPaymentTermRows
 {
+    protected function prepareForValidation(): void
+    {
+        $rows = $this->input('payment_term_rows');
+        if (! is_array($rows)) {
+            return;
+        }
+
+        foreach ($rows as $index => $row) {
+            if (! is_array($row) || ! array_key_exists('currency_code', $row)) {
+                continue;
+            }
+
+            $code = strtoupper(preg_replace('/[^A-Za-z]/', '', (string) $row['currency_code']) ?? '');
+            $rows[$index]['currency_code'] = strlen($code) === 3 ? $code : null;
+        }
+
+        $this->merge(['payment_term_rows' => $rows]);
+    }
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {

@@ -4,19 +4,21 @@ namespace App\Services\Procurement\PurchaseOrders;
 
 use App\Models\Procurement\PurchaseOrders\PurchaseOrder;
 use App\Models\Procurement\PurchaseOrders\PurchaseOrderPaymentTerm;
+use App\Services\Procurement\Invoices\InvoiceCurrencyResolver;
 
 class PurchaseOrderPaymentTermsSynchronizer
 {
     /**
      * @param  mixed  $raw
-     * @return list<array{id: int|null, milestone: string, percentage: float|null, amount: float|null, notes: string}>
+     * @return list<array{id: int|null, milestone: string, percentage: float|null, amount: float|null, currency_code: string|null, notes: string}>
      */
-    public static function normalize(mixed $raw): array
+    public static function normalize(mixed $raw, mixed $poCurrency = null): array
     {
         if (! is_array($raw)) {
             return [];
         }
 
+        $poCode = InvoiceCurrencyResolver::normalizeCode(is_string($poCurrency) ? $poCurrency : null);
         $normalized = [];
 
         foreach ($raw as $row) {
@@ -30,6 +32,9 @@ class PurchaseOrderPaymentTermsSynchronizer
             $notes = trim((string) ($row['notes'] ?? ''));
             $percentageRaw = $row['percentage'] ?? null;
             $amountRaw = $row['amount'] ?? null;
+            $currencyCode = InvoiceCurrencyResolver::normalizeCode(
+                isset($row['currency_code']) ? (string) $row['currency_code'] : null
+            );
 
             $percentage = ($percentageRaw === null || $percentageRaw === '')
                 ? null
@@ -42,11 +47,16 @@ class PurchaseOrderPaymentTermsSynchronizer
                 continue;
             }
 
+            if ($currencyCode !== null && $poCode !== null && $currencyCode === $poCode) {
+                $currencyCode = null;
+            }
+
             $normalized[] = [
                 'id' => $id,
                 'milestone' => $milestone,
                 'percentage' => $percentage,
                 'amount' => $amount,
+                'currency_code' => $currencyCode,
                 'notes' => $notes,
             ];
         }
@@ -71,7 +81,9 @@ class PurchaseOrderPaymentTermsSynchronizer
                 $parts[] = rtrim(rtrim(number_format((float) $row['percentage'], 2), '0'), '.').'%';
             }
             if (($row['amount'] ?? null) !== null && $row['amount'] !== '') {
-                $parts[] = number_format((float) $row['amount'], 2);
+                $amount = number_format((float) $row['amount'], 2);
+                $currency = strtoupper(trim((string) ($row['currency_code'] ?? '')));
+                $parts[] = $currency !== '' ? $amount.' '.$currency : $amount;
             }
             $line = implode(' — ', $parts);
             if ($line !== '') {
@@ -116,6 +128,7 @@ class PurchaseOrderPaymentTermsSynchronizer
                     'milestone' => $row['milestone'],
                     'percentage' => $row['percentage'],
                     'amount' => $row['amount'],
+                    'currency_code' => $row['currency_code'] ?? null,
                     'notes' => $row['notes'] !== '' ? $row['notes'] : null,
                     'sort_order' => $sort++,
                 ]);
@@ -134,6 +147,7 @@ class PurchaseOrderPaymentTermsSynchronizer
                 'milestone' => $row['milestone'],
                 'percentage' => $row['percentage'],
                 'amount' => $row['amount'],
+                'currency_code' => $row['currency_code'] ?? null,
                 'notes' => $row['notes'] !== '' ? $row['notes'] : null,
                 'sort_order' => $sort++,
             ]);

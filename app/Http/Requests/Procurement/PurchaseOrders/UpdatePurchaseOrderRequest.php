@@ -45,6 +45,7 @@ class UpdatePurchaseOrderRequest extends FormRequest
             'payment_term_rows.*.milestone' => ['sometimes', 'nullable', 'string', 'max:2000'],
             'payment_term_rows.*.percentage' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:100'],
             'payment_term_rows.*.amount' => ['sometimes', 'nullable', 'numeric', 'min:0'],
+            'payment_term_rows.*.currency_code' => ['sometimes', 'nullable', 'string', 'size:3', 'alpha'],
             'payment_term_rows.*.notes' => ['sometimes', 'nullable', 'string', 'max:5000'],
             'show_payment_terms' => ['sometimes', 'nullable', 'boolean'],
             'retentions' => ['sometimes', 'nullable', 'array'],

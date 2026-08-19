@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const procurementRequestSelect = document.getElementById('procurement_request_id');
     const currencyInput = document.getElementById('currency_code');
     const userDefaultCurrency = (currencyInput?.dataset.userDefaultCurrency || '').trim().toUpperCase();
+    let lastPoCurrency = '';
 
     function applyBilingualDirection(field) {
         const text = field.value || '';
@@ -148,6 +149,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         currencyInput.value = userDefaultCurrency;
         updateCurrencyLabels();
+        const next = effectiveCurrencyCode();
+        applyPoCurrencyToPaymentTermRows(lastPoCurrency, next);
+        lastPoCurrency = next;
     }
 
     function reindexRows() {
@@ -759,6 +763,38 @@ document.addEventListener('DOMContentLoaded', function () {
             || row.querySelector('input[data-name="' + field + '"]');
     }
 
+    function applyPoCurrencyToPaymentTermRows(previous, next) {
+        previous = (previous || '').toUpperCase();
+        next = (next || '').toUpperCase();
+        paymentTermsBody?.querySelectorAll('.po-payment-term-row').forEach(function (row) {
+            if (row.getAttribute('data-invoiced') === '1') {
+                return;
+            }
+            const input = row.querySelector('.po-payment-term-currency');
+            if (!input) {
+                return;
+            }
+            const current = (input.value || '').trim().toUpperCase();
+            if (current === '' || current === previous) {
+                input.value = next;
+            }
+        });
+    }
+
+    function setPaymentTermRowCurrency(row, code) {
+        const input = row.querySelector('.po-payment-term-currency');
+        if (!input || input.disabled) {
+            return;
+        }
+        input.value = (code || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3);
+    }
+
+    function rowUsesPoCurrency(row) {
+        const code = (row.querySelector('.po-payment-term-currency')?.value || '').trim().toUpperCase();
+        const po = effectiveCurrencyCode();
+        return code === '' || po === '' || code === po;
+    }
+
     function updatePaymentTermTotals() {
         let pctTotal = 0;
         let amtTotal = 0;
@@ -813,6 +849,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const amtRaw = amtInput.value;
         const pct = pctRaw === '' ? null : parseFloat(pctRaw);
         const amt = amtRaw === '' ? null : parseFloat(amtRaw);
+
+        if (!rowUsesPoCurrency(row)) {
+            return;
+        }
 
         if (source === 'percentage' && pct !== null && !isNaN(pct)) {
             amtInput.value = formatMoney(roundMoney((pct / 100) * currentPoTotal));
@@ -903,6 +943,9 @@ document.addEventListener('DOMContentLoaded', function () {
             updatePaymentTermTotals();
             validatePaymentTermNames();
         });
+        row.querySelector('.po-payment-term-currency')?.addEventListener('input', function (event) {
+            event.target.value = event.target.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3);
+        });
         row.querySelector('.po-payment-term-select')?.addEventListener('change', updatePaymentTermSelectState);
 
         row.querySelector('.po-remove-payment-term')?.addEventListener('click', function () {
@@ -922,6 +965,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (notesInput) {
                     notesInput.value = '';
                 }
+                setPaymentTermRowCurrency(row, effectiveCurrencyCode());
                 updatePaymentTermTotals();
                 validatePaymentTermNames();
                 return;
@@ -968,6 +1012,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (notesInput) {
                 notesInput.value = rowData.notes ?? '';
             }
+            setPaymentTermRowCurrency(row, rowData.currency_code || effectiveCurrencyCode());
             paymentTermsBody.appendChild(row);
             bindPaymentTermRow(row);
             syncPaymentTermRow(row, 'percentage');
@@ -1037,6 +1082,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         currencyInput.value = code;
         updateCurrencyLabels();
+        const next = effectiveCurrencyCode();
+        applyPoCurrencyToPaymentTermRows(lastPoCurrency, next);
+        lastPoCurrency = next;
     }
 
     function applyCommercialTermsFromPr(commercialTerms) {
@@ -1095,6 +1143,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const clone = paymentTermTemplate.content.cloneNode(true);
         const row = clone.querySelector('tr');
         paymentTermsBody.appendChild(row);
+        setPaymentTermRowCurrency(row, effectiveCurrencyCode());
         bindPaymentTermRow(row);
         reindexPaymentTermRows();
         updatePaymentTermTotals();
@@ -1229,9 +1278,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     addBtn?.addEventListener('click', addRow);
 
+    lastPoCurrency = effectiveCurrencyCode();
+
     currencyInput?.addEventListener('input', function () {
         currencyInput.value = currencyInput.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3);
         updateCurrencyLabels();
+        const next = effectiveCurrencyCode();
+        applyPoCurrencyToPaymentTermRows(lastPoCurrency, next);
+        lastPoCurrency = next;
     });
 
     currencyInput?.addEventListener('blur', applyUserDefaultIfEmpty);

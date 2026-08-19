@@ -18,6 +18,7 @@ class PurchaseOrderPaymentTerm extends Model
         'milestone',
         'percentage',
         'amount',
+        'currency_code',
         'notes',
         'invoice_id',
         'sort_order',
@@ -44,6 +45,33 @@ class PurchaseOrderPaymentTerm extends Model
     public function isInvoiced(): bool
     {
         return $this->invoice_id !== null;
+    }
+
+    public function displayCurrency(?string $fallback = null): ?string
+    {
+        $code = strtoupper(trim((string) ($this->currency_code ?? '')));
+        if ($code !== '') {
+            return $code;
+        }
+
+        $fallbackCode = strtoupper(trim((string) ($fallback ?? '')));
+        if ($fallbackCode !== '') {
+            return $fallbackCode;
+        }
+
+        return $this->purchaseOrder?->displayCurrency();
+    }
+
+    public function formatMoneyAmount(float|string|null $amount): string
+    {
+        if ($amount === null || $amount === '') {
+            return '—';
+        }
+
+        $formatted = number_format((float) $amount, 2);
+        $currency = $this->displayCurrency();
+
+        return $currency ? "{$formatted} {$currency}" : $formatted;
     }
 
     public function resolvedAmount(float $poTotal): float

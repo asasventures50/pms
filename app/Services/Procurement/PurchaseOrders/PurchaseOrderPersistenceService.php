@@ -114,7 +114,10 @@ class PurchaseOrderPersistenceService
         $header['terms'] = $this->termsService->buildTermsPayload($general, $custom);
 
         if (array_key_exists('payment_term_rows', $header)) {
-            $paymentTermRows = PurchaseOrderPaymentTermsSynchronizer::normalize($header['payment_term_rows']);
+            $paymentTermRows = PurchaseOrderPaymentTermsSynchronizer::normalize(
+                $header['payment_term_rows'],
+                $header['currency_code'] ?? null
+            );
             $header['payment_term_rows'] = $paymentTermRows;
             $header['payment_terms'] = PurchaseOrderPaymentTermsSynchronizer::flatten($paymentTermRows);
         }
