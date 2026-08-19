@@ -36,14 +36,20 @@
 
 @if ($showPaymentTerms)
     @if ($structuredTerms->isNotEmpty())
+        @php
+            $poPrintCurrency = $purchaseOrder->displayCurrency();
+            $amountHeader = $printLabels->t('payment_term_amount');
+            if ($poPrintCurrency) {
+                $amountHeader .= ' ('.$poPrintCurrency.')';
+            }
+        @endphp
         <div class="po-field-label">{{ $printLabels->t('payment_terms') }}</div>
         <table class="po-items-table pr-items-table pr-compact-table">
             <thead>
             <tr>
                 <th>{{ $printLabels->t('payment_term_condition') }}</th>
                 <th>{{ $printLabels->t('payment_term_percent') }}</th>
-                <th>{{ $printLabels->t('payment_term_amount') }}</th>
-                <th>{{ $printLabels->t('payment_term_currency') }}</th>
+                <th>{{ $amountHeader }}</th>
             </tr>
             </thead>
             <tbody>
@@ -51,13 +57,19 @@
                 @php
                     $milestone = trim((string) $term->milestone);
                     $milestoneRtl = $milestone !== '' && TextDirection::isRtl($milestone);
-                    $termCurrency = $term->displayCurrency($purchaseOrder->displayCurrency());
+                    $termCurrency = $term->displayCurrency($poPrintCurrency);
+                    $amountCell = $printLabels->t('em_dash');
+                    if ($term->amount !== null) {
+                        $amountCell = number_format((float) $term->amount, 2);
+                        if ($termCurrency && $poPrintCurrency && $termCurrency !== $poPrintCurrency) {
+                            $amountCell .= ' ('.$termCurrency.')';
+                        }
+                    }
                 @endphp
                 <tr>
                     <td @if ($milestoneRtl) dir="rtl" lang="ar" @endif>{{ $milestone !== '' ? $milestone : $printLabels->t('em_dash') }}</td>
                     <td>{{ $term->percentage !== null ? rtrim(rtrim(number_format((float) $term->percentage, 2), '0'), '.').'%' : $printLabels->t('em_dash') }}</td>
-                    <td>{{ $term->amount !== null ? number_format((float) $term->amount, 2) : $printLabels->t('em_dash') }}</td>
-                    <td>{{ $termCurrency !== null && $termCurrency !== '' ? $termCurrency : $printLabels->t('em_dash') }}</td>
+                    <td>{{ $amountCell }}</td>
                 </tr>
             @endforeach
             </tbody>
