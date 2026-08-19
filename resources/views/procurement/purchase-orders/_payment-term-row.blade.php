@@ -57,16 +57,16 @@
                autocomplete="off"
                @disabled($locked)>
     </td>
-    <td class="px-2 py-2">
+    <td class="px-2 py-2 align-top">
         @if ($locked)
             <input type="hidden" name="payment_term_rows[{{ $index }}][notes]" value="{{ $row['notes'] ?? '' }}" data-name="notes">
         @endif
-        <input type="text" @unless($locked) name="payment_term_rows[{{ $index }}][notes]" @endunless
-               value="{{ $row['notes'] ?? '' }}"
-               data-name="notes"
-               placeholder="Optional"
-               class="po-bilingual-text po-payment-term-notes admin-filter-control w-full min-w-[8rem]"
-               @disabled($locked)>
+        <textarea @unless($locked) name="payment_term_rows[{{ $index }}][notes]" @endunless
+                  data-name="notes"
+                  rows="3"
+                  placeholder="Optional"
+                  class="po-bilingual-text po-payment-term-notes admin-filter-control mt-0 w-full min-w-[12rem] resize-y"
+                  @disabled($locked)>{{ $row['notes'] ?? '' }}</textarea>
     </td>
     <td class="px-2 py-2 print:hidden whitespace-nowrap">
         @if ($locked && filled($invoiceId))
