@@ -4,6 +4,7 @@ namespace App\Services\Procurement\Vendors;
 
 use App\Models\Procurement\Vendors\Vendor;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Finds likely duplicate vendor groups for review (soft-deleted excluded).
@@ -40,6 +41,8 @@ class VendorDuplicateFinder
                 'created_by',
                 'created_at',
             ]);
+
+        $this->attachProcurementRequestCounts($vendors);
 
         return match ($matchType) {
             self::MATCH_EMAIL => $this->groupByEmail($vendors),
@@ -175,5 +178,65 @@ class VendorDuplicateFinder
         ) ?? '';
 
         return preg_replace('/\s+/u', ' ', trim($name)) ?? '';
+    }
+
+    /**
+     * Distinct active PRs linked via PO, schedule of work, RFQ vendor, or RFQ invite.
+     *
+     * @param  Collection<int, Vendor>  $vendors
+     */
+    private function attachProcurementRequestCounts(Collection $vendors): void
+    {
+        $ids = $vendors->pluck('id')->all();
+        if ($ids === []) {
+            return;
+        }
+
+        $fromPos = DB::table('purchase_orders')
+            ->join('procurement_requests', 'procurement_requests.id', '=', 'purchase_orders.procurement_request_id')
+            ->select('purchase_orders.vendor_id as vendor_id', 'purchase_orders.procurement_request_id as pr_id')
+            ->whereIn('purchase_orders.vendor_id', $ids)
+            ->whereNotNull('purchase_orders.procurement_request_id')
+            ->whereNull('purchase_orders.deleted_at')
+            ->whereNull('procurement_requests.deleted_at');
+
+        $fromSows = DB::table('schedule_of_works')
+            ->join('procurement_requests', 'procurement_requests.id', '=', 'schedule_of_works.procurement_request_id')
+            ->select('schedule_of_works.vendor_id as vendor_id', 'schedule_of_works.procurement_request_id as pr_id')
+            ->whereIn('schedule_of_works.vendor_id', $ids)
+            ->whereNotNull('schedule_of_works.procurement_request_id')
+            ->whereNull('procurement_requests.deleted_at');
+
+        $fromRfqVendor = DB::table('rfqs')
+            ->join('rfq_items', 'rfq_items.rfq_id', '=', 'rfqs.id')
+            ->join('procurement_request_items', 'procurement_request_items.id', '=', 'rfq_items.procurement_request_item_id')
+            ->join('procurement_requests', 'procurement_requests.id', '=', 'procurement_request_items.procurement_request_id')
+            ->select('rfqs.vendor_id as vendor_id', 'procurement_request_items.procurement_request_id as pr_id')
+            ->whereIn('rfqs.vendor_id', $ids)
+            ->whereNotNull('rfq_items.procurement_request_item_id')
+            ->whereNull('rfqs.deleted_at')
+            ->whereNull('procurement_requests.deleted_at');
+
+        $fromInvites = DB::table('rfq_vendor_quotation_invites')
+            ->join('rfq_items', 'rfq_items.rfq_id', '=', 'rfq_vendor_quotation_invites.rfq_id')
+            ->join('procurement_request_items', 'procurement_request_items.id', '=', 'rfq_items.procurement_request_item_id')
+            ->join('procurement_requests', 'procurement_requests.id', '=', 'procurement_request_items.procurement_request_id')
+            ->select('rfq_vendor_quotation_invites.vendor_id as vendor_id', 'procurement_request_items.procurement_request_id as pr_id')
+            ->whereIn('rfq_vendor_quotation_invites.vendor_id', $ids)
+            ->whereNotNull('rfq_items.procurement_request_item_id')
+            ->whereNull('procurement_requests.deleted_at');
+
+        $counts = DB::query()
+            ->fromSub(
+                $fromPos->union($fromSows)->union($fromRfqVendor)->union($fromInvites),
+                'vendor_pr_links'
+            )
+            ->select('vendor_id', DB::raw('count(distinct pr_id) as pr_count'))
+            ->groupBy('vendor_id')
+            ->pluck('pr_count', 'vendor_id');
+
+        foreach ($vendors as $vendor) {
+            $vendor->setAttribute('procurement_requests_count', (int) ($counts[$vendor->id] ?? 0));
+        }
     }
 }

@@ -66,6 +66,7 @@
                                     <th class="px-4 py-2">WhatsApp</th>
                                     <th class="px-4 py-2">Email</th>
                                     <th class="px-4 py-2">Created by</th>
+                                    <th class="px-4 py-2">PRs</th>
                                     <th class="px-4 py-2">Status</th>
                                     <th class="px-4 py-2 text-right">Actions</th>
                                 </tr>
@@ -79,6 +80,15 @@
                                         <td class="whitespace-nowrap px-4 py-2 text-slate-700">{{ $vendor->whatsapp ?: '—' }}</td>
                                         <td class="px-4 py-2 text-slate-700">{{ $vendor->email ?: '—' }}</td>
                                         <td class="whitespace-nowrap px-4 py-2 text-slate-700">{{ $vendor->creator?->name ?? '—' }}</td>
+                                        <td class="whitespace-nowrap px-4 py-2 text-slate-700">
+                                            @if ((int) ($vendor->procurement_requests_count ?? 0) > 0)
+                                                <span class="inline-flex rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-800">
+                                                    {{ $vendor->procurement_requests_count }}
+                                                </span>
+                                            @else
+                                                <span class="text-slate-400">0</span>
+                                            @endif
+                                        </td>
                                         <td class="whitespace-nowrap px-4 py-2 text-slate-700">{{ $statusLabel($vendor->status) }}</td>
                                         <td class="whitespace-nowrap px-4 py-2 text-right">
                                             <a href="{{ route('vendors.show', $vendor) }}" class="font-medium text-slate-700 hover:text-slate-900">View</a>
