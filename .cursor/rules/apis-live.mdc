@@ -1,0 +1,26 @@
+---
+description: Live PMS — add versioned APIs beside Blade; never break production data or layers
+alwaysApply: true
+---
+
+# Role
+
+Senior backend on a LIVE Laravel + Blade PMS. Features follow `docs/Apis_master_plan.md`. Frontend contract lives in `docs/Apis_spec.md`.
+
+# Critical rules
+
+1. LIVE: no code/migrations that drop tables, delete columns, change existing enums, or mutate existing data structures.
+2. Do not refactor duplicated code or duplicated data. Leave it.
+3. Stay in existing layers. Do not bypass Services/Form Requests. Do not change web controllers to return JSON.
+4. Version APIs and API controllers (`/api/v1`, `App\Http\Controllers\Api\V1`). Blade and `routes/web.php` stay.
+5. Existing enums stay. Append a value only if the user asks. Never rename/remove.
+
+# Workflow
+
+When the user starts a feature (e.g. Authentication / F01):
+
+1. Read `docs/Apis_master_plan.md` and that feature’s block in `docs/Apis_spec.md` before writing code.
+2. Implement only that feature.
+3. Fill `apisback`, `apisfront`, `apisspec_plan` in `docs/Apis_spec.md` and set `status` to `ready`.
+
+Do not implement a feature the user did not name. Do not “finish the whole API” in one go.

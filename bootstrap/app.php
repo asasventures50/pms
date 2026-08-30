@@ -1,8 +1,11 @@
 <?php
 
+use App\Http\Middleware\EnsurePermission;
+use App\Http\Middleware\SetPublicFormLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -14,10 +17,12 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->redirectUsersTo(fn () => route('dashboard', absolute: false));
         $middleware->alias([
-            'permission' => \App\Http\Middleware\EnsurePermission::class,
-            'public-form-locale' => \App\Http\Middleware\SetPublicFormLocale::class,
+            'permission' => EnsurePermission::class,
+            'public-form-locale' => SetPublicFormLocale::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->shouldRenderJsonWhen(function (Request $request, Throwable $e): bool {
+            return $request->is('api/*') || $request->expectsJson();
+        });
     })->create();

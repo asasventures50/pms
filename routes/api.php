@@ -1,14 +1,19 @@
 <?php
 
-/**
- * API routes (reserved for future use).
- *
- * When you add a separate frontend or mobile clients:
- * - Run: composer require laravel/sanctum && php artisan vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"
- * - Add Sanctum middleware to `bootstrap/app.php` for the `api` group if using SPA cookie auth
- * - Protect JSON endpoints with `auth:sanctum` while keeping session-based web auth in `routes/web.php`
- */
-
+use App\Http\Controllers\Api\V1\Auth\LoginController;
+use App\Http\Controllers\Api\V1\Auth\LogoutController;
+use App\Http\Controllers\Api\V1\Auth\MeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/health', fn () => ['ok' => true])->name('api.health');
+
+Route::prefix('v1')->name('api.v1.')->group(function () {
+    Route::post('auth/login', [LoginController::class, 'store'])
+        ->middleware('throttle:5,1')
+        ->name('auth.login');
+
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('auth/me', [MeController::class, 'show'])->name('auth.me');
+        Route::post('auth/logout', [LogoutController::class, 'destroy'])->name('auth.logout');
+    });
+});

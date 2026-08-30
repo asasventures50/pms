@@ -1,0 +1,266 @@
+# Apis_spec
+
+Single file for backend + frontend. After each feature ships, **replace** that feature’s `"status": "pending"` block with a filled object.
+
+Frontend: drop this whole file into Cursor. Use only features where `status` is `ready`.
+
+---
+
+## How to read a feature
+
+Each feature is one JSON object:
+
+- `apisback` — where it lives (v1 controllers, services reused, permissions, no schema changes).
+- `apisfront` — endpoints, headers, payloads, responses, errors (copy-paste for the client).
+- `apisspec_plan` — business rules the UI must know (own vs all, enums as-is, etc.).
+
+Base URL: `{APP_URL}/api/v1`  
+Auth header (after F01): `Authorization: Bearer {token}`  
+`Accept: application/json`
+
+---
+
+## Features
+
+```json
+{
+  "Authentication": {
+    "status": "ready",
+    "id": "F01",
+    "apisback": "Laravel Sanctum personal access tokens (new table personal_access_tokens only). Controllers: App\\Http\\Controllers\\Api\\V1\\Auth\\LoginController, LogoutController, MeController. Request: App\\Http\\Requests\\Api\\V1\\Auth\\LoginRequest (does not call web Auth::attempt / session). Resource: App\\Http\\Resources\\Api\\V1\\Auth\\UserResource. User model only gained HasApiTokens. Web login/logout and routes/web.php + routes/auth.php unchanged. ActivityLogger logLogin/logLogout reused. JSON 401/403 via bootstrap/app.php shouldRenderJsonWhen for api/*. Same users table and existing roles/permissions. No enum changes.",
+    "apisfront": {
+      "login": {
+        "endpoint": "/api/v1/auth/login",
+        "method": "POST",
+        "headers": {
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+        },
+        "request_payload": {
+          "email": "user@example.com",
+          "password": "secret"
+        },
+        "expected_response": {
+          "token": "1|plainTextToken",
+          "token_type": "Bearer",
+          "user": {
+            "id": 1,
+            "name": "Name",
+            "email": "user@example.com",
+            "department": "string-or-null",
+            "currency_code": "USD-or-null",
+            "is_super_admin": false,
+            "roles": ["pr-requester"],
+            "permissions": ["procurement-requests.view-own"]
+          }
+        },
+        "error_codes": {
+          "422": "Validation or invalid credentials (errors.email). Also throttle after 5 attempts.",
+          "429": "Too many requests (route throttle 5/min)."
+        }
+      },
+      "me": {
+        "endpoint": "/api/v1/auth/me",
+        "method": "GET",
+        "headers": {
+          "Accept": "application/json",
+          "Authorization": "Bearer {token}"
+        },
+        "request_payload": {},
+        "expected_response": {
+          "user": {
+            "id": 1,
+            "name": "Name",
+            "email": "user@example.com",
+            "department": "string-or-null",
+            "currency_code": "USD-or-null",
+            "is_super_admin": false,
+            "roles": ["pr-requester"],
+            "permissions": ["procurement-requests.view-own"]
+          }
+        },
+        "error_codes": {
+          "401": "Missing or invalid token. Body: { \"message\": \"Unauthenticated.\" }"
+        }
+      },
+      "logout": {
+        "endpoint": "/api/v1/auth/logout",
+        "method": "POST",
+        "headers": {
+          "Accept": "application/json",
+          "Authorization": "Bearer {token}"
+        },
+        "request_payload": {},
+        "expected_response": {
+          "message": "Logged out."
+        },
+        "error_codes": {
+          "401": "Missing or invalid token."
+        }
+      }
+    },
+    "apisspec_plan": "F01 done. Store token in memory or secure storage; send Authorization: Bearer on every later /api/v1 call. Blade /login session is a different system — do not mix cookies with this token. Super-admin gets the full PermissionCatalog list. Other users get role permission names (canonical). Frontend should hide/show screens from user.permissions. Next feature when asked: F02 Locations."
+  },
+  "Locations": {
+    "status": "pending",
+    "id": "F02",
+    "apisback": "Pending.",
+    "apisfront": {},
+    "apisspec_plan": "Countries and cities. Same location permissions as web."
+  },
+  "Projects": {
+    "status": "pending",
+    "id": "F03",
+    "apisback": "Pending.",
+    "apisfront": {},
+    "apisspec_plan": "Projects + zones. Reuse ProjectCatalogService / ProjectCodeGenerator. Do not invent new status enums."
+  },
+  "Categories": {
+    "status": "pending",
+    "id": "F04",
+    "apisback": "Pending.",
+    "apisfront": {},
+    "apisspec_plan": "Categories + subcategories + vendor-links. Import/rebuild is F22."
+  },
+  "Users": {
+    "status": "pending",
+    "id": "F05",
+    "apisback": "Pending.",
+    "apisfront": {},
+    "apisspec_plan": "Access users. Same users.* permissions."
+  },
+  "Roles": {
+    "status": "pending",
+    "id": "F06",
+    "apisback": "Pending.",
+    "apisfront": {},
+    "apisspec_plan": "Roles + PermissionCatalog names only. Do not invent permissions."
+  },
+  "Vendors": {
+    "status": "pending",
+    "id": "F07",
+    "apisback": "Pending.",
+    "apisfront": {},
+    "apisspec_plan": "Vendor CRUD + select search. Keep existing vendor enums (status, company type, etc.). Import is F23."
+  },
+  "ProcurementRequests": {
+    "status": "pending",
+    "id": "F08",
+    "apisback": "Pending.",
+    "apisfront": {},
+    "apisspec_plan": "PR module. view vs view-own. Existing ProcurementRequestStatus and related enums only."
+  },
+  "ProcurementRequestFlow": {
+    "status": "pending",
+    "id": "F09",
+    "apisback": "Pending.",
+    "apisfront": {},
+    "apisspec_plan": "My-flow screen data. Reuse ProcurementRequestFlowBuilder."
+  },
+  "ScheduleOfWorks": {
+    "status": "pending",
+    "id": "F10",
+    "apisback": "Pending.",
+    "apisfront": {},
+    "apisspec_plan": "Schedule of works tied to PRs."
+  },
+  "RfqTerms": {
+    "status": "pending",
+    "id": "F11",
+    "apisback": "Pending.",
+    "apisfront": {},
+    "apisspec_plan": "RFQ general terms."
+  },
+  "Rfqs": {
+    "status": "pending",
+    "id": "F12",
+    "apisback": "Pending.",
+    "apisfront": {},
+    "apisspec_plan": "RFQ CRUD. Existing RfqStatus only."
+  },
+  "QuotationInvitesAndPublicQuote": {
+    "status": "pending",
+    "id": "F13",
+    "apisback": "Pending.",
+    "apisfront": {},
+    "apisspec_plan": "Invite links + public quotation by token. Throttle like web. No Bearer on public routes."
+  },
+  "VendorQuotations": {
+    "status": "pending",
+    "id": "F14",
+    "apisback": "Pending.",
+    "apisfront": {},
+    "apisspec_plan": "Staff-side quotations under RFQs."
+  },
+  "QuotationComparison": {
+    "status": "pending",
+    "id": "F15",
+    "apisback": "Pending.",
+    "apisfront": {},
+    "apisspec_plan": "Compare + select / clear selection. quotation-comparison.* permissions."
+  },
+  "PurchaseOrders": {
+    "status": "pending",
+    "id": "F16",
+    "apisback": "Pending.",
+    "apisfront": {},
+    "apisspec_plan": "PO CRUD. view vs view-own. Existing PO / payment status enums."
+  },
+  "Invoices": {
+    "status": "pending",
+    "id": "F17",
+    "apisback": "Pending.",
+    "apisfront": {},
+    "apisspec_plan": "Invoices. Signed document upload is files (F24) if not included here."
+  },
+  "QuickReceipts": {
+    "status": "pending",
+    "id": "F18",
+    "apisback": "Pending.",
+    "apisfront": {},
+    "apisspec_plan": "Quick receipts + approve/reject/sign. Existing QuickReceiptStatus only."
+  },
+  "ActivityLogs": {
+    "status": "pending",
+    "id": "F19",
+    "apisback": "Pending.",
+    "apisfront": {},
+    "apisspec_plan": "Activity log list/show/report."
+  },
+  "Dashboard": {
+    "status": "pending",
+    "id": "F20",
+    "apisback": "Pending.",
+    "apisfront": {},
+    "apisspec_plan": "Same numbers as Blade dashboard. Do not invent new KPIs."
+  },
+  "PublicVendorRegistration": {
+    "status": "pending",
+    "id": "F21",
+    "apisback": "Pending.",
+    "apisfront": {},
+    "apisspec_plan": "Public form API. Throttle. Existing vendor enums."
+  },
+  "CategoryImportExport": {
+    "status": "pending",
+    "id": "F22",
+    "apisback": "Pending.",
+    "apisfront": {},
+    "apisspec_plan": "Import/export/rebuild. No data rebuild except what web already does."
+  },
+  "VendorImportExport": {
+    "status": "pending",
+    "id": "F23",
+    "apisback": "Pending.",
+    "apisfront": {},
+    "apisspec_plan": "Vendor import/export/duplicates."
+  },
+  "DownloadsPrintsAttachments": {
+    "status": "pending",
+    "id": "F24",
+    "apisback": "Pending.",
+    "apisfront": {},
+    "apisspec_plan": "Print/export/signed files. Last."
+  }
+}
+```
