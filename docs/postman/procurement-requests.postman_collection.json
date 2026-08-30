@@ -1,0 +1,86 @@
+{
+  "info": {
+    "name": "PMS API v1 — Procurement requests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://127.0.0.1:8000" },
+    { "key": "token", "value": "" },
+    { "key": "prId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "GET procurement-requests",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/v1/procurement-requests?per_page=15"
+      }
+    },
+    {
+      "name": "POST procurement-requests",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"company_key\": \"asas_ventures\",\n  \"project_id\": 1,\n  \"geographic_scopes\": [\"local\"],\n  \"delivery_location\": \"Site\",\n  \"scope_of_work\": \"Scope text\",\n  \"procurement_types\": [\"purchase\"],\n  \"flexible_delivery_date\": true,\n  \"items\": [\n    {\n      \"category_id\": 1,\n      \"description\": \"BOQ line\",\n      \"quantity\": 1\n    }\n  ]\n}"
+        },
+        "url": "{{baseUrl}}/api/v1/procurement-requests"
+      }
+    },
+    {
+      "name": "GET procurement-requests/{id}",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/v1/procurement-requests/{{prId}}"
+      }
+    },
+    {
+      "name": "PUT procurement-requests/{id}",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"company_key\": \"asas_ventures\",\n  \"project_id\": 1,\n  \"geographic_scopes\": [\"local\"],\n  \"delivery_location\": \"Site\",\n  \"scope_of_work\": \"Updated scope\",\n  \"procurement_types\": [\"purchase\"],\n  \"flexible_delivery_date\": true,\n  \"items\": [\n    {\n      \"id\": 1,\n      \"category_id\": 1,\n      \"description\": \"BOQ line\",\n      \"quantity\": 1\n    }\n  ]\n}"
+        },
+        "url": "{{baseUrl}}/api/v1/procurement-requests/{{prId}}"
+      }
+    },
+    {
+      "name": "PATCH procurement-requests/{id}",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"company_key\": \"asas_ventures\",\n  \"project_id\": 1,\n  \"geographic_scopes\": [\"local\"],\n  \"delivery_location\": \"Site\",\n  \"scope_of_work\": \"Updated scope\",\n  \"procurement_types\": [\"purchase\"],\n  \"flexible_delivery_date\": true,\n  \"items\": [\n    {\n      \"id\": 1,\n      \"category_id\": 1,\n      \"description\": \"BOQ line\",\n      \"quantity\": 1\n    }\n  ]\n}"
+        },
+        "url": "{{baseUrl}}/api/v1/procurement-requests/{{prId}}"
+      }
+    },
+    {
+      "name": "DELETE procurement-requests/{id}",
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/v1/procurement-requests/{{prId}}"
+      }
+    }
+  ]
+}

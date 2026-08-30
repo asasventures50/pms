@@ -18,6 +18,21 @@ Base URL: `{APP_URL}/api/v1`
 Auth header (after F01): `Authorization: Bearer {token}`  
 `Accept: application/json`
 
+### Postman (every ready feature)
+
+When a feature `status` becomes `ready`, there must be a **separate** collection file:
+
+`docs/postman/{feature-slug}.postman_collection.json`
+
+Copy the pattern of [`docs/postman/procurement-requests.postman_collection.json`](postman/procurement-requests.postman_collection.json): Bearer `{{token}}`, `baseUrl`, only that feature’s routes, no login mixed in unless the feature is Authentication.
+
+Import it yourself in Postman (Import → file). New file = new collection. Do not expect the agent to change collections you already imported.
+
+| Feature | File |
+| --- | --- |
+| Authentication (F01) | `docs/postman/authentication.postman_collection.json` (add if missing when touching F01 again) |
+| ProcurementRequests (F08) | [`docs/postman/procurement-requests.postman_collection.json`](postman/procurement-requests.postman_collection.json) |
+
 ---
 
 ## Features
@@ -144,11 +159,67 @@ Auth header (after F01): `Authorization: Bearer {token}`
     "apisspec_plan": "Vendor CRUD + select search. Keep existing vendor enums (status, company type, etc.). Import is F23."
   },
   "ProcurementRequests": {
-    "status": "pending",
+    "status": "ready",
     "id": "F08",
-    "apisback": "Pending.",
-    "apisfront": {},
-    "apisspec_plan": "PR module. view vs view-own. Existing ProcurementRequestStatus and related enums only."
+    "apisback": "Controllers: App\\Http\\Controllers\\Api\\V1\\Procurement\\ProcurementRequests\\ProcurementRequestController. Reuses StoreProcurementRequestRequest, UpdateProcurementRequestRequest, ProcurementRequestPersistenceService, RequestorResolver, PayloadResolver, FormDataResolver, SupportingDocumentStorage, RelatedRfqsForProcurementRequestQuery. Same view-own scope as Blade (created_by). Same destroy: forceDelete + purge files. Web ProcurementRequestController unchanged. No migrations. Enums unchanged: ProcurementRequestStatus draft|submitted|received|closed|cancelled, PrCompany, ProcurementType, GeographicScope, etc.",
+    "apisfront": {
+      "index": {
+        "endpoint": "/api/v1/procurement-requests",
+        "method": "GET",
+        "headers": { "Accept": "application/json", "Authorization": "Bearer {token}" },
+        "request_payload": { "q": "optional search", "status": "optional draft|submitted|received|closed|cancelled", "per_page": 15 },
+        "expected_response": { "data": [{ "id": 1, "request_number": "PR-...", "status": "draft", "requestor_name": "", "creator": { "id": 1, "name": "" }, "project": { "id": 1, "code": "", "name": "" } }], "links": {}, "meta": {}, "statuses": ["draft", "submitted", "received", "closed", "cancelled"] },
+        "error_codes": { "401": "Unauthenticated", "403": "No view or view-own permission" }
+      },
+      "show": {
+        "endpoint": "/api/v1/procurement-requests/{id}",
+        "method": "GET",
+        "headers": { "Accept": "application/json", "Authorization": "Bearer {token}" },
+        "request_payload": {},
+        "expected_response": { "procurement_request": { "id": 1, "request_number": "PR-...", "status": "draft", "items": [], "payment_terms": [], "retentions": [], "timeline_entries": [], "approvals": [], "header_documents": [], "form": {}, "related_rfqs": [] } },
+        "error_codes": { "401": "Unauthenticated", "403": "Cannot view this PR (view-own mismatch)", "404": "Not found" }
+      },
+      "store": {
+        "endpoint": "/api/v1/procurement-requests",
+        "method": "POST",
+        "headers": { "Accept": "application/json", "Authorization": "Bearer {token}", "Content-Type": "application/json or multipart/form-data" },
+        "request_payload": {
+          "company_key": "asas_ventures",
+          "project_id": 1,
+          "geographic_scopes": ["local"],
+          "delivery_location": "required",
+          "scope_of_work": "required",
+          "procurement_types": ["purchase"],
+          "flexible_delivery_date": true,
+          "delivery_lead_time_days": "required integer if flexible_delivery_date is false or omitted",
+          "items": [{ "category_id": 1, "description": "required", "quantity": 1, "zone_id": null, "subcategory_id": null, "unit": "pcs", "unit_price": 0 }],
+          "payment_terms": [],
+          "retentions": [],
+          "timeline": [{ "activity": "existing-enum-value", "duration_days": 1 }],
+          "approvals": [{ "role": "existing-enum-value", "name": "", "signature": "", "signed_at": null }],
+          "supporting_document_rows": "optional multipart files/urls"
+        },
+        "expected_response": { "message": "Procurement request created successfully.", "procurement_request": {} },
+        "error_codes": { "401": "Unauthenticated", "403": "Missing procurement-requests.create", "422": "Validation (same rules as Blade form)" }
+      },
+      "update": {
+        "endpoint": "/api/v1/procurement-requests/{id}",
+        "method": "PUT or PATCH",
+        "headers": { "Accept": "application/json", "Authorization": "Bearer {token}" },
+        "request_payload": "Same fields as store plus items.*.id, payment_terms.*.id, retentions.*.id, remove_supporting_document_ids: [1]",
+        "expected_response": { "message": "Procurement request updated successfully.", "procurement_request": {} },
+        "error_codes": { "401": "Unauthenticated", "403": "Missing procurement-requests.update", "422": "Validation", "404": "Not found" }
+      },
+      "destroy": {
+        "endpoint": "/api/v1/procurement-requests/{id}",
+        "method": "DELETE",
+        "headers": { "Accept": "application/json", "Authorization": "Bearer {token}" },
+        "request_payload": {},
+        "expected_response": { "message": "Procurement request deleted permanently." },
+        "error_codes": { "401": "Unauthenticated", "403": "Missing procurement-requests.update", "404": "Not found" }
+      }
+    },
+    "apisspec_plan": "F08. Same permissions as web. If flexible_delivery_date is omitted it is treated as false (same Form Request as Blade) and delivery_lead_time_days becomes required. Send flexible_delivery_date: true to match the Blade create default, or send a lead time. view-own users only see their created_by PRs. Status values must stay draft|submitted|received|closed|cancelled. company_key: asas_ventures|qassioun_journey|activation. store/update payload matches Blade PR form (Form Requests reused). request_number optional on create — backend generates. Create needs existing project_id and category_id (from Blade or later F03/F04). show.form is the same shape Blade edit uses. Request Tracking page is F09 (not this feature). Print is F24."
   },
   "ProcurementRequestFlow": {
     "status": "pending",
