@@ -1,5 +1,7 @@
 # Apis_spec
 
+**Progress table:** [`docs/Apis_progress.md`](Apis_progress.md). This file is the contract; that file is the scoreboard.
+
 Single file for backend + frontend. After each feature ships, **replace** that feature’s `"status": "pending"` block with a filled object.
 
 Frontend: drop this whole file into Cursor. Use only features where `status` is `ready`.

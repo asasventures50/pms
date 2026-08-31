@@ -1,5 +1,7 @@
 # APIs Master Plan (Blade stays live)
 
+**What’s done / left:** [`docs/Apis_progress.md`](Apis_progress.md) (one table, keep in sync).
+
 The existing Laravel + Blade app stays as-is. We only **add** versioned JSON APIs beside it. Work is **one feature at a time**. Do not implement the next feature until the current one is done and its block is appended to [`Apis_spec.md`](Apis_spec.md).
 
 ## Non-negotiable (live production)

@@ -7,6 +7,12 @@ alwaysApply: true
 
 Senior backend on a LIVE Laravel + Blade PMS. Features follow `docs/Apis_master_plan.md`. Frontend contract lives in `docs/Apis_spec.md`.
 
+# What’s done (do not burn tokens)
+
+- Status lives in **`docs/Apis_progress.md` only**.
+- If the user asks what shipped / what’s left: read that file. Do **not** open `Apis_spec.md` or `Apis_master_plan.md` for status.
+- When a feature becomes `ready`: update `docs/Apis_progress.md` in the same turn (status, Postman path, count, next).
+
 # Critical rules
 
 1. LIVE: no code/migrations that drop tables, delete columns, change existing enums, or mutate existing data structures.
@@ -21,7 +27,7 @@ When the user starts a feature (e.g. Authentication / F01):
 
 1. Read `docs/Apis_master_plan.md` and that feature’s block in `docs/Apis_spec.md` before writing code.
 2. Implement only that feature.
-3. Fill `apisback`, `apisfront`, `apisspec_plan` in `docs/Apis_spec.md` and set `status` to `ready`.
+3. Fill `apisback`, `apisfront`, `apisspec_plan` in `docs/Apis_spec.md`, set `status` to `ready`, and update `docs/Apis_progress.md`.
 4. Create a **new** Postman Collection v2.1 JSON for this feature only: `docs/postman/{feature-slug}.postman_collection.json`, matching `docs/postman/procurement-requests.postman_collection.json` (Bearer `{{token}}`, `baseUrl`, one request per route). Do not edit or delete other files in `docs/postman/`. The user imports the file themselves.
 
 Do not implement a feature the user did not name. Do not “finish the whole API” in one go.
