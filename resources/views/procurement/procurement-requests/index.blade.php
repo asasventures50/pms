@@ -20,11 +20,30 @@
     </div>
 
     <form method="get" action="{{ route('procurement-requests.index') }}" class="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div class="grid gap-4 md:grid-cols-3">
+        <div class="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
             <div>
-                <label for="q" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Search</label>
-                <input type="search" name="q" id="q" value="{{ request('q') }}"
-                       placeholder="Request no., name, or department"
+                <label for="request_number" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Request No.</label>
+                <input type="search" name="request_number" id="request_number" value="{{ request('request_number') }}"
+                       class="admin-filter-control">
+            </div>
+            <div>
+                <label for="requestor" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Requestor</label>
+                <input type="search" name="requestor" id="requestor" value="{{ request('requestor') }}"
+                       class="admin-filter-control">
+            </div>
+            <div>
+                <label for="department" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Department</label>
+                <input type="search" name="department" id="department" value="{{ request('department') }}"
+                       class="admin-filter-control">
+            </div>
+            <div>
+                <label for="requested_at" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Date</label>
+                <input type="date" name="requested_at" id="requested_at" value="{{ request('requested_at') }}"
+                       class="admin-filter-control">
+            </div>
+            <div>
+                <label for="delivery_date" class="block text-xs font-medium uppercase tracking-wide text-slate-500">Delivery date</label>
+                <input type="date" name="delivery_date" id="delivery_date" value="{{ request('delivery_date') }}"
                        class="admin-filter-control">
             </div>
             <div>

@@ -89,6 +89,46 @@
           "name": "pr",
           "item": [
             {
+              "name": "request no",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json" }],
+                "url": "{{baseUrl}}/api/v1/procurement-requests?request_number=PR-"
+              }
+            },
+            {
+              "name": "requestor",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json" }],
+                "url": "{{baseUrl}}/api/v1/procurement-requests?requestor=ahmad"
+              }
+            },
+            {
+              "name": "department",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json" }],
+                "url": "{{baseUrl}}/api/v1/procurement-requests?department=procurement"
+              }
+            },
+            {
+              "name": "date",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json" }],
+                "url": "{{baseUrl}}/api/v1/procurement-requests?requested_at=2026-08-31"
+              }
+            },
+            {
+              "name": "delivery date",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json" }],
+                "url": "{{baseUrl}}/api/v1/procurement-requests?delivery_date=2026-09-15"
+              }
+            },
+            {
               "name": "status",
               "request": {
                 "method": "GET",

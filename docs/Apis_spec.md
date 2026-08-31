@@ -251,7 +251,7 @@ Import it yourself in Postman (Import → file). New file = new collection. Do n
         "endpoint": "/api/v1/procurement-requests",
         "method": "GET",
         "headers": { "Accept": "application/json", "Authorization": "Bearer {token}" },
-        "request_payload": { "q": "optional search", "status": "optional draft|submitted|received|closed|cancelled", "per_page": 15 },
+        "request_payload": { "q": "optional combined search (legacy)", "request_number": "optional", "requestor": "optional name or creator", "department": "optional", "requested_at": "optional Y-m-d", "delivery_date": "optional Y-m-d on any item", "status": "optional draft|submitted|received|closed|cancelled", "per_page": 15 },
         "expected_response": { "data": [{ "id": 1, "request_number": "PR-...", "status": "draft", "requestor_name": "", "creator": { "id": 1, "name": "" }, "project": { "id": 1, "code": "", "name": "" } }], "links": {}, "meta": {}, "statuses": ["draft", "submitted", "received", "closed", "cancelled"] },
         "error_codes": { "401": "Unauthenticated", "403": "No view or view-own permission" }
       },
@@ -303,7 +303,7 @@ Import it yourself in Postman (Import → file). New file = new collection. Do n
         "error_codes": { "401": "Unauthenticated", "403": "Missing procurement-requests.update", "404": "Not found" }
       }
     },
-    "apisspec_plan": "F08. Same permissions as web. If flexible_delivery_date is omitted it is treated as false (same Form Request as Blade) and delivery_lead_time_days becomes required. Send flexible_delivery_date: true to match the Blade create default, or send a lead time. view-own users only see their created_by PRs. Status values must stay draft|submitted|received|closed|cancelled. company_key: asas_ventures|qassioun_journey|activation. store/update payload matches Blade PR form (Form Requests reused). request_number optional on create — backend generates. Create needs existing project_id and category_id (from Blade or later F03/F04). show.form is the same shape Blade edit uses. Request Tracking page is F09 (not this feature). Print is F24."
+    "apisspec_plan": "F08. Same permissions as web. List filters match Blade columns: request_number, requestor, department, requested_at, delivery_date, status, plus per_page. q still works as combined search. If flexible_delivery_date is omitted it is treated as false (same Form Request as Blade) and delivery_lead_time_days becomes required. Send flexible_delivery_date: true to match the Blade create default, or send a lead time. view-own users only see their created_by PRs. Status values must stay draft|submitted|received|closed|cancelled. company_key: asas_ventures|qassioun_journey|activation. store/update payload matches Blade PR form (Form Requests reused). request_number optional on create — backend generates. Create needs existing project_id and category_id (from Blade or later F03/F04). show.form is the same shape Blade edit uses. Request Tracking page is F09 (not this feature). Print is F24."
   },
   "ProcurementRequestFlow": {
     "status": "pending",

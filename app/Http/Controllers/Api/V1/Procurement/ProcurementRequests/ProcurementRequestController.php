@@ -55,6 +55,33 @@ class ProcurementRequestController extends Controller
             });
         }
 
+        if ($request->filled('request_number')) {
+            $query->where('request_number', 'like', '%'.$request->string('request_number').'%');
+        }
+
+        if ($request->filled('requestor')) {
+            $term = '%'.$request->string('requestor').'%';
+            $query->where(function ($q) use ($term) {
+                $q->where('requestor_name', 'like', $term)
+                    ->orWhereHas('creator', fn ($c) => $c->where('name', 'like', $term));
+            });
+        }
+
+        if ($request->filled('department')) {
+            $query->where('requestor_department', 'like', '%'.$request->string('department').'%');
+        }
+
+        if ($request->filled('requested_at')) {
+            $query->whereDate('requested_at', $request->string('requested_at'));
+        }
+
+        if ($request->filled('delivery_date')) {
+            $deliveryDate = $request->string('delivery_date');
+            $query->whereHas('items', function ($q) use ($deliveryDate) {
+                $q->whereDate('required_delivery_date', $deliveryDate);
+            });
+        }
+
         if ($request->filled('status')) {
             $query->where('status', $request->string('status'));
         }
