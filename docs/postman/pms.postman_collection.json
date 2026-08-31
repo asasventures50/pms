@@ -1,0 +1,708 @@
+{
+  "info": {
+    "_postman_id": "b68fbe4d-fc4f-46f3-8f45-dabae4ac56a5",
+    "name": "pms",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "37184709"
+  },
+  "item": [
+    {
+      "name": "v1",
+      "item": [
+        {
+          "name": "authentication",
+          "item": [
+            {
+              "name": "login",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n\"email\":\"pms@tamkeensy.com\",\r\n\"password\":\"AdminPMS@2030!\"\r\n\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "login"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "logout",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/auth/logout",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "logout"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Procurments",
+          "item": [
+            {
+              "name": "pr",
+              "item": [
+                {
+                  "name": "List",
+                  "request": {
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/procurement-requests?per_page=15",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "v1",
+                        "procurement-requests"
+                      ],
+                      "query": [
+                        {
+                          "key": "per_page",
+                          "value": "15"
+                        }
+                      ]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "Show",
+                  "request": {
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/procurement-requests/{{prId}}",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "v1",
+                        "procurement-requests",
+                        "{{prId}}"
+                      ]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "Create",
+                  "request": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"company_key\": \"asas_ventures\",\n  \"project_id\": 1,\n  \"geographic_scopes\": [\"local\"],\n  \"delivery_location\": \"Site\",\n  \"scope_of_work\": \"Scope text77\",\n  \"procurement_types\": [\"purchase\"],\n  \"flexible_delivery_date\": true,\n  \"delivery_lead_time_days\": 14,\n  \"items\": [\n    {\n      \"category_id\": 1,\n      \"description\": \"BOQ line\",\n      \"quantity\": 1\n    }\n  ]\n}"
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/procurement-requests",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "v1",
+                        "procurement-requests"
+                      ]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "Update",
+                  "request": {
+                    "method": "PUT",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"company_key\": \"asas_ventures\",\n  \"project_id\": 1,\n  \"geographic_scopes\": [\"local\"],\n  \"delivery_location\": \"Site\",\n  \"scope_of_work\": \"Updated scope\",\n  \"procurement_types\": [\"purchase\"],\n  \"flexible_delivery_date\": true,\n  \"delivery_lead_time_days\": 14,\n  \"items\": [\n           {\n                \"id\": 89,\n                \"line_number\": \"PR-30082026-2-02.1\",\n                \"item_name\": null,\n                \"project_id\": 1,\n                \"zone_id\": null,\n                \"category_id\": 1,\n                \"subcategory_id\": null,\n                \"description\": \"BOQ line\",\n                \"unit\": null,\n                \"quantity\": \"1.000\",\n                \"unit_price\": \"0.0000\",\n                \"total_price\": \"0.0000\",\n                \"project\": {\n                    \"id\": 1,\n                    \"name\": \"Qasioun\"\n                },\n                \"zone\": null,\n                \"catalog_category\": null,\n                \"catalog_subcategory\": null,\n                \"documents\": []\n            }\n  ]\n}"
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/procurement-requests/{{prId}}",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "v1",
+                        "procurement-requests",
+                        "{{prId}}"
+                      ]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "Delete",
+                  "request": {
+                    "method": "DELETE",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/procurement-requests/{{prId}}",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "v1",
+                        "procurement-requests",
+                        "{{prId}}"
+                      ]
+                    }
+                  },
+                  "response": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "locations",
+          "item": [
+            {
+              "name": "countries",
+              "item": [
+                {
+                  "name": "GET countries/{id}",
+                  "request": {
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/countries/{{countryId}}",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "v1",
+                        "countries",
+                        "{{countryId}}"
+                      ]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "POST countries",
+                  "request": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"name_ar\": \"سوريا\",\n  \"name_en\": \"Syria\",\n  \"iso_code\": \"SY\",\n  \"flag_emoji\": \"🇸🇾\",\n  \"status\": \"active\"\n}"
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/countries",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "v1",
+                        "countries"
+                      ]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "PATCH countries/{id}",
+                  "request": {
+                    "method": "PATCH",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"name_ar\": \"سوريا\",\n  \"name_en\": \"Syria\",\n  \"iso_code\": \"SY\",\n  \"flag_emoji\": \"🇸🇾\",\n  \"status\": \"inactive\"\n}"
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/countries/{{countryId}}",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "v1",
+                        "countries",
+                        "{{countryId}}"
+                      ]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "PUT countries/{id}",
+                  "request": {
+                    "method": "PUT",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"name_ar\": \"سوريا\",\n  \"name_en\": \"Syria\",\n  \"iso_code\": \"SY\",\n  \"flag_emoji\": \"🇸🇾\",\n  \"status\": \"active\"\n}"
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/countries/{{countryId}}",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "v1",
+                        "countries",
+                        "{{countryId}}"
+                      ]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "DELETE countries/{id}",
+                  "request": {
+                    "method": "DELETE",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/countries/{{countryId}}",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "v1",
+                        "countries",
+                        "{{countryId}}"
+                      ]
+                    }
+                  },
+                  "response": []
+                }
+              ]
+            },
+            {
+              "name": "cities",
+              "item": [
+                {
+                  "name": "GET cities",
+                  "request": {
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/cities?per_page=15&country_id={{countryId}}",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "v1",
+                        "cities"
+                      ],
+                      "query": [
+                        {
+                          "key": "per_page",
+                          "value": "15"
+                        },
+                        {
+                          "key": "country_id",
+                          "value": "{{countryId}}"
+                        }
+                      ]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "POST cities",
+                  "request": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"country_id\": 1,\n  \"name_ar\": \"دمشق\",\n  \"name_en\": \"Damascus\",\n  \"status\": \"active\"\n}"
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/cities",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "v1",
+                        "cities"
+                      ]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "PUT cities/{id}",
+                  "request": {
+                    "method": "PUT",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"country_id\": 1,\n  \"name_ar\": \"دمشق\",\n  \"name_en\": \"Damascus\",\n  \"status\": \"active\"\n}"
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/cities/{{cityId}}",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "v1",
+                        "cities",
+                        "{{cityId}}"
+                      ]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "GET cities/{id}",
+                  "request": {
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/cities/{{cityId}}",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "v1",
+                        "cities",
+                        "{{cityId}}"
+                      ]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "PATCH cities/{id}",
+                  "request": {
+                    "method": "PATCH",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"country_id\": 1,\n  \"name_ar\": \"دمشق\",\n  \"name_en\": \"Damascus\",\n  \"status\": \"inactive\"\n}"
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/cities/{{cityId}}",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "v1",
+                        "cities",
+                        "{{cityId}}"
+                      ]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "DELETE cities/{id}",
+                  "request": {
+                    "method": "DELETE",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/cities/{{cityId}}",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "v1",
+                        "cities",
+                        "{{cityId}}"
+                      ]
+                    }
+                  },
+                  "response": []
+                }
+              ]
+            },
+            {
+              "name": "locations",
+              "item": [
+                {
+                  "name": "GET locations",
+                  "request": {
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/locations?per_page=15",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "v1",
+                        "locations"
+                      ],
+                      "query": [
+                        {
+                          "key": "per_page",
+                          "value": "15"
+                        }
+                      ]
+                    }
+                  },
+                  "response": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Helpers",
+          "item": [
+            {
+              "name": "pr",
+              "item": [
+                {
+                  "name": "status",
+                  "request": {
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/procurement-requests?status=draft",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "v1",
+                        "procurement-requests"
+                      ],
+                      "query": [
+                        {
+                          "key": "status",
+                          "value": "draft"
+                        }
+                      ]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "per page",
+                  "request": {
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/procurement-requests?per_page=15",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "v1",
+                        "procurement-requests"
+                      ],
+                      "query": [
+                        {
+                          "key": "per_page",
+                          "value": "15"
+                        }
+                      ]
+                    }
+                  },
+                  "response": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ]
+}

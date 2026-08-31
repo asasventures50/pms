@@ -81,6 +81,32 @@
         "header": [{ "key": "Accept", "value": "application/json" }],
         "url": "{{baseUrl}}/api/v1/procurement-requests/{{prId}}"
       }
+    },
+    {
+      "name": "Helpers",
+      "item": [
+        {
+          "name": "pr",
+          "item": [
+            {
+              "name": "status",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json" }],
+                "url": "{{baseUrl}}/api/v1/procurement-requests?status=draft"
+              }
+            },
+            {
+              "name": "per page",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json" }],
+                "url": "{{baseUrl}}/api/v1/procurement-requests?per_page=15"
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }
