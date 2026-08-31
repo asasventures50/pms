@@ -7,7 +7,7 @@ Single glance. Agent: **only this file** for “what’s done”. Do not open `A
 | ID | Feature | Status | Postman |
 | --- | --- | --- | --- |
 | F01 | Authentication | ready | missing |
-| F02 | Locations | pending | — |
+| F02 | Locations | ready | `docs/postman/locations.postman_collection.json` |
 | F03 | Projects | pending | — |
 | F04 | Categories | pending | — |
 | F05 | Users | pending | — |
@@ -31,8 +31,8 @@ Single glance. Agent: **only this file** for “what’s done”. Do not open `A
 | F23 | Vendor import/export | pending | — |
 | F24 | Downloads / prints / attachments | pending | — |
 
-**Count:** 2 / 24 ready (F01, F08).
+**Count:** 3 / 24 ready (F01, F02, F08).
 
 **Note:** F08 shipped before F03/F04. Creating a PR via API still needs existing `project_id` and `category_id` (Blade or later F03/F04).
 
-**Next (recommended):** F02 Locations, or F03 Projects / F04 Categories.
+**Next (recommended):** F03 Projects or F04 Categories.

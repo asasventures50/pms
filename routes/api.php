@@ -3,6 +3,8 @@
 use App\Http\Controllers\Api\V1\Auth\LoginController;
 use App\Http\Controllers\Api\V1\Auth\LogoutController;
 use App\Http\Controllers\Api\V1\Auth\MeController;
+use App\Http\Controllers\Api\V1\Geo\CityController;
+use App\Http\Controllers\Api\V1\Geo\CountryController;
 use App\Http\Controllers\Api\V1\Procurement\ProcurementRequests\ProcurementRequestController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,6 +18,51 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('auth/me', [MeController::class, 'show'])->name('auth.me');
         Route::post('auth/logout', [LogoutController::class, 'destroy'])->name('auth.logout');
+
+        Route::get('locations', [CountryController::class, 'index'])
+            ->middleware('permission:locations.view')
+            ->name('locations.index');
+
+        Route::get('countries/{country}', [CountryController::class, 'show'])
+            ->middleware('permission:locations.view')
+            ->name('countries.show');
+
+        Route::post('countries', [CountryController::class, 'store'])
+            ->middleware('permission:locations.manage')
+            ->name('countries.store');
+
+        Route::put('countries/{country}', [CountryController::class, 'update'])
+            ->middleware('permission:locations.manage')
+            ->name('countries.update');
+
+        Route::patch('countries/{country}', [CountryController::class, 'update']);
+
+        Route::delete('countries/{country}', [CountryController::class, 'destroy'])
+            ->middleware('permission:locations.manage')
+            ->name('countries.destroy');
+
+        Route::get('cities', [CityController::class, 'index'])
+            ->middleware('permission:locations.manage')
+            ->name('cities.index');
+
+        Route::post('cities', [CityController::class, 'store'])
+            ->middleware('permission:locations.manage')
+            ->name('cities.store');
+
+        Route::get('cities/{city}', [CityController::class, 'show'])
+            ->middleware('permission:locations.manage')
+            ->name('cities.show');
+
+        Route::put('cities/{city}', [CityController::class, 'update'])
+            ->middleware('permission:locations.manage')
+            ->name('cities.update');
+
+        Route::patch('cities/{city}', [CityController::class, 'update']);
+
+        Route::delete('cities/{city}', [CityController::class, 'destroy'])
+            ->middleware('permission:locations.manage')
+            ->name('cities.destroy');
+
 
         Route::get('procurement-requests', [ProcurementRequestController::class, 'index'])
             ->middleware('permission:procurement-requests.view|procurement-requests.view-own')
