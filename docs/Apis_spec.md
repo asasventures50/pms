@@ -34,6 +34,7 @@ Import it yourself in Postman (Import → file). New file = new collection. Do n
 | --- | --- |
 | Authentication (F01) | `docs/postman/authentication.postman_collection.json` (add if missing when touching F01 again) |
 | Locations (F02) | [`docs/postman/locations.postman_collection.json`](postman/locations.postman_collection.json) |
+| Projects (F03) | [`docs/postman/projects.postman_collection.json`](postman/projects.postman_collection.json) |
 | ProcurementRequests (F08) | [`docs/postman/procurement-requests.postman_collection.json`](postman/procurement-requests.postman_collection.json) |
 
 ---
@@ -208,11 +209,68 @@ Import it yourself in Postman (Import → file). New file = new collection. Do n
     "apisspec_plan": "F02 done. Permissions match Blade: locations.view for GET /locations and GET /countries/{id}; locations.manage for country write and all city routes (Blade cities index is also manage). Status enum stays active|inactive. Do not send name; backend sets name = name_en. iso_code is uppercased. Soft-deleted rows are hidden. Hide delete in UI when used_in_vendor_locations is true, or country cities_count > 0. Nested cities on GET /locations is the Blade locations page. Next: F03 Projects or F04 Categories."
   },
   "Projects": {
-    "status": "pending",
+    "status": "ready",
     "id": "F03",
-    "apisback": "Pending.",
-    "apisfront": {},
-    "apisspec_plan": "Projects + zones. Reuse ProjectCatalogService / ProjectCodeGenerator. Do not invent new status enums."
+    "apisback": "Controllers: App\\Http\\Controllers\\Api\\V1\\Procurement\\Projects\\ProjectController, ProjectQuickStoreController, ZoneQuickStoreController. Reuses StoreProjectRequest, UpdateProjectRequest, ProjectCatalogService, ProjectCodeGenerator, ZoneCodeGenerator. Models Project/Zone unchanged (soft deletes, status active|inactive). Web project controllers and routes/web.php unchanged. No migrations. Code is generated on create (do not send code). Destroy soft-deletes project and its zones via ProjectCatalogService::softDeleteProjectCascade. Quick-store JSON shape matches Blade (flat id/code/name, not Resource wrap).",
+    "apisfront": {
+      "index": {
+        "endpoint": "/api/v1/projects",
+        "method": "GET",
+        "headers": { "Accept": "application/json", "Authorization": "Bearer {token}" },
+        "request_payload": { "q": "optional search code|name", "status": "optional active|inactive", "per_page": 15, "sort_by": "optional code|name|created_at", "sort_direction": "optional asc|desc" },
+        "expected_response": { "data": [{ "id": 1, "code": "", "name": "", "status": "active", "zones_count": 0 }], "links": {}, "meta": {}, "statuses": ["active", "inactive"] },
+        "error_codes": { "401": "Unauthenticated", "403": "Missing projects.view" }
+      },
+      "show": {
+        "endpoint": "/api/v1/projects/{id}",
+        "method": "GET",
+        "headers": { "Accept": "application/json", "Authorization": "Bearer {token}" },
+        "request_payload": {},
+        "expected_response": { "data": { "id": 1, "code": "", "name": "", "status": "active", "zones_count": 1, "zones": [{ "id": 1, "project_id": 1, "code": "", "name": "", "status": "active" }] } },
+        "error_codes": { "401": "Unauthenticated", "403": "Missing projects.view", "404": "Not found" }
+      },
+      "store": {
+        "endpoint": "/api/v1/projects",
+        "method": "POST",
+        "headers": { "Accept": "application/json", "Authorization": "Bearer {token}", "Content-Type": "application/json" },
+        "request_payload": { "name": "required", "status": "required active|inactive", "zones": [{ "name": "required", "status": "required active|inactive" }] },
+        "expected_response": { "data": {}, "message": "Project created successfully." },
+        "error_codes": { "401": "Unauthenticated", "403": "Missing projects.create", "422": "Validation" }
+      },
+      "update": {
+        "endpoint": "/api/v1/projects/{id}",
+        "method": "PUT or PATCH",
+        "headers": { "Accept": "application/json", "Authorization": "Bearer {token}" },
+        "request_payload": { "name": "required", "status": "required active|inactive", "zones": [{ "id": "optional existing zone id for this project", "name": "required", "status": "required active|inactive" }] },
+        "expected_response": { "data": {}, "message": "Project updated successfully." },
+        "error_codes": { "401": "Unauthenticated", "403": "Missing projects.update", "404": "Not found", "422": "Validation or zone id not owned by this project" }
+      },
+      "destroy": {
+        "endpoint": "/api/v1/projects/{id}",
+        "method": "DELETE",
+        "headers": { "Accept": "application/json", "Authorization": "Bearer {token}" },
+        "request_payload": {},
+        "expected_response": { "message": "Project deleted successfully." },
+        "error_codes": { "401": "Unauthenticated", "403": "Missing projects.update", "404": "Not found" }
+      },
+      "quick_store_project": {
+        "endpoint": "/api/v1/projects/quick-store",
+        "method": "POST",
+        "headers": { "Accept": "application/json", "Authorization": "Bearer {token}", "Content-Type": "application/json" },
+        "request_payload": { "name": "required" },
+        "expected_response": { "id": 1, "code": "", "name": "" },
+        "error_codes": { "401": "Unauthenticated", "403": "Missing projects.create", "422": "Validation" }
+      },
+      "quick_store_zone": {
+        "endpoint": "/api/v1/zones/quick-store",
+        "method": "POST",
+        "headers": { "Accept": "application/json", "Authorization": "Bearer {token}", "Content-Type": "application/json" },
+        "request_payload": { "project_id": 1, "name": "required" },
+        "expected_response": { "id": 1, "code": "", "name": "", "project_id": 1 },
+        "error_codes": { "401": "Unauthenticated", "403": "Missing projects.update", "422": "Validation" }
+      }
+    },
+    "apisspec_plan": "F03 done. Permissions match Blade: projects.view for list/show, projects.create for store and project quick-store, projects.update for update/destroy and zone quick-store. Status stays active|inactive. Do not send project or zone code — backend generates. Omitting zones or sending [] syncs to no zones (same as Blade). On update, zones omitted from the payload that still have an id are kept only if included; rows not in the array are soft-deleted (same syncZones as Blade). Soft-deleted projects/zones are hidden. Quick-store always creates status active. Next when asked: F04 Categories."
   },
   "Categories": {
     "status": "pending",
