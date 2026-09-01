@@ -14,11 +14,14 @@ Each feature is one JSON object:
 
 - `apisback` — where it lives (v1 controllers, services reused, permissions, no schema changes).
 - `apisfront` — endpoints, headers, payloads, responses, errors (copy-paste for the client).
+- `list_filters` — **required on every ready feature that has a GET list**. Query-string keys only (not extra routes). Frontend uses this to render filters. Same keys as Blade. Postman folder `Helpers` mirrors this 1:1.
 - `apisspec_plan` — business rules the UI must know (own vs all, enums as-is, etc.).
 
 Base URL: `{APP_URL}/api/v1`  
 Auth header (after F01): `Authorization: Bearer {token}`  
 `Accept: application/json`
+
+List filters: send as `GET …?key=value`. Combine freely. `per_page` default 15, max 100. Empty/omitted key = no filter. There is no `/helpers` API.
 
 ### Postman (every ready feature)
 
@@ -133,6 +136,29 @@ Import it yourself in Postman (Import → file). New file = new collection. Do n
         "expected_response": { "data": [{ "id": 1, "name_ar": "", "name_en": "", "name": "", "iso_code": "SY", "flag_emoji": "", "status": "active", "cities_count": 1, "used_in_vendor_locations": false, "cities": [{ "id": 1, "country_id": 1, "name_ar": "", "name_en": "", "name": "", "status": "active", "used_in_vendor_locations": false }] }], "links": {}, "meta": {}, "statuses": ["active", "inactive"] },
         "error_codes": { "401": "Unauthenticated", "403": "Missing locations.view" }
       },
+      "list_filters": {
+        "locations": {
+          "endpoint": "/api/v1/locations",
+          "query": {
+            "q": "optional LIKE name_ar|name_en|iso_code",
+            "status": "optional active|inactive",
+            "per_page": "optional 1-100 default 15",
+            "sort_by": "optional name_ar|name_en|created_at",
+            "sort_direction": "optional asc|desc"
+          }
+        },
+        "cities": {
+          "endpoint": "/api/v1/cities",
+          "query": {
+            "q": "optional LIKE name_ar|name_en",
+            "country_id": "optional integer",
+            "status": "optional active|inactive",
+            "per_page": "optional 1-100 default 15",
+            "sort_by": "optional name_ar|name_en|created_at",
+            "sort_direction": "optional asc|desc"
+          }
+        }
+      },
       "countries_show": {
         "endpoint": "/api/v1/countries/{id}",
         "method": "GET",
@@ -169,7 +195,7 @@ Import it yourself in Postman (Import → file). New file = new collection. Do n
         "endpoint": "/api/v1/cities",
         "method": "GET",
         "headers": { "Accept": "application/json", "Authorization": "Bearer {token}" },
-        "request_payload": { "q": "optional", "country_id": "optional", "status": "optional active|inactive", "per_page": 15 },
+        "request_payload": { "q": "optional", "country_id": "optional", "status": "optional active|inactive", "per_page": 15, "sort_by": "optional name_ar|name_en|created_at", "sort_direction": "optional asc|desc" },
         "expected_response": { "data": [{ "id": 1, "country_id": 1, "name_ar": "", "name_en": "", "status": "active", "used_in_vendor_locations": false, "country": { "id": 1, "name_ar": "", "name_en": "", "iso_code": "" } }], "links": {}, "meta": {}, "statuses": ["active", "inactive"] },
         "error_codes": { "401": "Unauthenticated", "403": "Missing locations.manage (same as Blade cities index)" }
       },
@@ -220,6 +246,18 @@ Import it yourself in Postman (Import → file). New file = new collection. Do n
         "request_payload": { "q": "optional search code|name", "status": "optional active|inactive", "per_page": 15, "sort_by": "optional code|name|created_at", "sort_direction": "optional asc|desc" },
         "expected_response": { "data": [{ "id": 1, "code": "", "name": "", "status": "active", "zones_count": 0 }], "links": {}, "meta": {}, "statuses": ["active", "inactive"] },
         "error_codes": { "401": "Unauthenticated", "403": "Missing projects.view" }
+      },
+      "list_filters": {
+        "projects": {
+          "endpoint": "/api/v1/projects",
+          "query": {
+            "q": "optional LIKE code|name",
+            "status": "optional active|inactive",
+            "per_page": "optional 1-100 default 15",
+            "sort_by": "optional code|name|created_at",
+            "sort_direction": "optional asc|desc"
+          }
+        }
       },
       "show": {
         "endpoint": "/api/v1/projects/{id}",
@@ -312,6 +350,21 @@ Import it yourself in Postman (Import → file). New file = new collection. Do n
         "request_payload": { "q": "optional combined search (legacy)", "request_number": "optional", "requestor": "optional name or creator", "department": "optional", "requested_at": "optional Y-m-d", "delivery_date": "optional Y-m-d on any item", "status": "optional draft|submitted|received|closed|cancelled", "per_page": 15 },
         "expected_response": { "data": [{ "id": 1, "request_number": "PR-...", "status": "draft", "requestor_name": "", "creator": { "id": 1, "name": "" }, "project": { "id": 1, "code": "", "name": "" } }], "links": {}, "meta": {}, "statuses": ["draft", "submitted", "received", "closed", "cancelled"] },
         "error_codes": { "401": "Unauthenticated", "403": "No view or view-own permission" }
+      },
+      "list_filters": {
+        "procurement_requests": {
+          "endpoint": "/api/v1/procurement-requests",
+          "query": {
+            "q": "optional combined LIKE request_number|requestor_name|requestor_department|creator.name",
+            "request_number": "optional",
+            "requestor": "optional requestor_name or creator.name",
+            "department": "optional requestor_department",
+            "requested_at": "optional Y-m-d (Date column)",
+            "delivery_date": "optional Y-m-d on any item",
+            "status": "optional draft|submitted|received|closed|cancelled",
+            "per_page": "optional 1-100 default 15"
+          }
+        }
       },
       "show": {
         "endpoint": "/api/v1/procurement-requests/{id}",
