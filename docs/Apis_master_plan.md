@@ -2,7 +2,7 @@
 
 **What’s done / left:** [`docs/Apis_progress.md`](Apis_progress.md) (one table, keep in sync).
 
-The existing Laravel + Blade app stays as-is. We only **add** versioned JSON APIs beside it. Work is **one feature at a time**. Do not implement the next feature until the current one is done and its block is appended to [`Apis_spec.md`](Apis_spec.md).
+The existing Laravel + Blade app stays as-is. We only **add** versioned JSON APIs beside it. Work is **one feature at a time**. Do not implement the next feature until the current one is done and its file under [`Apis_spec/`](Apis_spec/) is `ready`.
 
 ## Non-negotiable (live production)
 
@@ -13,7 +13,7 @@ The existing Laravel + Blade app stays as-is. We only **add** versioned JSON API
 5. Stay inside current layers: routes → controllers → Form Requests → Services → Models. API controllers are **new files** under versioned folders. Web controllers are **not rewritten**.
 6. Routes: `/api/v1/...`. Controllers: `app/Http/Controllers/Api/V1/...`.
 7. Same permission names as [`PermissionCatalog`](../app/Support/Access/PermissionCatalog.php). Same `permission:...` middleware.
-8. Before coding a feature: read this plan **and** the feature spec in `Apis_spec.md`. If the feature block is still `pending`, write/agree the spec first, then code.
+8. Before coding a feature: read this plan **and** that feature’s file in `docs/Apis_spec/`. If it is still `pending`, write/agree the spec first, then code.
 
 ## Versioning
 
@@ -29,9 +29,9 @@ Later `v2` = new folder + new prefix. Do not break `v1` or Blade.
 ## Workflow each feature
 
 1. You say which feature (e.g. “start Authentication”).
-2. Agent reads this plan + that feature’s spec in `Apis_spec.md`.
+2. Agent reads this plan + that feature’s file in `docs/Apis_spec/`.
 3. Implement backend only for that feature.
-4. Append/update the feature object in `Apis_spec.md` (`apisback`, `apisfront`, `apisspec_plan`) so frontend can paste the file into Cursor and implement without asking you.
+4. Fill **`docs/Apis_spec/{ID}-{slug}.md` only** (`apisback`, `apisfront`, `apisspec_plan`) so frontend can paste **that one file** into Cursor (plus Blade screenshots for that feature) and implement without asking you. Same cadence as backend: one ID per pass.
 5. Update **[`docs/postman/pms.postman_collection.json`](postman/pms.postman_collection.json)** with this feature’s requests (same tree: `v1` folders + `Helpers`). That file is the only Postman collection. Do not add per-feature JSON files.
 
 ### Postman (single collection)
