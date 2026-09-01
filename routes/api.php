@@ -5,6 +5,9 @@ use App\Http\Controllers\Api\V1\Auth\LogoutController;
 use App\Http\Controllers\Api\V1\Auth\MeController;
 use App\Http\Controllers\Api\V1\Geo\CityController;
 use App\Http\Controllers\Api\V1\Geo\CountryController;
+use App\Http\Controllers\Api\V1\Procurement\Categories\CategoryController;
+use App\Http\Controllers\Api\V1\Procurement\Categories\CategoryQuickStoreController;
+use App\Http\Controllers\Api\V1\Procurement\Categories\SubcategoryQuickStoreController;
 use App\Http\Controllers\Api\V1\Procurement\ProcurementRequests\ProcurementRequestController;
 use App\Http\Controllers\Api\V1\Procurement\ProcurementRequests\ProcurementRequestFlowController;
 use App\Http\Controllers\Api\V1\Procurement\Projects\ProjectController;
@@ -39,8 +42,6 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             ->middleware('permission:locations.manage')
             ->name('countries.update');
 
-        Route::patch('countries/{country}', [CountryController::class, 'update']);
-
         Route::delete('countries/{country}', [CountryController::class, 'destroy'])
             ->middleware('permission:locations.manage')
             ->name('countries.destroy');
@@ -60,8 +61,6 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::put('cities/{city}', [CityController::class, 'update'])
             ->middleware('permission:locations.manage')
             ->name('cities.update');
-
-        Route::patch('cities/{city}', [CityController::class, 'update']);
 
         Route::delete('cities/{city}', [CityController::class, 'destroy'])
             ->middleware('permission:locations.manage')
@@ -91,11 +90,57 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             ->middleware('permission:projects.update')
             ->name('projects.update');
 
-        Route::patch('projects/{project}', [ProjectController::class, 'update']);
-
         Route::delete('projects/{project}', [ProjectController::class, 'destroy'])
             ->middleware('permission:projects.update')
             ->name('projects.destroy');
+
+        Route::post('categories/quick-store', [CategoryQuickStoreController::class, 'store'])
+            ->middleware('permission:categories.create')
+            ->name('categories.quick-store');
+
+        Route::post('subcategories/quick-store', [SubcategoryQuickStoreController::class, 'store'])
+            ->middleware('permission:categories.create|procurement-requests.create')
+            ->name('subcategories.quick-store');
+
+        Route::get('categories/subcategories/{subcategory}/move-preview', [CategoryController::class, 'movePreview'])
+            ->middleware('permission:categories.update')
+            ->name('categories.subcategories.move-preview');
+
+        Route::get('categories', [CategoryController::class, 'index'])
+            ->middleware('permission:categories.view')
+            ->name('categories.index');
+
+        Route::post('categories', [CategoryController::class, 'store'])
+            ->middleware('permission:categories.create')
+            ->name('categories.store');
+
+        Route::get('categories/{category}/vendor-links', [CategoryController::class, 'categoryVendorLinks'])
+            ->middleware('permission:categories.view')
+            ->name('categories.vendor-links');
+
+        Route::get('categories/{category}/subcategories/{subcategory}/vendor-links', [CategoryController::class, 'subcategoryVendorLinks'])
+            ->middleware('permission:categories.view')
+            ->name('categories.subcategories.vendor-links');
+
+        Route::get('categories/{category}', [CategoryController::class, 'show'])
+            ->middleware('permission:categories.view')
+            ->name('categories.show');
+
+        Route::put('categories/{category}', [CategoryController::class, 'update'])
+            ->middleware('permission:categories.update')
+            ->name('categories.update');
+
+        Route::delete('categories/{category}', [CategoryController::class, 'destroy'])
+            ->middleware('permission:categories.update')
+            ->name('categories.destroy');
+
+        Route::put('vendor-categories/{vendor_category}/reassign', [CategoryController::class, 'reassignVendorLink'])
+            ->middleware('permission:categories.update')
+            ->name('vendor-categories.reassign');
+
+        Route::delete('vendor-categories/{vendor_category}', [CategoryController::class, 'removeVendorLink'])
+            ->middleware('permission:categories.update')
+            ->name('vendor-categories.destroy');
 
         Route::get('my-procurement-requests/flow', [ProcurementRequestFlowController::class, 'index'])
             ->middleware('permission:procurement-requests.view|procurement-requests.view-own|procurement-requests.create|rfqs.view')
@@ -116,8 +161,6 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::put('procurement-requests/{procurement_request}', [ProcurementRequestController::class, 'update'])
             ->middleware('permission:procurement-requests.update')
             ->name('procurement-requests.update');
-
-        Route::patch('procurement-requests/{procurement_request}', [ProcurementRequestController::class, 'update']);
 
         Route::delete('procurement-requests/{procurement_request}', [ProcurementRequestController::class, 'destroy'])
             ->middleware('permission:procurement-requests.update')

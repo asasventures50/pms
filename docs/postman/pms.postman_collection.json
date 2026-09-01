@@ -318,39 +318,6 @@
                   "response": []
                 },
                 {
-                  "name": "PATCH countries/{id}",
-                  "request": {
-                    "method": "PATCH",
-                    "header": [
-                      {
-                        "key": "Accept",
-                        "value": "application/json"
-                      },
-                      {
-                        "key": "Content-Type",
-                        "value": "application/json"
-                      }
-                    ],
-                    "body": {
-                      "mode": "raw",
-                      "raw": "{\n  \"name_ar\": \"سوريا\",\n  \"name_en\": \"Syria\",\n  \"iso_code\": \"SY\",\n  \"flag_emoji\": \"🇸🇾\",\n  \"status\": \"inactive\"\n}"
-                    },
-                    "url": {
-                      "raw": "{{baseUrl}}/api/v1/countries/{{countryId}}",
-                      "host": [
-                        "{{baseUrl}}"
-                      ],
-                      "path": [
-                        "api",
-                        "v1",
-                        "countries",
-                        "{{countryId}}"
-                      ]
-                    }
-                  },
-                  "response": []
-                },
-                {
                   "name": "PUT countries/{id}",
                   "request": {
                     "method": "PUT",
@@ -538,39 +505,6 @@
                   "response": []
                 },
                 {
-                  "name": "PATCH cities/{id}",
-                  "request": {
-                    "method": "PATCH",
-                    "header": [
-                      {
-                        "key": "Accept",
-                        "value": "application/json"
-                      },
-                      {
-                        "key": "Content-Type",
-                        "value": "application/json"
-                      }
-                    ],
-                    "body": {
-                      "mode": "raw",
-                      "raw": "{\n  \"country_id\": 1,\n  \"name_ar\": \"دمشق\",\n  \"name_en\": \"Damascus\",\n  \"status\": \"inactive\"\n}"
-                    },
-                    "url": {
-                      "raw": "{{baseUrl}}/api/v1/cities/{{cityId}}",
-                      "host": [
-                        "{{baseUrl}}"
-                      ],
-                      "path": [
-                        "api",
-                        "v1",
-                        "cities",
-                        "{{cityId}}"
-                      ]
-                    }
-                  },
-                  "response": []
-                },
-                {
                   "name": "DELETE cities/{id}",
                   "request": {
                     "method": "DELETE",
@@ -626,6 +560,222 @@
                           "value": "15"
                         }
                       ]
+                    }
+                  },
+                  "response": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "categories",
+          "item": [
+            {
+              "name": "categories",
+              "item": [
+                {
+                  "name": "GET categories",
+                  "request": {
+                    "method": "GET",
+                    "header": [{ "key": "Accept", "value": "application/json" }],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/categories",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["api", "v1", "categories"]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "POST categories",
+                  "request": {
+                    "method": "POST",
+                    "header": [
+                      { "key": "Accept", "value": "application/json" },
+                      { "key": "Content-Type", "value": "application/json" }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"name_en\": \"Electrical\",\n  \"name_ar\": \"كهرباء\",\n  \"status\": \"active\",\n  \"subcategories\": [\n    {\n      \"name_en\": \"Cabling\",\n      \"name_ar\": \"كابلات\",\n      \"status\": \"active\"\n    }\n  ]\n}"
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/categories",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["api", "v1", "categories"]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "GET categories/{id}",
+                  "request": {
+                    "method": "GET",
+                    "header": [{ "key": "Accept", "value": "application/json" }],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/categories/{{categoryId}}",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["api", "v1", "categories", "{{categoryId}}"]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "PUT categories/{id}",
+                  "request": {
+                    "method": "PUT",
+                    "header": [
+                      { "key": "Accept", "value": "application/json" },
+                      { "key": "Content-Type", "value": "application/json" }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"name_en\": \"Electrical\",\n  \"name_ar\": \"كهرباء\",\n  \"status\": \"active\",\n  \"subcategories\": [\n    {\n      \"id\": 1,\n      \"name_en\": \"Cabling\",\n      \"name_ar\": \"كابلات\",\n      \"status\": \"active\",\n      \"target_category_id\": null\n    }\n  ]\n}"
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/categories/{{categoryId}}",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["api", "v1", "categories", "{{categoryId}}"]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "DELETE categories/{id}",
+                  "request": {
+                    "method": "DELETE",
+                    "header": [{ "key": "Accept", "value": "application/json" }],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/categories/{{categoryId}}",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["api", "v1", "categories", "{{categoryId}}"]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "POST categories/quick-store",
+                  "request": {
+                    "method": "POST",
+                    "header": [
+                      { "key": "Accept", "value": "application/json" },
+                      { "key": "Content-Type", "value": "application/json" }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"name_en\": \"Plumbing\",\n  \"name_ar\": \"سباكة\"\n}"
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/categories/quick-store",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["api", "v1", "categories", "quick-store"]
+                    }
+                  },
+                  "response": []
+                }
+              ]
+            },
+            {
+              "name": "subcategories",
+              "item": [
+                {
+                  "name": "POST subcategories/quick-store",
+                  "request": {
+                    "method": "POST",
+                    "header": [
+                      { "key": "Accept", "value": "application/json" },
+                      { "key": "Content-Type", "value": "application/json" }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"category_id\": 1,\n  \"name_en\": \"Pipes\",\n  \"name_ar\": \"أنابيب\"\n}"
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/subcategories/quick-store",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["api", "v1", "subcategories", "quick-store"]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "GET move-preview",
+                  "request": {
+                    "method": "GET",
+                    "header": [{ "key": "Accept", "value": "application/json" }],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/categories/subcategories/{{subcategoryId}}/move-preview?target_category_id=1",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["api", "v1", "categories", "subcategories", "{{subcategoryId}}", "move-preview"],
+                      "query": [{ "key": "target_category_id", "value": "1" }]
+                    }
+                  },
+                  "response": []
+                }
+              ]
+            },
+            {
+              "name": "vendor-links",
+              "item": [
+                {
+                  "name": "GET category vendor-links",
+                  "request": {
+                    "method": "GET",
+                    "header": [{ "key": "Accept", "value": "application/json" }],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/categories/{{categoryId}}/vendor-links",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["api", "v1", "categories", "{{categoryId}}", "vendor-links"]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "GET subcategory vendor-links",
+                  "request": {
+                    "method": "GET",
+                    "header": [{ "key": "Accept", "value": "application/json" }],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/categories/{{categoryId}}/subcategories/{{subcategoryId}}/vendor-links",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["api", "v1", "categories", "{{categoryId}}", "subcategories", "{{subcategoryId}}", "vendor-links"]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "PUT vendor-categories reassign",
+                  "request": {
+                    "method": "PUT",
+                    "header": [
+                      { "key": "Accept", "value": "application/json" },
+                      { "key": "Content-Type", "value": "application/json" }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"target_category_id\": 1,\n  \"target_subcategory_id\": null,\n  \"update_brochures\": false\n}"
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/vendor-categories/{{vendorCategoryId}}/reassign",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["api", "v1", "vendor-categories", "{{vendorCategoryId}}", "reassign"]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "DELETE vendor-categories/{id}",
+                  "request": {
+                    "method": "DELETE",
+                    "header": [{ "key": "Accept", "value": "application/json" }],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"update_brochures\": false\n}"
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/vendor-categories/{{vendorCategoryId}}",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["api", "v1", "vendor-categories", "{{vendorCategoryId}}"]
                     }
                   },
                   "response": []
@@ -1292,6 +1442,70 @@
                           "key": "sort_direction",
                           "value": "asc"
                         }
+                      ]
+                    }
+                  },
+                  "response": []
+                }
+              ]
+            },
+            {
+              "name": "categories",
+              "item": [
+                {
+                  "name": "q",
+                  "request": {
+                    "method": "GET",
+                    "header": [{ "key": "Accept", "value": "application/json" }],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/categories?q=electrical",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["api", "v1", "categories"],
+                      "query": [{ "key": "q", "value": "electrical" }]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "status",
+                  "request": {
+                    "method": "GET",
+                    "header": [{ "key": "Accept", "value": "application/json" }],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/categories?status=active",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["api", "v1", "categories"],
+                      "query": [{ "key": "status", "value": "active" }]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "per page",
+                  "request": {
+                    "method": "GET",
+                    "header": [{ "key": "Accept", "value": "application/json" }],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/categories?per_page=15",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["api", "v1", "categories"],
+                      "query": [{ "key": "per_page", "value": "15" }]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "sort",
+                  "request": {
+                    "method": "GET",
+                    "header": [{ "key": "Accept", "value": "application/json" }],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/categories?sort_by=name_ar&sort_direction=asc",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["api", "v1", "categories"],
+                      "query": [
+                        { "key": "sort_by", "value": "name_ar" },
+                        { "key": "sort_direction", "value": "asc" }
                       ]
                     }
                   },
