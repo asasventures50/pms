@@ -2,19 +2,19 @@
 
 Single glance. Agent: **only this file** for “what’s done”. Do not open `Apis_spec.md` or `Apis_master_plan.md` just to answer status. When a feature becomes `ready`, update this table in the same turn.
 
-`ready` = backend + spec block + Postman file. `pending` = not started.
+`ready` = backend + spec block + requests added to `docs/postman/pms.postman_collection.json`. `pending` = not started.
 
 | ID | Feature | Status | Postman |
 | --- | --- | --- | --- |
-| F01 | Authentication | ready | missing |
-| F02 | Locations | ready | `docs/postman/locations.postman_collection.json` |
-| F03 | Projects | ready | `docs/postman/projects.postman_collection.json` |
+| F01 | Authentication | ready | `docs/postman/pms.postman_collection.json` |
+| F02 | Locations | ready | `docs/postman/pms.postman_collection.json` |
+| F03 | Projects | ready | `docs/postman/pms.postman_collection.json` |
 | F04 | Categories | pending | — |
 | F05 | Users | pending | — |
 | F06 | Roles | pending | — |
 | F07 | Vendors | pending | — |
-| F08 | Procurement requests | ready | `docs/postman/procurement-requests.postman_collection.json` |
-| F09 | PR flow | ready | `docs/postman/pr-flow.postman_collection.json` |
+| F08 | Procurement requests | ready | `docs/postman/pms.postman_collection.json` |
+| F09 | PR flow | ready | `docs/postman/pms.postman_collection.json` |
 | F10 | Schedule of works | pending | — |
 | F11 | RFQ terms | pending | — |
 | F12 | RFQs | pending | — |

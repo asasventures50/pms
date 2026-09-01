@@ -17,6 +17,15 @@ class ProcurementRequestFlowCollection extends ResourceCollection
     }
 
     /**
+     * Keep paginator items as PR models. Default naming would mapInto
+     * ProcurementRequestFlowResource($model, $index) and break the constructor.
+     */
+    protected function collects(): ?string
+    {
+        return null;
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     public function toArray(Request $request): array

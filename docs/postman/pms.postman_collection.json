@@ -215,6 +215,42 @@
                   "response": []
                 }
               ]
+            },
+            {
+              "name": "flow",
+              "item": [
+                {
+                  "name": "List",
+                  "request": {
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/my-procurement-requests/flow?per_page=15",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "v1",
+                        "my-procurement-requests",
+                        "flow"
+                      ],
+                      "query": [
+                        {
+                          "key": "per_page",
+                          "value": "15"
+                        }
+                      ]
+                    }
+                  },
+                  "response": []
+                }
+              ]
             }
           ]
         },
@@ -1255,6 +1291,42 @@
                         {
                           "key": "sort_direction",
                           "value": "asc"
+                        }
+                      ]
+                    }
+                  },
+                  "response": []
+                }
+              ]
+            },
+            {
+              "name": "flow",
+              "item": [
+                {
+                  "name": "per page",
+                  "request": {
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/my-procurement-requests/flow?per_page=15",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "v1",
+                        "my-procurement-requests",
+                        "flow"
+                      ],
+                      "query": [
+                        {
+                          "key": "per_page",
+                          "value": "15"
                         }
                       ]
                     }

@@ -14,7 +14,7 @@ Each feature is one JSON object:
 
 - `apisback` — where it lives (v1 controllers, services reused, permissions, no schema changes).
 - `apisfront` — endpoints, headers, payloads, responses, errors (copy-paste for the client).
-- `list_filters` — **required on every ready feature that has a GET list**. Query-string keys only (not extra routes). Frontend uses this to render filters. Same keys as Blade. Postman folder `Helpers` mirrors this 1:1.
+- `list_filters` — **required on every ready feature that has a GET list**. Query-string keys only (not extra routes). Frontend uses this to render filters. Same keys as Blade. Postman folder `Helpers` in `pms.postman_collection.json` mirrors this 1:1.
 - `apisspec_plan` — business rules the UI must know (own vs all, enums as-is, etc.).
 
 Base URL: `{APP_URL}/api/v1`  
@@ -23,23 +23,11 @@ Auth header (after F01): `Authorization: Bearer {token}`
 
 List filters: send as `GET …?key=value`. Combine freely. `per_page` default 15, max 100. Empty/omitted key = no filter. There is no `/helpers` API.
 
-### Postman (every ready feature)
+### Postman
 
-When a feature `status` becomes `ready`, there must be a **separate** collection file:
+One collection only: [`docs/postman/pms.postman_collection.json`](postman/pms.postman_collection.json).
 
-`docs/postman/{feature-slug}.postman_collection.json`
-
-Copy the pattern of [`docs/postman/procurement-requests.postman_collection.json`](postman/procurement-requests.postman_collection.json): Bearer `{{token}}`, `baseUrl`, only that feature’s routes, no login mixed in unless the feature is Authentication.
-
-Import it yourself in Postman (Import → file). New file = new collection. Do not expect the agent to change collections you already imported.
-
-| Feature | File |
-| --- | --- |
-| Authentication (F01) | `docs/postman/authentication.postman_collection.json` (add if missing when touching F01 again) |
-| Locations (F02) | [`docs/postman/locations.postman_collection.json`](postman/locations.postman_collection.json) |
-| Projects (F03) | [`docs/postman/projects.postman_collection.json`](postman/projects.postman_collection.json) |
-| ProcurementRequests (F08) | [`docs/postman/procurement-requests.postman_collection.json`](postman/procurement-requests.postman_collection.json) |
-| ProcurementRequestFlow (F09) | [`docs/postman/pr-flow.postman_collection.json`](postman/pr-flow.postman_collection.json) |
+When a feature becomes `ready`, add its requests and Helpers into that file (keep existing folders). Do not create other JSON files under `docs/postman/`. Re-import `pms` in Postman after updates.
 
 ---
 

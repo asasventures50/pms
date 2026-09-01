@@ -32,15 +32,15 @@ Later `v2` = new folder + new prefix. Do not break `v1` or Blade.
 2. Agent reads this plan + that feature’s spec in `Apis_spec.md`.
 3. Implement backend only for that feature.
 4. Append/update the feature object in `Apis_spec.md` (`apisback`, `apisfront`, `apisspec_plan`) so frontend can paste the file into Cursor and implement without asking you.
-5. Add a **new** Postman Collection v2.1 JSON for **this feature only** under `docs/postman/`, same shape as [`docs/postman/procurement-requests.postman_collection.json`](postman/procurement-requests.postman_collection.json). Do not edit or delete other collection files. The user imports it themselves.
+5. Update **[`docs/postman/pms.postman_collection.json`](postman/pms.postman_collection.json)** with this feature’s requests (same tree: `v1` folders + `Helpers`). That file is the only Postman collection. Do not add per-feature JSON files.
 
-### Postman file per feature
+### Postman (single collection)
 
-- Path: `docs/postman/{feature-slug}.postman_collection.json` (example: `procurement-requests.postman_collection.json`).
+- Path: [`docs/postman/pms.postman_collection.json`](postman/pms.postman_collection.json)
 - Collection auth: Bearer `{{token}}`.
-- Variables: `baseUrl` (`http://127.0.0.1:8000`), `token` (empty), plus ids this feature needs (`prId`, etc.).
-- One request per route: `Accept: application/json`; body sample when POST/PUT/PATCH.
-- One file = one feature. Never merge into / overwrite an older collection.
+- Folders match the user’s tree (`authentication`, `Procurments`, `locations`, `Helpers`, …).
+- One request per route; Helpers = query examples, not extra APIs.
+- When a feature is ready, **edit this file**. Never create `docs/postman/{feature-slug}.postman_collection.json`.
 
 ## Feature order (recommended)
 
