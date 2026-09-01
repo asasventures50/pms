@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\Auth\MeController;
 use App\Http\Controllers\Api\V1\Geo\CityController;
 use App\Http\Controllers\Api\V1\Geo\CountryController;
 use App\Http\Controllers\Api\V1\Procurement\ProcurementRequests\ProcurementRequestController;
+use App\Http\Controllers\Api\V1\Procurement\ProcurementRequests\ProcurementRequestFlowController;
 use App\Http\Controllers\Api\V1\Procurement\Projects\ProjectController;
 use App\Http\Controllers\Api\V1\Procurement\Projects\ProjectQuickStoreController;
 use App\Http\Controllers\Api\V1\Procurement\Projects\ZoneQuickStoreController;
@@ -95,6 +96,10 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::delete('projects/{project}', [ProjectController::class, 'destroy'])
             ->middleware('permission:projects.update')
             ->name('projects.destroy');
+
+        Route::get('my-procurement-requests/flow', [ProcurementRequestFlowController::class, 'index'])
+            ->middleware('permission:procurement-requests.view|procurement-requests.view-own|procurement-requests.create|rfqs.view')
+            ->name('procurement-requests.my-flow');
 
         Route::get('procurement-requests', [ProcurementRequestController::class, 'index'])
             ->middleware('permission:procurement-requests.view|procurement-requests.view-own')

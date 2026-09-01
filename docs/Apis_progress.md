@@ -14,7 +14,7 @@ Single glance. Agent: **only this file** for “what’s done”. Do not open `A
 | F06 | Roles | pending | — |
 | F07 | Vendors | pending | — |
 | F08 | Procurement requests | ready | `docs/postman/procurement-requests.postman_collection.json` |
-| F09 | PR flow | pending | — |
+| F09 | PR flow | ready | `docs/postman/pr-flow.postman_collection.json` |
 | F10 | Schedule of works | pending | — |
 | F11 | RFQ terms | pending | — |
 | F12 | RFQs | pending | — |
@@ -31,7 +31,7 @@ Single glance. Agent: **only this file** for “what’s done”. Do not open `A
 | F23 | Vendor import/export | pending | — |
 | F24 | Downloads / prints / attachments | pending | — |
 
-**Count:** 4 / 24 ready (F01, F02, F03, F08).
+**Count:** 5 / 24 ready (F01, F02, F03, F08, F09).
 
 **Note:** F08 shipped before F04. Creating a PR via API still needs an existing `category_id` (Blade or F04).
 

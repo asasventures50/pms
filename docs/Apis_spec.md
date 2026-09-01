@@ -39,6 +39,7 @@ Import it yourself in Postman (Import → file). New file = new collection. Do n
 | Locations (F02) | [`docs/postman/locations.postman_collection.json`](postman/locations.postman_collection.json) |
 | Projects (F03) | [`docs/postman/projects.postman_collection.json`](postman/projects.postman_collection.json) |
 | ProcurementRequests (F08) | [`docs/postman/procurement-requests.postman_collection.json`](postman/procurement-requests.postman_collection.json) |
+| ProcurementRequestFlow (F09) | [`docs/postman/pr-flow.postman_collection.json`](postman/pr-flow.postman_collection.json) |
 
 ---
 
@@ -417,11 +418,54 @@ Import it yourself in Postman (Import → file). New file = new collection. Do n
     "apisspec_plan": "F08. Same permissions as web. List filters match Blade columns: request_number, requestor, department, requested_at, delivery_date, status, plus per_page. q still works as combined search. If flexible_delivery_date is omitted it is treated as false (same Form Request as Blade) and delivery_lead_time_days becomes required. Send flexible_delivery_date: true to match the Blade create default, or send a lead time. view-own users only see their created_by PRs. Status values must stay draft|submitted|received|closed|cancelled. company_key: asas_ventures|qassioun_journey|activation. store/update payload matches Blade PR form (Form Requests reused). request_number optional on create — backend generates. Create needs existing project_id and category_id (from Blade or later F03/F04). show.form is the same shape Blade edit uses. Request Tracking page is F09 (not this feature). Print is F24."
   },
   "ProcurementRequestFlow": {
-    "status": "pending",
+    "status": "ready",
     "id": "F09",
-    "apisback": "Pending.",
-    "apisfront": {},
-    "apisspec_plan": "My-flow screen data. Reuse ProcurementRequestFlowBuilder."
+    "apisback": "Controller: App\\Http\\Controllers\\Api\\V1\\Procurement\\ProcurementRequests\\ProcurementRequestFlowController. Reuses ProcurementRequestFlowBuilder, FlowStageKey, FlowStageState, User canAccessProcurementRequestFlow / canViewAllProcurementRequestFlows / scopesProcurementRequestFlowToOwn. Web ProcurementRequestFlowController and routes/web.php unchanged. No migrations. Same pipeline PR → RFQ → Quotations → Selection → PO → Invoice.",
+    "apisfront": {
+      "index": {
+        "endpoint": "/api/v1/my-procurement-requests/flow",
+        "method": "GET",
+        "headers": { "Accept": "application/json", "Authorization": "Bearer {token}" },
+        "request_payload": { "per_page": "optional 1-50 default 15 (Blade max is 50, not 100)" },
+        "expected_response": {
+          "data": [{
+            "id": 1,
+            "request_number": "PR-...",
+            "status": "draft",
+            "requested_at": "2026-08-31",
+            "project": { "id": 1, "code": "", "name": "" },
+            "creator": { "id": 1, "name": "only when view_all is true" },
+            "flow": {
+              "active_stage": "pr",
+              "status_summary": "Purchase request · Draft",
+              "rfq_count": 0,
+              "quotation_count": 0,
+              "po_count": 0,
+              "invoice_count": 0,
+              "has_selection": false,
+              "stages": [{ "key": "pr", "state": "active", "label": "PR", "badge": null, "badge_label": null, "detail": "Draft" }],
+              "rfqs": [{ "id": 1, "rfq_number": "", "selected_vendor_quotation_id": null }],
+              "purchase_orders": [{ "id": 1, "po_number": "", "status": "" }],
+              "invoices": [{ "id": 1, "invoice_number": "", "source": "" }]
+            }
+          }],
+          "links": {},
+          "meta": {},
+          "view_all": true,
+          "stage_keys": ["pr", "rfq", "quotations", "selection", "po", "invoice"]
+        },
+        "error_codes": { "401": "Unauthenticated", "403": "Cannot access request tracking" }
+      },
+      "list_filters": {
+        "flow": {
+          "endpoint": "/api/v1/my-procurement-requests/flow",
+          "query": {
+            "per_page": "optional 1-50 default 15"
+          }
+        }
+      }
+    },
+    "apisspec_plan": "F09 is the Blade Request Tracking page (/my-procurement-requests/flow), not PR CRUD (F08). Same access as Blade: middleware any of procurement-requests.view|view-own|create|rfqs.view, then User::canAccessProcurementRequestFlow(). view_all true means rfqs.view or super-admin or can view all PRs — those users see every PR and creator on each row. Otherwise only created_by = current user (view-own or create). Stage keys stay pr|rfq|quotations|selection|po|invoice. Stage state stays completed|active|pending|cancelled. Draw the pipeline from data[].flow.stages in that order (or stage_keys). status_summary is the Blade amber line under the request number. RFQ/PO/Invoice nested lists are summaries for this screen; full CRUD is later features. Blade has no search/status filters on this page — only per_page."
   },
   "ScheduleOfWorks": {
     "status": "pending",
