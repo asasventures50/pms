@@ -785,6 +785,90 @@
           ]
         },
         {
+          "name": "users",
+          "item": [
+            {
+              "name": "GET users",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json" }],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/users",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "users"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "GET users/{id}",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json" }],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/users/{{userId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "users", "{{userId}}"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "POST users",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"New User\",\n  \"email\": \"user@example.com\",\n  \"department\": \"general\",\n  \"currency_code\": \"USD\",\n  \"daily_receipt_limit\": 200,\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\",\n  \"roles\": [\"pr-requester\"]\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/users",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "users"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "PUT users/{id}",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Accept", "value": "application/json" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"New User\",\n  \"email\": \"user@example.com\",\n  \"department\": \"general\",\n  \"currency_code\": \"USD\",\n  \"daily_receipt_limit\": 200,\n  \"roles\": [\"pr-requester\"]\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/users/{{userId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "users", "{{userId}}"]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "DELETE users/{id}",
+              "request": {
+                "method": "DELETE",
+                "header": [{ "key": "Accept", "value": "application/json" }],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/users/{{userId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "users", "{{userId}}"]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
           "name": "Helpers",
           "item": [
             {
@@ -1505,6 +1589,84 @@
                       "path": ["api", "v1", "categories"],
                       "query": [
                         { "key": "sort_by", "value": "name_ar" },
+                        { "key": "sort_direction", "value": "asc" }
+                      ]
+                    }
+                  },
+                  "response": []
+                }
+              ]
+            },
+            {
+              "name": "users",
+              "item": [
+                {
+                  "name": "q",
+                  "request": {
+                    "method": "GET",
+                    "header": [{ "key": "Accept", "value": "application/json" }],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/users?q=ahmad",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["api", "v1", "users"],
+                      "query": [{ "key": "q", "value": "ahmad" }]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "role",
+                  "request": {
+                    "method": "GET",
+                    "header": [{ "key": "Accept", "value": "application/json" }],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/users?role=pr-requester",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["api", "v1", "users"],
+                      "query": [{ "key": "role", "value": "pr-requester" }]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "department",
+                  "request": {
+                    "method": "GET",
+                    "header": [{ "key": "Accept", "value": "application/json" }],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/users?department=procurement",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["api", "v1", "users"],
+                      "query": [{ "key": "department", "value": "procurement" }]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "per page",
+                  "request": {
+                    "method": "GET",
+                    "header": [{ "key": "Accept", "value": "application/json" }],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/users?per_page=15",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["api", "v1", "users"],
+                      "query": [{ "key": "per_page", "value": "15" }]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "sort",
+                  "request": {
+                    "method": "GET",
+                    "header": [{ "key": "Accept", "value": "application/json" }],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/users?sort_by=name&sort_direction=asc",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["api", "v1", "users"],
+                      "query": [
+                        { "key": "sort_by", "value": "name" },
                         { "key": "sort_direction", "value": "asc" }
                       ]
                     }

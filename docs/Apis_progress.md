@@ -12,7 +12,7 @@ Frontend works the same way: one ID per pass. Give them the Spec path for that r
 | F02 | Locations | ready | [`docs/Apis_spec/F02-locations.md`](Apis_spec/F02-locations.md) | `docs/postman/pms.postman_collection.json` |
 | F03 | Projects | ready | [`docs/Apis_spec/F03-projects.md`](Apis_spec/F03-projects.md) | `docs/postman/pms.postman_collection.json` |
 | F04 | Categories | ready | [`docs/Apis_spec/F04-categories.md`](Apis_spec/F04-categories.md) | `docs/postman/pms.postman_collection.json` |
-| F05 | Users | pending | [`docs/Apis_spec/F05-users.md`](Apis_spec/F05-users.md) | — |
+| F05 | Users | ready | [`docs/Apis_spec/F05-users.md`](Apis_spec/F05-users.md) | `docs/postman/pms.postman_collection.json` |
 | F06 | Roles | pending | [`docs/Apis_spec/F06-roles.md`](Apis_spec/F06-roles.md) | — |
 | F07 | Vendors | pending | [`docs/Apis_spec/F07-vendors.md`](Apis_spec/F07-vendors.md) | — |
 | F08 | Procurement requests | ready | [`docs/Apis_spec/F08-procurement-requests.md`](Apis_spec/F08-procurement-requests.md) | `docs/postman/pms.postman_collection.json` |
@@ -33,6 +33,6 @@ Frontend works the same way: one ID per pass. Give them the Spec path for that r
 | F23 | Vendor import/export | pending | [`docs/Apis_spec/F23-vendor-import-export.md`](Apis_spec/F23-vendor-import-export.md) | — |
 | F24 | Downloads / prints / attachments | pending | [`docs/Apis_spec/F24-downloads-prints-attachments.md`](Apis_spec/F24-downloads-prints-attachments.md) | — |
 
-**Count:** 6 / 24 ready (F01, F02, F03, F04, F08, F09).
+**Count:** 7 / 24 ready (F01, F02, F03, F04, F05, F08, F09).
 
-**Next (recommended):** F05 Users.
+**Next (recommended):** F06 Roles.
